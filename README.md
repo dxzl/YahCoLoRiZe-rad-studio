@@ -1,2 +1,4 @@
 # YahCoLoRiZe-rad-studio
 Port of the YahCoLoRiZe IRC chat-text colorizer to Embarcadero RAD Studio C++ Builder (Windows)
+
+Work in-progress. This port now compiles and major problems have been debugged but I haven't tested many of the program's features and much fine-tuning surely remains. Also, YahCoLoRiZe was originally ANSI only and then I ported it to Unicode the hard way, using an old development environment (Borland C++ Builder 4). When the free version of RAD Studio (Tokyo) came out, I started to port the project but it was fairly daunting. I had to build a new Edit control and scrap the old TaeRichEdit component. the new edit component that goes with YahCoLoRiZe-rad-studio is YcEdit-rad-studio. There are a lot of demo, help, spelling dictionaries and other ancillary files for YahCoLoRiZe that are not included here but are in the old YahCoLoRiZe repository.

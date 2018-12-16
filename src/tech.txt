@@ -1,0 +1,90 @@
+12,00Color-Format:
+
+12,00I started with the old mIRC IRC color format. Then
+12,00I needed to add additional color-codes for
+12,00Yahoo chat -- i.e. font-size and RGB colors
+12,00for both foreground and background.
+
+12,00So here is the way codes are embedded when you
+12,00click View->IRC.
+
+12,00Embedded YahCoLoRiZe ASCII codes (in hex):
+
+12,0002hex  04B 12Bold on/off.
+12,0003hex  04C 12Color/end of color followed by a color-
+12,00  format code. Palette indexes are decimal (0-15) but
+12,00  RGB colors are 6-digit hex (RRGGBB).
+12,000Fhex  04O 12Reset text attributes.
+12,0011hex  04P 12"Push" text-attributes.
+12,0012hex  04p 12"Pop" text-attributes.
+12,0013hex  04F 12Font type change followed by a two-digit
+12,00  table-index 00-99 in decimal. A font-type of 00 means
+12,00  "restore the previous font-type". 01 is Courier New, 02 is Tahoma.
+12,0014hex  04S 12Font size change followed by a two-digit
+12,00  font-size in decimal. A font-size of 00 means
+12,00  "restore the previous font-size".
+12,0016hex  04I 00,01Inverse video12,00 on/off (italics for Yahoo chat).
+12,001Fhex  04U 12Underline on/off.
+
+12,00Colors all begin with 03hex, the ASCII ETX code
+12,00(CTRL-C).
+
+12,00Examples:
+
+04,00C12$000000 = background color of RGB 01BLACK
+04,00C12$ffffff = background color of RGB 00,12WHITE
+04,00C12#ff0000 = foreground color of RGB 04RED
+04,00C12#00ff00 = foreground color of RGB 03GREEN
+04,00C12,00,03 = 00,03GREEN12,00 background color from the palette
+04,00C12,00,15 = 00,15SILVER00,00 12background color from the palette
+04,00C1204 = 04RED 12foreground color from the palette
+04,00C1207 = 07ORANGE 12foreground color from the palette
+04,00C1205,13 = 05MAROON 12foreground color, 00,13FUCHSIA00,00 12background
+
+12,00Default color-palette:
+
+00,01WHITE00,00          120
+01,00BLACK          121
+02,00NAVY           122
+03,00GREEN          123
+04,00RED            124
+05,00MAROON         125
+06,00PURPLE         126
+07,00ORANGE         127
+08,01YELLOW08,00         128
+09,00LIME           129
+10,00TEAL           1210
+11,00AQUA           1211
+12,00BLUE           12
+13,00FUCHSIA        1213
+14,00GRAY           1214
+15,01SILVER15,00         1215
+
+12,00EGA Color Table 16-79 (includes 6 grayscale and 6 extra colors)
+12,00Indexes 80-95 are reserved for 16 user-defined palette colors,
+12,0096 is a "no color" place-holder to avoid conflicts. 97, 98 are
+12,00reserved, 99 is "transparent"
+
+12,00Yahoo chat-codes (not embedded in YahCoLoRiZe, but
+12,00sent to Yahoo-chat; the ESC code is 27 decimal,
+12,0033 octal):
+
+12,00ESC[m Resets ??? attributes.
+12,00ESC[0m Resets all attributes.
+12,00ESC[1m Bold.
+12,00ESC[x1m unset bold.
+12,00ESC[2m Italic.
+12,00ESC[x2m unset italic.
+12,00ESC[4m Underline.
+12,00ESC[x4m unset underlne.
+12,00ESC[3?m selects a basic color where ? is 0-9.
+12,00ESC[#RRGGBBm where RRGGBB are 2-digit hex.
+
+12,00(Note: Sadly, Yahoo chat is no longer operational)
+
+12,00For Paltalk, YahCoLoRiZe converts the IRC codes to
+12,00RTF, places the RTF on the Windows clipboard and
+12,00sends it to the Paltalk edit-control using the
+12,00WM_PASTESPECIAL windows message.
+
+
