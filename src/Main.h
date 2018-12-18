@@ -990,6 +990,7 @@ __published:
   TMenuItem *MenuPadSpaces;
   TMenuItem *MenuFavoriteColors;
   TYcEdit *YcEdit;
+  TMenuItem *PopupTextState;
   void __fastcall ImportBlender(TObject *Sender);
   void __fastcall ExportBlender(TObject *Sender);
   void __fastcall ImportBlenderText(TObject *Sender);
@@ -1167,6 +1168,7 @@ __published:
   void __fastcall TaeEditInsertModeChange(TObject *Sender);
   void __fastcall MenuPadSpacesClick(TObject *Sender);
   void __fastcall FavoriteColorsClick(TObject *Sender);
+  void __fastcall PopupTextStateClick(TObject *Sender);
 //  void __fastcall TaeEditChange(TObject *Sender, DWORD dwChangeType,
 //          void *pvCookieData, bool &AllowChange);
 

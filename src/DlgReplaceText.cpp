@@ -357,14 +357,14 @@ void __fastcall TReplaceTextForm::ButtonFindUpClick(TObject *Sender)
 //---------------------------------------------------------------------------
 void __fastcall TReplaceTextForm::FrReset(bool bSetFindFirst)
 // Public function, sets bSelected and sets the text range to the
-// selected zone IF it contains one or more Line-Feed chars... otherwise
+// selected zone IF it contains one or more Carrage Return chars... otherwise
 // we will search the entire document... also sets the dialog's title
 // based on bSelected after it's set...
 {
   if (bReplacing) return;
 
 #if DEBUG_ON
-      dts->CWrite("\r\nFRRESET CALLED!\r\n");
+  dts->CWrite("\r\nFRRESET CALLED!\r\n");
 #endif
 
   if (bSetFindFirst) bFindFirst = true;

@@ -84,6 +84,8 @@ int __fastcall TConvertToHLT::Execute(bool bShowStatus)
       // languages are used).
       //
       re->CopyToStream(MS_Temp, false, false, true, true);
+//!!!!!!!!!!!!!!!!!!!!!
+//utils->ShowMessageW(utils->StreamToStringA(MS_Temp));
 
       // Test code to view this RTF file!!!!!!!!!!!!!!!!
 //       MS_Temp->Position = 0;
@@ -122,6 +124,8 @@ int __fastcall TConvertToHLT::Execute(bool bShowStatus)
         ReplaceColortbl();
         ReturnValue = ScanForCtrlK(MS_Temp);
       }
+//!!!!!!!!!!!!!!!!!!!!!
+//utils->ShowMessageW(utils->StreamToStringA(ms));
     }
     catch(...)
     {
@@ -150,10 +154,15 @@ void __fastcall TConvertToHLT::ReplaceColortbl(void)
 
   int iRed, iGreen, iBlue;
 
-  for (int ii = 0; ii < dts->PaletteSize; ii++)
+  int colors[2];
+  //colors[0] = -utils->YcToRgb(dts->Afg); // default
+  colors[0] = -utils->YcToRgb(IRCBLACK); // default
+  colors[1] = -utils->YcToRgb(HIGHLIGHT_COLOR);
+
+  for (int ii = 0; ii < 2; ii++)
   {
     // RGB Palette entry
-    Temp = IntToHex(dts->Palette[ii], 6);
+    Temp = IntToHex(colors[ii], 6);
 
     Red = "0x" + String(Temp[1]) + String(Temp[2]);
     Green = "0x" + String(Temp[3]) + String(Temp[4]);
@@ -242,23 +251,15 @@ int __fastcall TConvertToHLT::ScanForCtrlK(TMemoryStream * MS_Temp)
   char c;
   int BytesRead;
 
-  int Color = dts->cColor;
-  if (Color <= 0 || Color > dts->PaletteSize)
-    Color = IRCBLACK;
-
-  int HlColor = HIGHLIGHT_COLOR;
-  if (HlColor <= 0 || HlColor > dts->PaletteSize)
-    HlColor = IRCRED;
-
   // X is a placeholder!!!
   // NOTE: Don't need to leave a space before X because we have another
   // command directly following this one!
   //AnsiString Temp = "cf" + String(HlColor) + " X";
-  AnsiString Temp = "cf" + String(HlColor) + "X";
+  AnsiString Temp = "cf2X";
   int HlIdx = Temp.Length(); // 1-based index of X
 
   // Back to regular color...
-  Temp += "\\cf" + String(Color) + " "; // space needed here...
+  Temp += "\\cf1 "; // space needed here...
 
   try
   {

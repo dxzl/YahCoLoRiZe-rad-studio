@@ -59,7 +59,10 @@ bool __fastcall TOptimizer::StripRedundantFgRGB(WideString &S, bool bShowStatus)
 //---------------------------------------------------------------------------
 bool __fastcall TOptimizer::StripRedundantFgRGB(wchar_t* pOld, int &OldSize, bool bShowStatus)
 // Call this after the main Execute routine to analyze the text for
-// unneccessary RGB Foreground colors in front of spaces
+// unneccessary RGB Foreground colors in front of spaces.
+
+// Returns the same buffer but with a smaller size via reference and true if
+// success.
 {
   bool bRet = false;
   TList* ColorIndexes = NULL;
@@ -69,20 +72,18 @@ bool __fastcall TOptimizer::StripRedundantFgRGB(wchar_t* pOld, int &OldSize, boo
     try
     {
       ColorIndexes = new TList();
-      int iRet, len, fg, bg, ColorIdx;
-      bool bColor, bSpace;
 
-      bool bPrevColorSpace = false;
-      int PrevColorIdx = -1;
+      bool bPrevColorSpace = false, bColor = false;
+      int PrevColorIdx = -1, ColorIdx = -1;
 
       for(int ii = 0; ii < OldSize; ii++)
       {
         if (pOld[ii] == CTRL_K)
         {
-          fg = NO_COLOR;
-          bg = NO_COLOR;
+          int fg = NO_COLOR;
+          int bg = NO_COLOR;
 
-          len = utils->CountColorSequence(pOld, ii, OldSize, fg, bg);
+          int len = utils->CountColorSequence(pOld, ii, OldSize, fg, bg);
 
           if (fg < 0) // Foreground RGB color?
           {
@@ -96,7 +97,7 @@ bool __fastcall TOptimizer::StripRedundantFgRGB(wchar_t* pOld, int &OldSize, boo
         }
 
         // !!!!!fix bug 11/8/2018 - ii and OldSize reversed below!!!!!!
-        iRet = utils->SkipCode(pOld, OldSize, ii);
+        int iRet = utils->SkipCode(pOld, OldSize, ii);
 
         if (iRet == S_NULL)
           break;
@@ -113,7 +114,7 @@ bool __fastcall TOptimizer::StripRedundantFgRGB(wchar_t* pOld, int &OldSize, boo
           continue;
 
         // Have a real char, set flags
-        bSpace = (pOld[ii] == ' ') ? true : false;
+        bool bSpace = (pOld[ii] == ' ') ? true : false;
 
         // If this wchar_t (space or non-space) has a RGB foreground color in
         // front of it and the previous wchar_t was a space with a  rgb fg
@@ -129,7 +130,8 @@ bool __fastcall TOptimizer::StripRedundantFgRGB(wchar_t* pOld, int &OldSize, boo
         else if (!bSpace)
           bPrevColorSpace = false;
 
-        PrevColorIdx = ColorIdx;
+        if (bColor)
+          PrevColorIdx = ColorIdx;
 
         bColor = false;
       }
@@ -139,13 +141,23 @@ bool __fastcall TOptimizer::StripRedundantFgRGB(wchar_t* pOld, int &OldSize, boo
       // Go backward through the list overwriting memory the unnecessary
       // color-code occupies.
       if (ColorIndexes->Count > 0)
+      {
         for(int ii = ColorIndexes->Count-1; ii >= 0; ii--, OldSize -= 8)
           for (int jj = (int)ColorIndexes->Items[ii]; jj < OldSize; jj++)
             pOld[jj] = pOld[jj+8];
+#if DEBUG_ON
+        dts->CWrite("\r\nStripRedundantFgRGB(): new size: " + String(OldSize) + "\r\n");
+#endif
+      }
 
       bRet = true;
     }
-    catch(...) {}
+    catch(...)
+    {
+#if DEBUG_ON
+      dts->CWrite("\r\nException thrown in TOptimizer::StripRedundantFgRGB(wchar_t*, int &, bool)\r\n");
+#endif
+    }
   }
   __finally
   {

@@ -207,7 +207,7 @@ bool __fastcall TThreadOnChange::ProcessOC(ONCHANGEW oc)
 // DTSColor->CWrite("\r\nUndoLen:" + String(UndoLen) + ", UndoStr:\"" + UndoStr + "\"\r\n");
 //#endif
           // Add to undo-objects
-          if (TOCUndo != NULL)
+          if (TOCUndo != NULL && !UndoStr.IsEmpty())
           {
             // here we go to a little extra trouble to use a small-footprint
             // undo structure if only one char or line-break was deleted

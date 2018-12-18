@@ -786,6 +786,7 @@ void __fastcall TDTSColor::InitMainMenu(void)
   LeftJustify->Hint = DS[21];
   ProcessButton->Hint = DS[27];
   ShowButton->Hint = DS[244];
+  PauseButton->Hint = DS[26];
   PlayButton->Hint = DS[28];
   StopButton->Hint = DS[29];
   ResumeButton->Hint = DS[30];
@@ -1540,7 +1541,8 @@ void __fastcall TDTSColor::AddEffect(int Effect, bool bUndo,
   int SaveSelLength = tae->SelLength;
   int SaveSelLine = tae->Line;
 
-  int segmentsToAdd = utils->IsRtfView() ? 4 : 3;
+//  int segmentsToAdd = utils->IsRtfView() ? 4 : 3;
+  int segmentsToAdd = 3;
   CpInit(segmentsToAdd);
 
   try
@@ -2806,6 +2808,31 @@ void __fastcall TDTSColor::SaveFileViaStream(WideString wFile, bool SavePlain)
 void __fastcall TDTSColor::FileExit(TObject *Sender)
 {
   Close();
+}
+//---------------------------------------------------------------------------
+void __fastcall TDTSColor::PopupTextStateClick(TObject *Sender)
+{
+  // View text state at caret
+
+  if (!utils->IsRtfIrcOrgView())
+    return;
+
+  TPoint p = tae->CaretPos;
+
+  WideString wS;
+
+  // get just the line the caret is on of raw codes into wS
+  utils->IsOrgView() ? wS = SL_ORG->GetString(p.y) : wS = SL_IRC->GetString(p.y);
+
+  if (!utils->IsRtfView())
+    p.x = utils->GetRealIndex(wS, p.x); // V_ORG or V_IRC, need real char index...
+
+  PUSHSTRUCT ps; // filled by reference in SetStateFlags()
+
+  if (utils->SetStateFlags(wS, p.x, ps) <= 0)
+    return; // error...
+
+  utils->ShowState(ps, p.y+1, p.x+1);
 }
 //----------------------------------------------------------------------------
 void __fastcall TDTSColor::EditCut(TObject *Sender)
@@ -4524,7 +4551,7 @@ int __fastcall TDTSColor::LoadView(int NewView)
 
           // Limit the index to the max raw-codes text
           // TextLength counts line-terminators as two chars!
-          int IrcTextLength = tae->TextLength - tae->LineCount + 1;
+          int IrcTextLength = utils->GetTextLength(tae);
 
           if (Idx > IrcTextLength)
             Idx = IrcTextLength;
@@ -4791,6 +4818,15 @@ void __fastcall TDTSColor::ClearAndFocus(bool bClearSL, bool bLeaveOrg)
   if (!(bLeaveOrg && tae->View == V_ORG))
   {
     tae->Clear();
+//ShowMessage("set font clear");
+//    tae->SelAttributes->Color = cColor;
+//    tae->SelAttributes->Name = cFont;
+//    tae->SelAttributes->Style = cStyle;
+//    tae->SelAttributes->Size = cSize;
+////    tae->SelAttributes->Height =
+//    tae->SelAttributes->Charset = cCharset;
+//    tae->SelAttributes->Pitch = cPitch;
+
     bFileOpened = false,
     bFileSaved = false;
   }
@@ -10342,27 +10378,36 @@ void __fastcall TDTSColor::MenuCharacterMapClick(TObject *Sender)
 //---------------------------------------------------------------------------
 void __fastcall TDTSColor::MenuOptimizeClick(TObject *Sender)
 {
-  if (TOCUndo)
+  try
   {
-    // All undos are garbage if we optimize! (So ask...)
-    if (TOCUndo->Count > 0)
+    CpInit(1);
+
+    if (TOCUndo)
     {
-      if (utils->ShowMessageU(Handle, DS[50],
-                    MB_ICONQUESTION|MB_YESNO|MB_DEFBUTTON1) == IDNO)
-        return;
+      // All undos are garbage if we optimize! (So ask...)
+      if (TOCUndo->Count > 0)
+      {
+        if (utils->ShowMessageU(Handle, DS[50],
+                      MB_ICONQUESTION|MB_YESNO|MB_DEFBUTTON1) == IDNO)
+          return;
+      }
+
+      // When we optimize we can no longer rely on the undo-list's
+      // saved indices!
+      TOCUndo->Clear(); // Clear undo buffer
     }
 
-    // When we optimize we can no longer rely on the undo-list's
-    // saved indices!
-    TOCUndo->Clear(); // Clear undo buffer
+    // Save original position and carat
+    TYcPosition* p = new TYcPosition(tae);
+    p->SavePos = p->Position;
+    utils->Optimize(true);
+    p->Position = p->SavePos;
+    delete p;
   }
-
-  // Save original position and carat
-  TYcPosition* p = new TYcPosition(tae);
-  p->SavePos = p->Position;
-  utils->Optimize(true);
-  p->Position = p->SavePos;
-  delete p;
+  __finally
+  {
+    CpHide();
+  }
 }
 //---------------------------------------------------------------------------
 void __fastcall TDTSColor::ddetextPokeData(TObject *Sender)
@@ -12091,10 +12136,10 @@ void __fastcall TDTSColor::TaeEditChange(TObject *Sender)
     bTextWasProcessed = false;
   }
 
-//#if DEBUG_ON
-// DTSColor->CWrite("\r\noc.deltaLength:" + String(oc.deltaLength) +
-// ", oc.deltaLineCount:" + String(oc.deltaLineCount) + ", selText:\"" + tae->SelText + "\"\r\n");
-//#endif
+#if DEBUG_ON
+ DTSColor->CWrite("\r\noc.deltaLength:" + String(oc.deltaLength) +
+ ", oc.deltaLineCount:" + String(oc.deltaLineCount) + ", selText:\"" + tae->SelText + "\"\r\n");
+#endif
   // User deleted chars? (1 or 2 for cr/lf)
   // if user pressed Alt-X after a sequence of hex digits, deltaLength,
   // if 4 hex digits, will be -3.

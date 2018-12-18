@@ -13,106 +13,106 @@ const char* FONTS[] =
 // the IRC text... 1-99 (0 is reserved to indicate the default font)
 // ok to add as many as you want... but change FONTITEMS in the header file!
 //
-  // Completely case independant...
-  "Courier New", // 1 (do not change) USER_DEF_TYPE
-  "Tahoma", // 2 (do not change) PALTALK_DEF_TYPE
-  "Arial",
-  "Arial Black",
-  "Arial Narrow",
-  "Arial Unicode MS",
-  "Batang",
-  "Batangche",
-  "Book Antiqua",
-  "Bookman Old Style", // 10
-  "Bookshelf Symbol 7",
-  "Browallia New",
-  "Browalliaupc",
-  "Buxton Sketch",
-  "Calibri",
-  "Calibri Light",
-  "Cambria",
-  "Cambria Math",
-  "Candara",
-  "Century", // 20
-  "Century Gothic",
-  "Comic Sans MS",
-  "Consolas",
-  "Constantia",
-  "Corbel",
-  "Cordia New",
-  "Cordiaupc",
-  "Courier",
-  "Daunpenh",
-  "David", // 30
-  "Default",
-  "Dilleniaupc",
-  "Dokchampa",
-  "Euphemia",
-  "Fangsong",
-  "Fixedsys",
-  "Franklin Gothic Medium",
-  "Freesiaupc",
-  "Gabriola",
-  "Garamond", // 40
-  "Gautami",
-  "Georgia",
-  "Gelvetica",
-  "Impact",
-  "Irisupc",
-  "Iskoola Pota",
-  "Jasmineupc",
-  "Javanese Text",
-  "Kaiti",
-  "Kalinga", // 50
-  "Kartika",
-  "Khmer UI",
-  "Kodchiangupc",
-  "Kokila",
-  "Lao UI",
-  "Latha",
-  "Leelawadee",
-  "Lucida Console",
-  "Lucida Sans Unicode",
-  "Malgun Gothic", // 60
-  "Mangal",
-  "Marlett",
-  "Meiryo",
-  "Meiryo UI",
-  "Miriam",
-  "Miriam Fixed",
-  "Modern",
-  "Mongolian Baiti",
-  "Moolboran",
-  "Mt Extra", // 70
-  "Mv Boli",
-  "Myanmar Text",
-  "Nyala",
-  "Palatino Linotype",
-  "Plantagenet Cherokee",
-  "Raavi",
-  "Roman",
-  "Script",
-  "Sketchflow Print",
-  "Small Fonts", // 80
-  "Symbol",
-  "System",
-  "Terminal",
-  "Times New Roman",
-  "Traditional Arabic",
-  "Trebuchet MS",
-  "Verdana",
-  "Webdings",
-  "Wingdings",
-  "Wingdings 2", // 90
-  "Wingdings 3",
-  "@Arial Unicode MS",
-  "@Batang",
-  "@Dotum",
-  "@Kaiti",
-  "@Malgun Gothic",
-  "@Meiryo UI",
-  "@Mingliu",
-  "@Mingliu_hkscs", // 99
+// Completely case independant...
+"Courier New", // 1 (do not change) USER_DEF_TYPE
+"Tahoma", // 2 (do not change) PALTALK_DEF_TYPE
+"Arial",
+"Arial Black",
+"Arial Narrow",
+"Arial Unicode MS",
+"Batang",
+"Batangche",
+"Book Antiqua",
+"Bookman Old Style", // 10
+"Bookshelf Symbol 7",
+"Browallia New",
+"Browalliaupc",
+"Buxton Sketch",
+"Calibri",
+"Calibri Light",
+"Cambria",
+"Cambria Math",
+"Candara",
+"Century", // 20
+"Century Gothic",
+"Comic Sans MS",
+"Consolas",
+"Constantia",
+"Corbel",
+"Cordia New",
+"Cordiaupc",
+"Courier",
+"Daunpenh",
+"David", // 30
+"Default",
+"Dilleniaupc",
+"Dokchampa",
+"Euphemia",
+"Fangsong",
+"Fixedsys",
+"Franklin Gothic Medium",
+"Freesiaupc",
+"Gabriola",
+"Garamond", // 40
+"Gautami",
+"Georgia",
+"Gelvetica",
+"Impact",
+"Irisupc",
+"Iskoola Pota",
+"Jasmineupc",
+"Javanese Text",
+"Kaiti",
+"Kalinga", // 50
+"Kartika",
+"Khmer UI",
+"Kodchiangupc",
+"Kokila",
+"Lao UI",
+"Latha",
+"Leelawadee",
+"Lucida Console",
+"Lucida Sans Unicode",
+"Malgun Gothic", // 60
+"Mangal",
+"Marlett",
+"Meiryo",
+"Meiryo UI",
+"Miriam",
+"Miriam Fixed",
+"Modern",
+"Mongolian Baiti",
+"Moolboran",
+"Mt Extra", // 70
+"Mv Boli",
+"Myanmar Text",
+"Nyala",
+"Palatino Linotype",
+"Plantagenet Cherokee",
+"Raavi",
+"Roman",
+"Script",
+"Sketchflow Print",
+"Small Fonts", // 80
+"Symbol",
+"System",
+"Terminal",
+"Times New Roman",
+"Traditional Arabic",
+"Trebuchet MS",
+"Verdana",
+"Webdings",
+"Wingdings",
+"Wingdings 2", // 90
+"Wingdings 3",
+"@Arial Unicode MS",
+"@Batang",
+"@Dotum",
+"@Kaiti",
+"@Malgun Gothic",
+"@Meiryo UI",
+"@Mingliu",
+"@Mingliu_hkscs", // 99
 };
 //************************************************************************
 const char* VIEWS[] =
@@ -846,6 +846,7 @@ const char* MAINPOPUPMENU[] =
 "Process",
 "Play",
 "-",
+"Text state at Caret",
 "Process SwiftMiX Song Title",
 "-",
 "Cut",
@@ -1250,7 +1251,7 @@ const char* DS[TOTALSTRINGS] =
 "Alternate Colors", // 24
 "Randomize Colors", // 25
 
-"", // 26
+"Press to pause text-play.", // 26
 
 // ProcessButton->Hint = XX->Strings[27];
 "Convert the highlighted text to a\n"
@@ -1727,7 +1728,7 @@ const char* DS[TOTALSTRINGS] =
 
 "Renders the text \"As Is\" with no borders, wings\n"
 "or additional text-formatting of any kind.\n\n"
-"(Push/Pop regions are shown in STRIKETHROUGH!)", // 244 Hint
+"(Protected regions are shown in STRIKETHROUGH!)", // 244 Hint
 
 // Auto-linewidth (Width tab)
 "Auto", // 245

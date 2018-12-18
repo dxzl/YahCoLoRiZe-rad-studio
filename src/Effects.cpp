@@ -148,6 +148,10 @@ void __fastcall TProcessEffect::Execute(bool bShowStatus)
 
         // Move the the mapped text/codes to a processing buffer...
         pBuf = utils->MoveTextToBuffer(pSaveBuf, iFirst, iLast, iSize);
+#if DEBUG_ON
+        dts->CWrite("\r\niFirst:" + String(iFirst) + ", iLast:" +
+              String(iLast) + ", iSize:" + String(iSize) + "\r\n");
+#endif
       }
       else if (utils->IsIrcOrgView())
       {
@@ -332,6 +336,9 @@ void __fastcall TProcessEffect::Execute(bool bShowStatus)
           StripSingleCode(pBuf, iSize, (wchar_t)m_ep2);
 
         TempStr = WideString(pBuf, iSize);
+//#if DEBUG_ON
+//    dts->CWrite("\r\niTempStr:\"" + TempStr + "\"\r\n");
+//#endif
 
         goto GetThisOver; // Always wanted to use a GOTO! :-)
       }
@@ -1560,7 +1567,13 @@ void __fastcall TProcessEffect::StripCodes(wchar_t* pBuf, int &iSize,
   if (idx < iSize)
   {
     pBuf[idx] = C_NULL;
+//#if DEBUG_ON
+//    dts->CWrite("\r\niTProcessEffect::StripCodes(), Old iSize:" + String(iSize) + "\r\n");
+//#endif
     iSize = idx;
+//#if DEBUG_ON
+//    dts->CWrite("\r\niTProcessEffect::StripCodes(), New iSize:" + String(iSize) + "\r\n");
+//#endif
   }
 }
 //---------------------------------------------------------------------------

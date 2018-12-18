@@ -52,8 +52,12 @@ __fastcall TStringsW::TStringsW(void)
 __fastcall TStringsW::TStringsW(WideString wIn)
 // constructor
 {
-  TStringsW();
-  SetText(wIn);
+// Can't do this in the new RAD Studio...
+//  TStringsW();
+  pTList = new TList();
+  m_length = 0;
+
+  this->SetText(wIn);
 }
 //---------------------------------------------------------------------------
 __fastcall TStringsW::~TStringsW(void)
