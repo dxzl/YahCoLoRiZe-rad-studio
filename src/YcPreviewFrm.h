@@ -21,7 +21,7 @@
 #include <Buttons.hpp>
 #include <ComCtrls.hpp>
 
-#include "..\YcEdit\YcEdit.h"
+#include "..\YcEdit\YcEditMain.h"
 //---------------------------------------------------------------------------
 enum TPreviewMode { OneUp, TwoUp, Zoomed };
 
@@ -31,7 +31,8 @@ class TYcPreviewWindow : public TPanel
 {
 protected:
   TYcEdit* FYcEdit;
-  int FPage;
+  int FPage, FRet;
+  HDC FHdc;
 
   void __fastcall SetPage(int page)
   {
@@ -46,11 +47,11 @@ protected:
   };
 
 public:
-  int FHdc;
 
   __fastcall virtual TYcPreviewWindow(TComponent* Owner) : TPanel(Owner), FPage(0), FHdc(0)
   {
     Color = clWhite;
+    FHdc = this->Hdc;
   };
 
   __fastcall virtual void Paint(void)
@@ -60,11 +61,13 @@ public:
     // set canvas brush (otherwise, DrawFocusRect() draws white on white)
     Canvas->Brush->Color = clWhite;
     // copy background into rendering rect
-    FYcEdit->YcPrint->RenderPage(Canvas->Handle, ClientWidth, ClientHeight, FPage + 1);
+    FRet = FYcEdit->YcPrint->RenderPage(Canvas->Handle, ClientWidth, ClientHeight, FPage + 1);
   };
 
   __property TYcEdit* YcEdit = { read = FYcEdit, write = SetRichEdit, nodefault };
   __property int Page = { read = FPage, write = SetPage, nodefault };
+  __property HDC Hdc = { read = FHdc, nodefault };
+  __property int Ret = { read = FRet, nodefault };
 };
 //---------------------------------------------------------------------------
 
@@ -119,30 +122,31 @@ __published:  // IDE-managed Components;
 private:  // User declarations
   int xPerInch, yPerInch;
   int cXsize, cYsize;
-  
-protected:
+  HDC FHdc;
   TYcEdit* FYcEdit;
   int PageCount;
   int FirstPage;
   TPreviewMode Mode;
   int Scale, FCorrectionX, FCorrectionY;
-  HDC Hdc;
   TYcPreviewWindow* Page1;
   TYcPreviewWindow* Page2;
   TYcPreviewWindow* Page3;
+  TYcPrint* FYcPrint;
 
   void __fastcall SetCorrectionY(int Value);
   void __fastcall SetCorrectionX(int Value);
 
+protected:
+
 public:    // User declarations
   __fastcall TYcPreviewForm(TComponent* Owner);
   __fastcall ~TYcPreviewForm();
-  int __fastcall Execute(TYcEdit* taeRichEdit); // use this instead of Show() or ShowModal()
+  int __fastcall Execute(TYcEdit* yc); // use this instead of Show() or ShowModal()
   void __fastcall GotoPage(int page);
 
   __property int CorrectionX = { read = FCorrectionX, write = SetCorrectionX };
   __property int CorrectionY = { read = FCorrectionY, write = SetCorrectionY };
-  __property HDC RendDC = { read = Hdc, write = Hdc, nodefault };
+  __property HDC RendDC = { read = FHdc, write = FHdc, nodefault };
   __property TYcEdit* YcEdit = { read = FYcEdit,
                         write = FYcEdit, default = 0, stored = false };
 };

@@ -23,12 +23,12 @@
 #include "ConvertToYahoo.h"
 #include "ConvertToHTML.h"
 #include "ConvertFromHTML.h"
-//#include "..\YcEdit\YcPrintDialog.h"
+#include "..\YcEdit\YcPrintDialog.h"
 //#include "..\TaeRichEdit\YcPageSetupDlg.h"
 //#include "..\TaeRichEdit\TaeRichEditAdvPrint.h"
 //#include "YcPreviewFrm.h"
 #include "PrintPreview.h"
-//#include "..\TaeRichEdit\TaeRichEdit.h"
+//#include "..\YcEdit\YcEdit.h"
 
 #include "DlgIncDec.h"
 #include "DlgAlternate.h"
@@ -55,7 +55,7 @@
 #include "Paltalk.h"
 //---------------------------------------------------------------------------
 #pragma package(smart_init)
-#pragma link "YcEdit"
+#pragma link "YcEditMain"
 #pragma resource "*.dfm"
 //---------------------------------------------------------------------------
 // FYI: For multi-monitor stuff look up TMonitor, TScreen and TPosition...
@@ -5146,11 +5146,11 @@ void __fastcall TDTSColor::PrinterPageSetupClick(TObject *Sender)
 //---------------------------------------------------------------------------
 void __fastcall TDTSColor::PrintPreview1Click(TObject *Sender)
 {
-//  if (!PrintPreview)
-//    PrintPreview = new TPrintPreview(this);
+  //if (!PrintPreview)
+  //  PrintPreview = new TPrintPreview(this);
 
-//  PrintPreview->Preview(tae);
-//  return;
+  //PrintPreview->Preview(tae);
+  //return;
 //---------------------------------------
   if (YcPreviewForm)
     return;
@@ -5239,6 +5239,7 @@ void __fastcall TDTSColor::PrintPreview1Click(TObject *Sender)
     {
       YcPreviewForm->Release();
       YcPreviewForm = NULL;
+      tae->PrintSupport = false; // release memory for printing
     }
   }
 }
@@ -5264,41 +5265,41 @@ void __fastcall TDTSColor::FilePrintClick(TObject *Sender)
       utils->ShowMessageU(String(DS[80]));
     else
     {
-//      TYcPrintDialog* p = new TYcPrintDialog(tae);
-//
-//      if (p != NULL)
-//      {
-//        utils->PushOnChange(tae);
-//
-//        // Displayed in the dialog...
-//        WideString wTemp;
-//        if (bFileSaved)
-//          wTemp = SaveD + SaveF;
-//        else if (bFileOpened)
-//          wTemp = OpenD + OpenF;
-//
-//        if (!wTemp.IsEmpty() && utils->FileExistsW(wTemp))
-//          tae->FileName = utils->GetAnsiPathW(wTemp);
-//        else
-//          tae->FileName = "";
-//
-//        // replace \pagebreak strings with \page for FormatRange to work...
-//        utils->PageBreaksToRtf(tae);
-//
-//        // This will set: FRichEditPrint->RendDC = Printer()->Handle;
-//        p->YcExecute(tae->FileName);
-//
-//        delete p;
-//
-//        if (utils->IsRtfView())
-//          DoShowRtf(false); // put the \pagebreak strings back
-//        else
-//          LoadView(tae->View);
-//
-//        utils->PopOnChange(tae);
-//      }
-//      else
-//        utils->ShowMessageU(String(FN[14])); // "TDTSTrinity"
+      TYcPrintDialog* p = new TYcPrintDialog(tae);
+
+      if (p != NULL)
+      {
+        utils->PushOnChange(tae);
+
+        // Displayed in the dialog...
+        WideString wTemp;
+        if (bFileSaved)
+          wTemp = SaveD + SaveF;
+        else if (bFileOpened)
+          wTemp = OpenD + OpenF;
+
+        if (!wTemp.IsEmpty() && utils->FileExistsW(wTemp))
+          tae->FileName = utils->GetAnsiPathW(wTemp);
+        else
+          tae->FileName = "";
+
+        // replace \pagebreak strings with \page for FormatRange to work...
+        utils->PageBreaksToRtf(tae);
+
+        // This will set: FRichEditPrint->RendDC = Printer()->Handle;
+        p->TaeExecute(tae->FileName);
+
+        delete p;
+
+        if (utils->IsRtfView())
+          DoShowRtf(false); // put the \pagebreak strings back
+        else
+          LoadView(tae->View);
+
+        utils->PopOnChange(tae);
+      }
+      else
+        utils->ShowMessageU(String(FN[14])); // "TDTSTrinity"
     }
   }
   else

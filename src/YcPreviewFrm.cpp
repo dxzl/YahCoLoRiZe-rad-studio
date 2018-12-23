@@ -33,7 +33,7 @@
 #pragma resource "*.dfm"
 //---------------------------------------------------------------------------
 TYcPreviewForm *YcPreviewForm = NULL;
-AnsiString defFormTitle;
+String defFormTitle;
 //---------------------------------------------------------------------------
 int ScaleFactors[] = { 200, 150, 100, 95, 90, 85, 80, 75, 50, 25 };
 int NumScaleFactors = sizeof(ScaleFactors) / sizeof(ScaleFactors[0]);
@@ -73,13 +73,14 @@ __fastcall TYcPreviewForm::TYcPreviewForm(TComponent* Owner)
   cYsize = GetSystemMetrics(SM_CYSIZE);
 
   // set the rendering HDC to something compatible with the screen
-  hdc = ::GetWindowDC(GetDesktopWindow());
-  Hdc = ::CreateCompatibleDC(hdc);
-  ::ReleaseDC(GetDesktopWindow(), hdc);
+  HWND H_Desktop = GetDesktopWindow();
+  hdc = ::GetWindowDC(H_Desktop);
+  this->FHdc = ::CreateCompatibleDC(hdc);
+  ::ReleaseDC(H_Desktop, hdc);
 
   // fill scale factors combobox
   for (int i = 0; i < NumScaleFactors; i++)
-    ScaleCB->Items->Add(AnsiString(ScaleFactors[i]) + "%");
+    ScaleCB->Items->Add(String(ScaleFactors[i]) + "%");
 
   ScaleCB->ItemIndex = 2;
   Scale = ScaleFactors[ScaleCB->ItemIndex];
@@ -108,7 +109,7 @@ __fastcall TYcPreviewForm::TYcPreviewForm(TComponent* Owner)
 __fastcall TYcPreviewForm::~TYcPreviewForm()
 {
   // dispose of dc
-  ::DeleteDC(Hdc);
+  ::DeleteDC(FHdc);
 
   // make sure nobody is trying to use FYcEdit
   Page1->YcEdit = FYcEdit;
@@ -126,13 +127,14 @@ void __fastcall TYcPreviewForm::SetCorrectionY(int Value)
   UpDownScaleY->Position = (short)Value;
 }
 //---------------------------------------------------------------------------
-int __fastcall TYcPreviewForm::Execute(TYcEdit* taeRichEdit)
+  // Prior to calling Execute, set the properties CorrectionX and CorrectionY!
+int __fastcall TYcPreviewForm::Execute(TYcEdit* yc)
 {
   // set the FYcEdit variable for the form -- quick out if not valid
-  FYcEdit = taeRichEdit;
+  FYcEdit = yc;
   if (!FYcEdit || !FYcEdit->YcPrint) return mrAbort;
 
-  // Prior to calling Execute, set the properties CorrectionX and CorrectionY!
+  FYcPrint = FYcEdit->YcPrint;
 
   // Initialize Correction factors
   UpDownScaleXClick(NULL, (TUDBtnType)0);
@@ -153,10 +155,10 @@ int __fastcall TYcPreviewForm::Execute(TYcEdit* taeRichEdit)
 void __fastcall TYcPreviewForm::FormResize(TObject *Sender)
 {
   // convert PageRect from twips to device units (pixels)
-  int rX = ::MulDiv(FYcEdit->YcPrint->TargetPageRect.Right -
-    FYcEdit->YcPrint->TargetPageRect.Left, xPerInch, 1440);
-  int rY = ::MulDiv(FYcEdit->YcPrint->TargetPageRect.Bottom -
-    FYcEdit->YcPrint->TargetPageRect.Top, yPerInch, 1440);
+  int rX = ::MulDiv(FYcPrint->TargetPageRect.Right -
+    FYcPrint->TargetPageRect.Left, xPerInch, 1440);
+  int rY = ::MulDiv(FYcPrint->TargetPageRect.Bottom -
+    FYcPrint->TargetPageRect.Top, yPerInch, 1440);
 
   // if zoomed, add border * 2 to display size
   if (Mode == Zoomed)
@@ -255,16 +257,17 @@ void __fastcall TYcPreviewForm::FormShow(TObject *Sender)
   Page1->YcEdit = FYcEdit;
   Page2->YcEdit = FYcEdit;
   Page3->YcEdit = FYcEdit;
-  FYcEdit->YcPrint->RendDC = this->Hdc;
+
+  FYcPrint->RendDC = FHdc;
 
   // some buttons must(?) be set up here
-  FYcEdit->YcPrint->ShowMargins = MarginsBtn->Down;
+  FYcPrint->ShowMargins = MarginsBtn->Down;
 
-  FYcEdit->YcPrint->BeginRender(MAXINT);
-  PageCount = FYcEdit->YcPrint->PageCount;
+  FYcPrint->BeginRender(MAXINT);
+  PageCount = FYcPrint->PageCount;
 
   // set initial pages to show
-  // later change the following to look up page of current cursor position
+  // TODO: change the following to look up page of current cursor position
   GotoPage(0);
 
   // show appropriate panel
@@ -354,6 +357,9 @@ void __fastcall TYcPreviewForm::GotoPage(int page)
   Page3->Page = page;
   Page2->Page = page + 1;
 
+  // diagnostic
+  //ShowMessage(String(Page1->Ret));
+
   // if page2 out of range...
   Page2->Visible = (Mode == TwoUp && Page2->Page < PageCount);
 
@@ -364,13 +370,13 @@ void __fastcall TYcPreviewForm::GotoPage(int page)
     Page2->Page : Page1->Page) != PageCount - 1;
   NextPageBtn->Enabled = LastPageBtn->Enabled;
 
-  AnsiString msg(Page2->Visible ? "Pages " : "Page ");
-  msg += AnsiString(Page1->Page + 1);
-  
+  String msg(Page2->Visible ? "Pages " : "Page ");
+  msg += String(Page1->Page + 1);
+
   if (Page2->Visible)
-    msg += " and " + AnsiString(Page2->Page + 1);
-  
-  msg += " of " + AnsiString(PageCount);
+    msg += " and " + String(Page2->Page + 1);
+
+  msg += " of " + String(PageCount);
   
   StatusBar->SimpleText = msg;
 
@@ -384,7 +390,7 @@ void __fastcall TYcPreviewForm::GotoPage(int page)
 void __fastcall TYcPreviewForm::MarginsBtnClick(TObject *Sender)
 {
   // user clicked show/hide margins button
-  FYcEdit->YcPrint->ShowMargins = MarginsBtn->Down;
+  FYcPrint->ShowMargins = MarginsBtn->Down;
   FormResize(Sender);
 }
 //---------------------------------------------------------------------------
@@ -433,7 +439,7 @@ void __fastcall TYcPreviewForm::ScaleCBChange(TObject *Sender)
 void __fastcall TYcPreviewForm::FormClose(TObject *Sender, TCloseAction &Action)
 {
   // end rendering before closing
-  FYcEdit->YcPrint->EndRender();
+  FYcPrint->EndRender();
 }
 //---------------------------------------------------------------------------
 void __fastcall TYcPreviewForm::PrintBtnClick(TObject *Sender)
@@ -451,12 +457,12 @@ void __fastcall TYcPreviewForm::PrintSetupBtnClick(TObject *Sender)
 void __fastcall TYcPreviewForm::UpDownScaleXClick(TObject *Sender,
       TUDBtnType Button)
 {
-  if (FYcEdit && FYcEdit->YcPrint)
+  if (FYcEdit && FYcPrint)
   {
     FCorrectionX = UpDownScaleX->Position;
     LabelScaleX->Caption = String(FCorrectionX);
     LabelScaleX->Update();
-    FYcEdit->YcPrint->ScaleX = FCorrectionX;
+    FYcPrint->ScaleX = FCorrectionX;
     Page1->Invalidate();
     Page2->Invalidate();
     Page3->Invalidate();
@@ -466,12 +472,12 @@ void __fastcall TYcPreviewForm::UpDownScaleXClick(TObject *Sender,
 void __fastcall TYcPreviewForm::UpDownScaleYClick(TObject *Sender,
       TUDBtnType Button)
 {
-  if (FYcEdit && FYcEdit->YcPrint)
+  if (FYcEdit && FYcPrint)
   {
     FCorrectionY = UpDownScaleY->Position;
     LabelScaleY->Caption = String(FCorrectionY);
     LabelScaleY->Update();
-    FYcEdit->YcPrint->ScaleY = FCorrectionY;
+    FYcPrint->ScaleY = FCorrectionY;
     Page1->Invalidate();
     Page2->Invalidate();
     Page3->Invalidate();

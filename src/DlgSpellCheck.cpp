@@ -22,7 +22,7 @@
 #include "DlgChooseDict.h"
 //---------------------------------------------------------------------------
 #pragma package(smart_init)
-#pragma link "YcEdit"
+#pragma link "YcEditMain"
 #pragma resource "*.dfm"
 
 TSpellCheckForm *SpellCheckForm;

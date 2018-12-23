@@ -279,12 +279,6 @@
             <DependentOn>DlgStrip.h</DependentOn>
             <BuildOrder>31</BuildOrder>
         </CppCompile>
-        <CppCompile Include="DlgTaePrintCancel.cpp">
-            <Form>TaePrintCancelDialog</Form>
-            <FormType>dfm</FormType>
-            <DependentOn>DlgTaePrintCancel.h</DependentOn>
-            <BuildOrder>32</BuildOrder>
-        </CppCompile>
         <CppCompile Include="DlgUnderline.cpp">
             <Form>UnderlineForm</Form>
             <FormType>dfm</FormType>
@@ -397,16 +391,21 @@
             <DependentOn>YcPreviewFrm.h</DependentOn>
             <BuildOrder>54</BuildOrder>
         </CppCompile>
+        <CppCompile Include="YcPrintCancelDlg.cpp">
+            <Form>YcPrintCancelDialog</Form>
+            <FormType>dfm</FormType>
+            <DependentOn>YcPrintCancelDlg.h</DependentOn>
+            <BuildOrder>54</BuildOrder>
+        </CppCompile>
         <FormResources Include="Main.dfm"/>
         <FormResources Include="FormSFDlg.dfm"/>
         <FormResources Include="FormOFSSDlg.dfm"/>
         <FormResources Include="DlgUnderline.dfm"/>
-        <FormResources Include="DlgTaePrintCancel.dfm"/>
         <FormResources Include="DlgStrip.dfm"/>
+        <FormResources Include="DlgSpellCheck.dfm"/>
         <FormResources Include="DlgWingEdit.dfm"/>
         <FormResources Include="DlgWebExport.dfm"/>
         <FormResources Include="YcPreviewFrm.dfm"/>
-        <FormResources Include="DlgSpellCheck.dfm"/>
         <FormResources Include="DlgAlternate.dfm"/>
         <FormResources Include="DlgAbout.dfm"/>
         <FormResources Include="DlgColor.dfm"/>
@@ -426,6 +425,7 @@
         <FormResources Include="DlgMonkey.dfm"/>
         <FormResources Include="DlgLicense.dfm"/>
         <FormResources Include="DlgIncDec.dfm"/>
+        <FormResources Include="YcPrintCancelDlg.dfm"/>
         <BuildConfiguration Include="Release">
             <Key>Cfg_2</Key>
             <CfgParent>Base</CfgParent>

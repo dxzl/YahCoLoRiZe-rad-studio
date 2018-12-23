@@ -12,7 +12,7 @@
 
 // do this instead of forward reference
 #include "MyCheckLst.hpp"
-#include "..\YcEdit\YcEdit.h"
+#include "..\YcEdit\YcEditMain.h"
 #include <Vcl.ComCtrls.hpp>
 //---------------------------------------------------------------------------
 #define SPI_GETFOCUSBORDERHEIGHT 0x2010 // SystemParameterwInfo

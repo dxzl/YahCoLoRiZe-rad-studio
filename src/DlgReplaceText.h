@@ -9,7 +9,7 @@
 #include <Menus.hpp>
 #include <Vcl.ComCtrls.hpp>
 #include "ThreadOnChange.h"
-#include "..\YcEdit\YcEdit.h"
+#include "..\YcEdit\YcEditMain.h"
 //---------------------------------------------------------------------------
 #define ID_FIND    0
 #define ID_REPLACE 1

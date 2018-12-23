@@ -115,7 +115,7 @@
 #include <Mask.hpp>
 #include <OleCtrls.hpp>
 #include <Registry.hpp>
-#include "..\YcEdit\YcEdit.h"
+#include "..\YcEdit\YcEditMain.h"
 
 #if DEBUG_ON
 #include <iostream.h>
@@ -129,7 +129,7 @@
 #include "YcPreviewFrm.h"
 #include "PASTESTRUCT.h"
 #include "StringsW.h"
-#include "..\YcEdit\YcEdit.h"
+#include "..\YcEdit\YcEditMain.h"
 
 //---------------------------------------------------------------------------
 // ENUMERATED TYPES

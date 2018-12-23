@@ -8,12 +8,11 @@ USEFORM("Main.cpp", DTSColor);
 USEFORM("FormSFDlg.cpp", SFDlgForm);
 USEFORM("FormOFSSDlg.cpp", OFSSDlgForm);
 USEFORM("DlgUnderline.cpp", UnderlineForm);
-USEFORM("DlgTaePrintCancel.cpp", TaePrintCancelDialog);
 USEFORM("DlgStrip.cpp", StripModeForm);
+USEFORM("DlgSpellCheck.cpp", SpellCheckForm);
 USEFORM("DlgWingEdit.cpp", WingEditForm);
 USEFORM("DlgWebExport.cpp", WebExportForm);
 USEFORM("YcPreviewFrm.cpp", YcPreviewForm);
-USEFORM("DlgSpellCheck.cpp", SpellCheckForm);
 USEFORM("DlgAlternate.cpp", AlternateForm);
 USEFORM("DlgAbout.cpp", AboutForm);
 USEFORM("DlgColor.cpp", ColorForm);
@@ -33,6 +32,7 @@ USEFORM("DlgFgBgColors.cpp", FgBgColorsForm);
 USEFORM("DlgMonkey.cpp", MonkeyForm);
 USEFORM("DlgLicense.cpp", LicenseForm);
 USEFORM("DlgIncDec.cpp", IncDecForm);
+USEFORM("YcPrintCancelDlg.cpp", YcPrintCancelDialog);
 //---------------------------------------------------------------------------
 int WINAPI _tWinMain(HINSTANCE, HINSTANCE, LPTSTR, int)
 {
@@ -43,6 +43,7 @@ int WINAPI _tWinMain(HINSTANCE, HINSTANCE, LPTSTR, int)
      Application->Title = "YahCoLoRiZe"; // Product name
      Application->MainFormOnTaskBar = true;
      Application->CreateForm(__classid(TDTSColor), &DTSColor);
+     Application->CreateForm(__classid(TYcPrintCancelDialog), &YcPrintCancelDialog);
      Application->Run();
   }
   catch (Exception &exception)

@@ -24,7 +24,7 @@
 
 //---------------------------------------------------------------------------
 #pragma package(smart_init)
-#pragma link "YcEdit"
+#pragma link "YcEditMain"
 #pragma resource "*.dfm"
 TReplaceTextForm *ReplaceTextForm;
 //---------------------------------------------------------------------------

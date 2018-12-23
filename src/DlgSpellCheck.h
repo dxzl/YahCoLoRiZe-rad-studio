@@ -9,7 +9,7 @@
 #include <ExtCtrls.hpp>
 #include <Vcl.ComCtrls.hpp>
 
-#include "..\YcEdit\YcEdit.h"
+#include "..\YcEdit\YcEditMain.h"
 //---------------------------------------------------------------------------
 // Language constants for radio-group
 #define SC_ENGLISH 0

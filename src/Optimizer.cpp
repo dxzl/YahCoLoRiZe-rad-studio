@@ -85,7 +85,8 @@ bool __fastcall TOptimizer::StripRedundantFgRGB(wchar_t* pOld, int &OldSize, boo
 
           int len = utils->CountColorSequence(pOld, ii, OldSize, fg, bg);
 
-          if (fg < 0) // Foreground RGB color?
+          // Foreground RGB color?
+          if (fg < 0)
           {
             ColorIdx = ii;
             bColor = true;

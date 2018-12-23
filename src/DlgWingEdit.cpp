@@ -25,7 +25,7 @@
 
 //---------------------------------------------------------------------------
 #pragma package(smart_init)
-#pragma link "YcEdit"
+#pragma link "YcEditMain"
 #pragma resource "*.dfm"
 
 // Add color to list-box items use OnDrawItem
