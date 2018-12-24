@@ -136,6 +136,15 @@ int __fastcall TYcPreviewForm::Execute(TYcEdit* yc)
 
   FYcPrint = FYcEdit->YcPrint;
 
+  // test - looks like header text is ok - footer text comes out short of
+  // the page bottom. so we seem to not be taking the footer margin into
+  // account when computing the main page render-rectasngle. It also
+  // seems FirstFooter and First Header are not being recognized.
+  //FYcPrint->Header->Center->Text = "header"; // Works!
+  //FYcPrint->Footer->Center->Text = "footer"; // Works but page text overwrites it
+  //FYcPrint->FirstHeader->Center->Text = "HEADER";
+  //FYcPrint->FirstFooter->Center->Text = "FOOTER";
+
   // Initialize Correction factors
   UpDownScaleXClick(NULL, (TUDBtnType)0);
   UpDownScaleYClick(NULL, (TUDBtnType)0);

@@ -6,7 +6,7 @@
         <AppType>Application</AppType>
         <MainSource>YahCoLoRiZe.cpp</MainSource>
         <Base>True</Base>
-        <Config Condition="'$(Config)'==''">Debug</Config>
+        <Config Condition="'$(Config)'==''">Release</Config>
         <Platform Condition="'$(Platform)'==''">Win32</Platform>
         <TargetedPlatforms>1</TargetedPlatforms>
     </PropertyGroup>
@@ -119,6 +119,9 @@
         <VerInfo_IncludeVerInfo>true</VerInfo_IncludeVerInfo>
         <VerInfo_Locale>1033</VerInfo_Locale>
         <Icon_MainIcon>Colorize.ico</Icon_MainIcon>
+        <VerInfo_MajorVer>7</VerInfo_MajorVer>
+        <VerInfo_MinorVer>46</VerInfo_MinorVer>
+        <VerInfo_Keys>CompanyName=Discrete-Time Systems;FileDescription=$(MSBuildProjectName);FileVersion=7.46.0.0;InternalName=YahCoLoRiZe;LegalCopyright=2019;LegalTrademarks=YahCoLoRiZe;OriginalFilename=Colorize.exe;ProgramID=com.embarcadero.$(MSBuildProjectName);ProductName=YahCoLoRiZe RAD;ProductVersion=7.46.0.0;Comments=Distribute freely... (not for commercial use)</VerInfo_Keys>
     </PropertyGroup>
     <ItemGroup>
         <CppCompile Include="Blender.cpp">
@@ -399,13 +402,14 @@
         </CppCompile>
         <FormResources Include="Main.dfm"/>
         <FormResources Include="FormSFDlg.dfm"/>
-        <FormResources Include="FormOFSSDlg.dfm"/>
+        <FormResources Include="DlgWebExport.dfm"/>
         <FormResources Include="DlgUnderline.dfm"/>
         <FormResources Include="DlgStrip.dfm"/>
-        <FormResources Include="DlgSpellCheck.dfm"/>
+        <FormResources Include="FormOFSSDlg.dfm"/>
         <FormResources Include="DlgWingEdit.dfm"/>
-        <FormResources Include="DlgWebExport.dfm"/>
+        <FormResources Include="YcPrintCancelDlg.dfm"/>
         <FormResources Include="YcPreviewFrm.dfm"/>
+        <FormResources Include="DlgSpellCheck.dfm"/>
         <FormResources Include="DlgAlternate.dfm"/>
         <FormResources Include="DlgAbout.dfm"/>
         <FormResources Include="DlgColor.dfm"/>
@@ -425,7 +429,6 @@
         <FormResources Include="DlgMonkey.dfm"/>
         <FormResources Include="DlgLicense.dfm"/>
         <FormResources Include="DlgIncDec.dfm"/>
-        <FormResources Include="YcPrintCancelDlg.dfm"/>
         <BuildConfiguration Include="Release">
             <Key>Cfg_2</Key>
             <CfgParent>Base</CfgParent>

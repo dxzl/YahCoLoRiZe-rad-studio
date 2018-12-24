@@ -10,8 +10,31 @@
 #ifndef MainH
 #define MainH
 //---------------------------------------------------------------------------
-#define REVISION "7.39" // Unicode Version
+#define REVISION "7.46" // Unicode Version
 
+// December 24, 2018 7.47, RAD Studio version, first release
+//
+// December 11, 2018, 7.46, I changed how GetTextLength() works in the TaeEdit
+// component which required changes in Utils.cpp SetOldLineVars() and GetInfoOC().
+// Found and fixed bad bug in StringsW.cpp in CDText(TPoint, TPoint, bool). I
+// noticed "cut" of text was leaving a line undeleted if you selected to the
+// very end of text. Fixed.
+//
+// December 8, 2018, 7.45, Entering Unicode characters manually by typing four
+// hex digits and Alt+X was not working. Changes made to TaeEditChange(). Also
+// took out an unnecessary space in the code-highlighting in ConvertToHLT.cpp.
+//
+// November 29, 2018, 7.44, Color dialog horizontal and vertical blend
+// buttons to apply blend to selected zones was non-functional. Fixed.
+// Fixed the bUndo flag passed to DoBlend() in Main.cpp - flag now
+// prevents undo-points from being set in Effects.cpp when a blend is
+// being performed as part of a DoProcess() (which has its own Undo-point).
+//
+// November 28, 2018, 7.43, Add ProperlyTerminateBoldUnderlineItalics() to
+// ConvertToIRC.cpp (because optimizer strips trailing codes and we need them
+// when adding wings/borders). Add computation of LeadingState and TrailingState
+// for V_IRC/V_ORG views in Effects.cpp so that ProcessStyle() works.
+//
 // November 20, 2018, 7.42, Fix error in StripFGandUnderlineCodes() in
 // Effects.cpp and add a new overload to WriteSingle() in utils.cpp
 // (Actually, this function is not even used, presently!)
@@ -77,7 +100,7 @@
 #define SECURITY_ON false
 
 // NOTE: With debug ON the main edit won't always be focused!
-#define DEBUG_ON true // Include a debug console, use DTSColor->CWrite("")
+#define DEBUG_ON false // Include a debug console, use DTSColor->CWrite("")
 #define ISRADSTUDIO true // Set false for Borland C++ Builder 4, true for Embarcadero RAD Studio
 
 #define DIAG_SHOWHEX_IS_UTF8 false // Tools->ShowHex converts UTF-8 to ANSI in main window...
