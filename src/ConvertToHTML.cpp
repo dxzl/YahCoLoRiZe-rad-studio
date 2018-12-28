@@ -337,8 +337,9 @@ int __fastcall TConvertToHTML::Convert(WideString S, bool bCreateDialog)
       else if (dts->WebPageLineHeight > 0)
       {
         // Compute a line-height in "em"
+        // NOTE: "long double" is a workaround for the RAD Studio Tokyo compiler...
         AnsiString SHeight = Format("%-.2f",
-                  ARRAYOFCONST(((float)dts->WebPageLineHeight/100.0))) + "em";
+                  ARRAYOFCONST(((long double)dts->WebPageLineHeight/100.0))) + "em";
         sUtf8 += " line-height: " +  SHeight + ";";
       }
 

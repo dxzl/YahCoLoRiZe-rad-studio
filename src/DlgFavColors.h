@@ -9,6 +9,10 @@
 #include <ExtCtrls.hpp>
 #include <Menus.hpp>
 //---------------------------------------------------------------------------
+
+// forward reference
+class TFgBgColorsForm;
+
 class TFavColorsForm : public TForm
 {
   friend class TFgBgColorsForm;

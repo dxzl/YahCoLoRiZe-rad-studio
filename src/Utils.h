@@ -55,6 +55,9 @@
 #define FLATTEN_TABS_STRIP              1
 #define FLATTEN_TABS_MULTIPLE_SPACES    2
 
+// forward reference
+class TDTSColor;
+
 class TUtils
 {
   friend class TStringsW;

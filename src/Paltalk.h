@@ -16,6 +16,9 @@
 #define PAL_TEXTENTRYCLASS ("richedit") // we just look for this part...
 //---------------------------------------------------------------------------
 
+// forward reference
+class TPaltalkClass;
+
 class TPaltalk
 {
   friend class TPaltalkClass;

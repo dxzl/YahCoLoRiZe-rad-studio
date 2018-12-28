@@ -366,7 +366,8 @@ void __fastcall TWebExportForm::ComputeLineHeightLabel(int Val)
   else if (Val < 0 )
     SHeight = "inherit";
   else
-    SHeight = Format("%-.2f", ARRAYOFCONST(((float)Val/100.0))) + "em";
+    // NOTE: "long double" is a workaround for the RAD Studio Tokyo compiler...
+    SHeight = Format("%-.2f", ARRAYOFCONST(((long double)Val/100.0))) + "em";
 
   LineHeightLabel->Caption = WEBEXPORTMSG[26] + SHeight;
 }

@@ -941,7 +941,7 @@ bool __fastcall TUtils::SetDefaultFont(TYcEdit* re)
   {
     dts->cCharset = USER_DEF_CHARSET;
     dts->cColor = USER_DEF_COLOR;
-    dts->cPitch = USER_DEF_PITCH;
+    dts->cPitch = TFontPitch(USER_DEF_PITCH);
     dts->cSize = USER_DEF_SIZE; // 0-99 ONLY!
 
     if (dts->IsCli(C_PALTALK))
@@ -6332,7 +6332,7 @@ TColor __fastcall TUtils::YcToTColor(int C)
   if (!dts->Palette)
   {
     ShowMessage("Error: dts->Palette is NULL in TUtils::YcToTColor()!");
-    return 0;
+    return (TColor)0;
   }
 
   return RgbToTColor(dts->Palette[C-1]);

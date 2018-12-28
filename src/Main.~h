@@ -10,54 +10,14 @@
 #ifndef MainH
 #define MainH
 //---------------------------------------------------------------------------
-#define REVISION "7.46" // Unicode Version
+#define REVISION "7.39" // Unicode Version
 
-// December 24, 2018 7.47, RAD Studio version, first release
-//
-// December 11, 2018, 7.46, I changed how GetTextLength() works in the TaeEdit
-// component which required changes in Utils.cpp SetOldLineVars() and GetInfoOC().
-// Found and fixed bad bug in StringsW.cpp in CDText(TPoint, TPoint, bool). I
-// noticed "cut" of text was leaving a line undeleted if you selected to the
-// very end of text. Fixed.
-//
-// December 8, 2018, 7.45, Entering Unicode characters manually by typing four
-// hex digits and Alt+X was not working. Changes made to TaeEditChange(). Also
-// took out an unnecessary space in the code-highlighting in ConvertToHLT.cpp.
-//
-// November 29, 2018, 7.44, Color dialog horizontal and vertical blend
-// buttons to apply blend to selected zones was non-functional. Fixed.
-// Fixed the bUndo flag passed to DoBlend() in Main.cpp - flag now
-// prevents undo-points from being set in Effects.cpp when a blend is
-// being performed as part of a DoProcess() (which has its own Undo-point).
-//
-// November 28, 2018, 7.43, Add ProperlyTerminateBoldUnderlineItalics() to
-// ConvertToIRC.cpp (because optimizer strips trailing codes and we need them
-// when adding wings/borders). Add computation of LeadingState and TrailingState
-// for V_IRC/V_ORG views in Effects.cpp so that ProcessStyle() works.
-//
-// November 20, 2018, 7.42, Fix error in StripFGandUnderlineCodes() in
-// Effects.cpp and add a new overload to WriteSingle() in utils.cpp
-// (Actually, this function is not even used, presently!)
-//
-// Fix unhandled exception when setting vertical spacing between multiple boxes
-// to 0 (a single line)
-//
-// November 12, 2018, 7.41, in Effects.cpp the bDoNotTrackSpaceColorChanges flag
-// in two calls to utils->SetStateFlags() was reversed.
-//
-// November 6, 2018, 7.40, in Effects.cpp in CheckExistionCodes, old color
-// codes were not being added for the E_SET_COLORS effect.
-//
-// color/font codes, not after. Plus the wrong states were being used. Also,
-// E_SET_COLORS needed to set PrevFG and PrevBG so a pop would set the correct
-// color.
-//
 // December 21, 2015, in effects ApplyPushPop, pop needed to come before the
 // color/font codes, not after. Plus the wrong states were being used. Also,
 // E_SET_COLORS needed to set PrevFG and PrevBG so a pop would set the correct
 // color.
 //
-// December 20, 2015 needed to add 1 for all TaeHelper->TextLength - TaeHelper->LineCount.
+// December 20, 2015 needed to add 1 for all tae->TextLength - tae->LineCount.
 //
 // December 18, 2015 1) bug in trim LT spaces if you stripped codes first.
 // 2) tab-entry, cursor not advancing
@@ -90,73 +50,6 @@
 // in Playback.cpp. Also, we need to delete GPaltalk when destroying objects
 // when the main form closes. Re-write of Paltalk.cpp and PaltalkClass.cpp.
 //
-
-//---------------------------------------------------------------------------
-#define REGISTRY_KEY "\\Software\\Discrete-Time Systems\\YahCoLoRiZe"
-
-#define FORCEREGISTRY false
-#define VALIDATE_ON false // Add up .EXE file and compare to code
-#define LICENSE_ON false // Check license-key
-#define SECURITY_ON false
-
-// NOTE: With debug ON the main edit won't always be focused!
-#define DEBUG_ON false // Include a debug console, use DTSColor->CWrite("")
-#define ISRADSTUDIO true // Set false for Borland C++ Builder 4, true for Embarcadero RAD Studio
-
-#define DIAG_SHOWHEX_IS_UTF8 false // Tools->ShowHex converts UTF-8 to ANSI in main window...
-
-//---------------------------------------------------------------------------
-// Include files
-//---------------------------------------------------------------------------
-#include <math.h>
-#include <time.h>
-#include <dir.h>
-#include <stdio.h>
-#include <windowsx.h>
-
-#include <shlobj.hpp>
-#include <sysutils.hpp>
-#include <windows.hpp>
-#include <messages.hpp>
-
-#include <System.Classes.hpp>
-#include <System.UITypes.hpp> // has TFontStyles, TFontPitch
-//#include <Vcl.Graphics.hpp>
-
-#include <Vcl.Buttons.hpp>
-#include <Vcl.ComCtrls.hpp>
-#include <Vcl.Controls.hpp>
-#include <Vcl.DdeMan.hpp>
-#include <Vcl.ExtCtrls.hpp>
-#include <Vcl.Mask.hpp>
-#include <Vcl.Menus.hpp>
-#include <Vcl.StdCtrls.hpp>
-//#include <Vcl.Themes.hpp>
-//#include <Vcl.Styles.hpp>
-#include <Rtti.hpp>
-
-#include <Dialogs.hpp>
-#include <Clipbrd.hpp>
-#include <Filectrl.hpp>
-#include <Mask.hpp>
-#include <OleCtrls.hpp>
-#include <Registry.hpp>
-#include "..\YcEdit\YcEditMain.h"
-
-#if DEBUG_ON
-#include <iostream.h>
-#include <conio.h>
-#endif
-
-#include "Undo.h"
-#include "Blender.h"
-#include "Effects.h"
-#include "DefaultStrings.h"
-#include "YcPreviewFrm.h"
-#include "PASTESTRUCT.h"
-#include "StringsW.h"
-#include "..\YcEdit\YcEditMain.h"
-
 //---------------------------------------------------------------------------
 // ENUMERATED TYPES
 //---------------------------------------------------------------------------
@@ -174,23 +67,61 @@ enum tCli {C_YAHELITE, C_MIRC, C_ICECHAT, C_HYDRAIRC,
           C_LEAFCHAT, C_VORTEC, C_XIRCON, C_PALTALK, C_TRINITY, MAXCLIENTS};
 
 enum tBlendDirection {LTR, CENTER1, CENTER2, RTL};
+//---------------------------------------------------------------------------
+#define REGISTRY_KEY "\\Software\\Discrete-Time Systems\\YahCoLoRiZe"
 
-// does not seem to be in Vcl.Graphics.hpp!
-// System.UITypes.hpp
-enum TMyFontPitch {
-//enum DECLSPEC_DENUM TFontPitch unsigned char {
-  fpDefault,
-  fpVariable,
-  fpFixed
-};
+#define FORCEREGISTRY false
+#define VALIDATE_ON false // Add up .EXE file and compare to code
+#define LICENSE_ON false // Check license-key
+#define SECURITY_ON false
 
-// used in DlgSpellCheck, dupIgnore
-enum TMyDuplicates {
-//enum DECLSPEC_DENUM TDuplicates unsigned char {
-  dupIgnore,
-  dupAccept,
-  dupError
-};
+// NOTE: With debug ON the main edit won't always be focused!
+#define DEBUG_ON false // Include a debug console, use DTSColor->CWrite("")
+
+#define DIAG_SHOWHEX_IS_UTF8 false // Tools->ShowHex converts UTF-8 to ANSI in main window...
+
+#include <math.h>
+#include <time.h>
+#include <dir.h>
+#include <stdio.h>
+#include <windowsx.h>
+
+#include <shlobj.hpp>
+#include <sysutils.hpp>
+#include <graphics.hpp>
+#include <windows.hpp>
+#include <messages.hpp>
+
+#include <Buttons.hpp>
+#include <Classes.hpp>
+#include <ComCtrls.hpp>
+#include <Controls.hpp>
+#include <StdCtrls.hpp>
+#include <ExtCtrls.hpp>
+#include <DdeMan.hpp>
+#include <Mask.hpp>
+#include <Dialogs.hpp>
+#include <Menus.hpp>
+#include <Clipbrd.hpp>
+#include <Buttons.hpp>
+#include <Filectrl.hpp>
+#include <Mask.hpp>
+#include <OleCtrls.hpp>
+#include "TaeRichEdit.h"
+
+#if DEBUG_ON
+#include <iostream.h>
+#include <conio.h>
+#endif
+
+#include "Undo.h"
+#include "Blender.h"
+#include "Effects.h"
+#include "DefaultStrings.h"
+//#include "RichEditConv.h"
+#include "PASTESTRUCT.h"
+
+#include "StringsW.h"
 //---------------------------------------------------------------------------
 // Settings Defaults
 //---------------------------------------------------------------------------
@@ -232,7 +163,7 @@ enum TMyDuplicates {
 #define DEF_SONGFORMAT ("Playing: artist, album, C03,07song")
 
 // MyDictionary (spelling-check personal word-list)
-#define DEF_DICTIONARY "en_US" // default spelling dictionary name (in UTF-8)
+#define DEF_DICTIONARY ("en_US") // default spelling dictionary name (in UTF-8)
 #define MAX_DICT_COUNT 10000 // max dictionary custom words in colorize.ini
 #define INI_COLOR_LINES_MAX 100
 #define INI_COLORS_SECTION_NAME "Colors"
@@ -313,13 +244,12 @@ enum TMyDuplicates {
 // User-configurable font defaults
 #define USER_DEF_CHARSET DEFAULT_CHARSET
 #define USER_DEF_COLOR clWindowText
-//#define USER_DEF_PITCH fpFixed
-#define USER_DEF_PITCH 2
+#define USER_DEF_PITCH fpFixed
 #define USER_DEF_SIZE 10 // Size 12 leaves lines in an HTML export!
 #define USER_DEF_TYPE 1 // Courier New
 #define PALTALK_DEF_TYPE 2 // Tahoma
 
-// Used in YcPrintPreview.cpp
+// Used in TaePrintPreview.cpp
 // these get propogated to the TaeRichEditPrint.cpp "fudge factors"
 // for WYSIWYG print-view and get saved in the registry - at least
 // the user can correct the view him/herself until we find a way
@@ -711,16 +641,16 @@ enum TMyDuplicates {
 #endif // CSIDL_LOCAL_APPDATA
 //---------------------------------------------------------------------------
 // Shorthand for the main edit-control
-#define tae DTSColor->YcEdit
+#define tae DTSColor->TaeEdit
 //---------------------------------------------------------------------------
 // Registered Windows Messages
-#define WMS_COLORIZENET L"WM_ColorizeNet"
-#define WMS_SWIFTMIXTIME L"WM_SwiftMixTime"
-#define WMS_SWIFTMIXPLAY L"WM_SwiftMixPlay"
-#define WMS_SWIFTMIXSTATE L"WM_SwiftMixState"
-#define WMS_DATACOLORIZE L"WM_DataCoLoRiZe"
-#define WMS_CHANCOLORIZE L"WM_ChanCoLoRiZe"
-#define WMS_PLAYCOLORIZE L"WM_PlayCoLoRiZe"
+#define WMS_COLORIZENET "WM_ColorizeNet"
+#define WMS_SWIFTMIXTIME "WM_SwiftMixTime"
+#define WMS_SWIFTMIXPLAY "WM_SwiftMixPlay"
+#define WMS_SWIFTMIXSTATE "WM_SwiftMixState"
+#define WMS_DATACOLORIZE "WM_DataCoLoRiZe"
+#define WMS_CHANCOLORIZE "WM_ChanCoLoRiZe"
+#define WMS_PLAYCOLORIZE "WM_PlayCoLoRiZe"
 //---------------------------------------------------------------------------
 // DO NOT CHANGE these sizes because SwiftMiX C++/C# depend on them
 // as do the HydraIRC, LeafChat and IceChat plugins!!!
@@ -733,9 +663,9 @@ enum TMyDuplicates {
 // Rich-text (RTF) Clipboard formats
 // "Rich Text Format Without Objects" CF_RTFNOOBJS,
 // "RichEdit Text and Objects" CF_RETEXTOBJ
-#define RTF_REGISTERED_NAME (L"Rich Text Format") // CF_RTF
+#define RTF_REGISTERED_NAME ("Rich Text Format") // CF_RTF
 // HTML Clipboard Format
-#define HTML_REGISTERED_NAME (L"HTML Format")
+#define HTML_REGISTERED_NAME ("HTML Format")
 
 // Custom control IDs (passed to CreateWindow())
 
@@ -761,6 +691,10 @@ enum TMyDuplicates {
 // Custom classes
 class TDTSColor : public TForm
 {
+  // Class forward references
+  friend class TTaePageSetupDialog;
+  friend class TTaePrintDialog;
+  friend class TTaeRichEdit;
 
 __published:
   TMenuItem *HelpMenu;
@@ -848,6 +782,7 @@ __published:
   TMenuItem *MenuEffectFonts;
   TMenuItem *FontDoubleMountain;
   TMenuItem *FontSawtooth;
+  TTaeRichEdit *TaeEdit;
   TMenuItem *MenuSetWingColor;
   TRadioGroup *BlendDirectionRadioButtons;
   TRadioGroup *BlendScopeRadioButtons;
@@ -1015,8 +950,6 @@ __published:
   TProgressBar *CpProgressBar;
   TMenuItem *MenuPadSpaces;
   TMenuItem *MenuFavoriteColors;
-  TYcEdit *YcEdit;
-  TMenuItem *PopupTextState;
   void __fastcall ImportBlender(TObject *Sender);
   void __fastcall ExportBlender(TObject *Sender);
   void __fastcall ImportBlenderText(TObject *Sender);
@@ -1194,7 +1127,6 @@ __published:
   void __fastcall TaeEditInsertModeChange(TObject *Sender);
   void __fastcall MenuPadSpacesClick(TObject *Sender);
   void __fastcall FavoriteColorsClick(TObject *Sender);
-  void __fastcall PopupTextStateClick(TObject *Sender);
 //  void __fastcall TaeEditChange(TObject *Sender, DWORD dwChangeType,
 //          void *pvCookieData, bool &AllowChange);
 
@@ -1209,7 +1141,6 @@ private:        // private user declarations
   void __fastcall DisplayAnsiToUtf8(void);
 #endif
 
-  void __fastcall ListStyleHooks(void);
   void __fastcall EffectMorphOrReplace(bool bUseDialog, bool bMorph);
   bool __fastcall IsRawCodeMode(void);
   bool __fastcall IsWinVistaOrHigher(void);
@@ -1230,6 +1161,8 @@ private:        // private user declarations
   bool __fastcall InitLocalPlayback(int Time);
   void __fastcall LoadBlendMemoryFromDefaultPreset(const int Init[],
                                               BlendColor* BC);
+  int __fastcall ConvertIrcToRtf(TStringsW* sl,
+                      bool bBlackAndWhite, bool bShowStatus);
   int __fastcall ConvertIrcToYahoo(bool bShowStatus);
   int __fastcall ConvertIrcToHtml(bool bShowStatus);
   int __fastcall ConvertTextToIrc(bool bShowStatus);
@@ -1288,9 +1221,10 @@ private:        // private user declarations
                     bool bClearSL, bool bPlainText);
 
   void __fastcall UpdateProcessButtons(int View);
-  void __fastcall UpdateRgbRandLabels(void);
 
-  AnsiString __fastcall YahELiteRandomColor(bool StrType, bool bRgbRand);
+  String __fastcall YahELiteColor(int Color, bool StrType);
+  String __fastcall YahELiteRandomColor(bool StrType, bool bRgbRand);
+  void __fastcall UpdateRgbRandLabels(void);
   String __fastcall DisplaySecurityCode(void);
   void __fastcall WMNCPaint(TColor fg, TColor bg);
   void __fastcall WMNCLDblClk(void);
@@ -1341,8 +1275,7 @@ private:        // private user declarations
   int __fastcall RegReadInt(TRegistry* pReg, char* pVal, int Def);
   bool __fastcall RegReadBool(TRegistry* pReg, char* pVal, bool Def);
   PUSHSTRUCT __fastcall GetState(void);
-  UnicodeString __fastcall ReadColorsFromIni(TIniFile* pIni, int &count);
-  void __fastcall LoadPaletteFromString(UnicodeString S, int count);
+  String __fastcall ReadColorsFromIni(TIniFile* pIni, int &count);
   bool __fastcall ReadPluginClassAndNameFromIni(TIniFile* pIni, int &count);
   void __fastcall CopyIniFile(void);
   bool __fastcall ReadIniFile(void);
@@ -1353,7 +1286,7 @@ private:        // private user declarations
   ////////////////////// PRIVATE VARS ////////////////////////
 
   // Added to intercept a WM_COPYDATA from YahELite
-  TWndMethod OldWinProc;
+  Controls::TWndMethod OldWinProc;
 
   // Needed for WM_COPYDATA with YahELite chat client
   //const char* const classname = "YahELite:class";
@@ -1520,7 +1453,6 @@ private:        // private user declarations
   // Lists for the clients with a custom plugin (class/name)
   TStringList* pluginClass;
   TStringList* pluginName;
-  TYcEdit* FYcEdit;
 
 protected:
   // Added to intercept a WM_COPYDATA from YahELite
@@ -1554,6 +1486,7 @@ public:         // public user declarations
 
   void __fastcall ComputeAllColors(int ActualLineCount, int IRCLineCount);
   void __fastcall UpdateColorButtons(void);
+  void __fastcall LoadPaletteFromString(String S, int count);
   bool __fastcall ReadSmileys(void);
   int __fastcall LoadView(int NewView);
   bool __fastcall LoadBlendPresetFromRegistry(BlendColor* BC, int Idx);
@@ -1630,8 +1563,8 @@ public:         // public user declarations
   // Font information (must declare these here
   // something with the VCL, who knows what...)
   TFontCharset cCharset;
-  ::TFontPitch cPitch;
   TColor cColor;
+  TFontPitch cPitch;
   int cSize, cType;
   TFontStyles cStyle;
 
@@ -1719,7 +1652,7 @@ public:         // public user declarations
   __property int CpMaxIterations = {read = FCpMaxIterations, write = FCpMaxIterations};
   __property int CpCurrentSection = {read = FCpCurrentSection, write = FCpCurrentSection};
   __property int CpTotalSections = {read = FCpTotalSections, write = FCpTotalSections};
-
+  
   __property int WebPageLineHeight = {read = webPageLineHeight, write = webPageLineHeight};
   __property int WebPageBgColor = {read = webPageBgColor, write = webPageBgColor};
   __property int WebPageLeftMargin = {read = webPageLeftMargin, write = webPageLeftMargin};
@@ -1742,7 +1675,6 @@ public:         // public user declarations
         {read = webPage_bTitle, write = webPage_bTitle};
   __property bool WebPage_bHome =
         {read = webPage_bHome, write = webPage_bHome};
-//  __property TYcEdit* YcEdit = {read = FYcEdit };
 };
 //---------------------------------------------------------------------------
 // I'm redefining this to be the same all the time for all of my

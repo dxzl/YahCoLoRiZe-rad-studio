@@ -14,6 +14,7 @@
 #pragma hdrstop
 
 #include <stdio.h>
+#include <stdctrls.hpp>
 #include <Clipbrd.hpp>
 
 #include "DlgWingEdit.h"
@@ -175,9 +176,12 @@ void __fastcall TWingEditForm::FormCreate(TObject *Sender)
   }
 
   // Word-wrap is on by default if no scrollbars it appears!
-//  Edit1->SetScrollBars(ssVertical);
-  Edit1->ScrollBars = System::Classes::ssHorizontal;
-//  Edit1->SetScrollBars(ssNone);
+  // ssHorizontal is in stdctrls.hpp
+  // this is broken in the RAD Studio C++ compiler - this is the only
+  // workaround I could find
+  // enum TScrollStyle { ssNone, ssHorizontal, ssVertical, ssBoth };
+  //  Edit1->SetScrollBars(ssNone);
+  Edit1->ScrollBars = TScrollStyle(1); // ssHorizontal
   Edit1->Color = dts->TaeWindowColor;
 //  Edit1->DefAttributes->BackColor = clWindow;
   Edit1->HideScrollBars = true;

@@ -3,6 +3,7 @@
 #define UndoH
 
 #include <Classes.hpp>
+#include "StringsW.h"
 #include "ThreadOnChange.h"
 //---------------------------------------------------------------------------
 #define MAX_UNDO 1000

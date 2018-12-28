@@ -16,7 +16,6 @@
 #include "DlgMorph.h"
 //---------------------------------------------------------------------------
 #pragma package(smart_init)
-#pragma link "YcPanel"
 #pragma resource "*.dfm"
 TMorphForm *MorphForm;
 //---------------------------------------------------------------------------
@@ -62,7 +61,7 @@ void __fastcall TMorphForm::FormShow(TObject *Sender)
   MaxColorsUpDown->Position = (short)maxColors;
 
   this->Caption = FTitle;
-  this->MorphGroupBox->Caption = FTitle;
+  this->MorphGroupBoxCaption = FTitle;
 }
 //---------------------------------------------------------------------------
 void __fastcall TMorphForm::FormClose(TObject *Sender, TCloseAction &Action)

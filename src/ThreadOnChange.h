@@ -33,8 +33,8 @@ private:
   ONCHANGEW val;
   ONCHANGEW* ocbuf;
 
-  __thread bool bLocked;
-  __thread int ridx, widx;
+  bool bLocked;
+  int ridx, widx;
 
   bool __fastcall ProcessOC(ONCHANGEW oc);
   bool __fastcall IsBusy(void);
