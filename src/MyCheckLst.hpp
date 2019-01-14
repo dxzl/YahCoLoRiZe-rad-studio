@@ -1,8 +1,8 @@
 ﻿// CodeGear C++Builder
-// Copyright (c) 1995, 2016 by Embarcadero Technologies, Inc.
+// Copyright (c) 1995, 2017 by Embarcadero Technologies, Inc.
 // All rights reserved
 
-// (DO NOT EDIT: machine generated header) 'MyCheckLst.pas' rev: 32.00 (Windows)
+// (DO NOT EDIT: machine generated header) 'MyCheckLst.pas' rev: 33.00 (Windows)
 
 #ifndef MychecklstHPP
 #define MychecklstHPP
@@ -43,7 +43,7 @@ private:
 	int FStandardItemHeight;
 	System::Classes::TNotifyEvent FOnClickCheck;
 	System::Classes::TList* FSaveStates;
-	void __fastcall ResetItemHeight(void);
+	void __fastcall ResetItemHeight();
 	void __fastcall DrawCheck(const System::Types::TRect &R, Vcl::Stdctrls::TCheckBoxState AState);
 	void __fastcall SetChecked(int Index, bool Checked);
 	bool __fastcall GetChecked(int Index);
@@ -68,17 +68,17 @@ protected:
 	DYNAMIC NativeInt __fastcall GetItemData(int Index);
 	DYNAMIC void __fastcall KeyPress(System::WideChar &Key);
 	DYNAMIC void __fastcall MouseDown(System::Uitypes::TMouseButton Button, System::Classes::TShiftState Shift, int X, int Y);
-	DYNAMIC void __fastcall ResetContent(void);
+	DYNAMIC void __fastcall ResetContent();
 	DYNAMIC void __fastcall DeleteString(int Index);
-	DYNAMIC void __fastcall ClickCheck(void);
+	DYNAMIC void __fastcall ClickCheck();
 	virtual void __fastcall CreateParams(Vcl::Controls::TCreateParams &Params);
-	virtual void __fastcall CreateWnd(void);
-	virtual void __fastcall DestroyWnd(void);
-	int __fastcall GetCheckWidth(void);
+	virtual void __fastcall CreateWnd();
+	virtual void __fastcall DestroyWnd();
+	int __fastcall GetCheckWidth();
 	
 public:
 	__fastcall virtual TMyCheckListBox(System::Classes::TComponent* AOwner);
-	__fastcall virtual ~TMyCheckListBox(void);
+	__fastcall virtual ~TMyCheckListBox();
 	__property bool Checked[int Index] = {read=GetChecked, write=SetChecked};
 	__property Vcl::Stdctrls::TCheckBoxState State[int Index] = {read=GetState, write=SetState};
 	__property System::Types::TRect CheckRect[int Index] = {read=GetCheckRect, write=SetCheckRect};

@@ -723,23 +723,23 @@ TStringsW* __fastcall TConvertToRTF::CreateFontList(wchar_t* buf, int size)
 
           if (ft >= 0)
           {
-            ii += 2; // skip over 2-digit decimal font-size code
+          ii += 2; // skip over 2-digit decimal font-size code
 
-            if (ft == 0)
-            {
-              // look up first or second item in FONTS[] (default)
-              if (dts->IsCli(C_PALTALK))
-                ft = PALTALK_DEF_TYPE;
-              else
-                ft = USER_DEF_TYPE;
-            }
+          if (ft == 0)
+          {
+            // look up first or second item in FONTS[] (default)
+            if (dts->IsCli(C_PALTALK))
+            ft = PALTALK_DEF_TYPE;
+            else
+            ft = USER_DEF_TYPE;
+          }
 
-            // Unfortunately, can't do a case-independant search?
-            sFont = utils->GetLocalFontString(ft);
+          // Unfortunately, can't do a case-independant search?
+          sFont = utils->GetLocalFontString(ft);
 
-            // Add just the font name (from FONTS[]) if not already in the table
-            if (!sFont.IsEmpty() && slRtfFonts->IndexOf(sFont) < 0)
-              slRtfFonts->Add(sFont);
+          // Add just the font name (from FONTS[]) if not already in the table
+          if (!sFont.IsEmpty() && slRtfFonts->IndexOf(sFont) < 0)
+            slRtfFonts->Add(sFont);
           }
         }
       }
@@ -748,8 +748,8 @@ TStringsW* __fastcall TConvertToRTF::CreateFontList(wchar_t* buf, int size)
     {
       if (slRtfFonts)
       {
-        delete slRtfFonts;
-        slRtfFonts = NULL;
+      delete slRtfFonts;
+      slRtfFonts = NULL;
       }
 
   #if DEBUG_ON
@@ -761,7 +761,6 @@ TStringsW* __fastcall TConvertToRTF::CreateFontList(wchar_t* buf, int size)
   {
     dts->CpHide();
   }
-
   return slRtfFonts;
 }
 //---------------------------------------------------------------------------

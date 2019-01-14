@@ -8,7 +8,6 @@
 #include <Forms.hpp>
 #include <ExtCtrls.hpp>
 #include <ComCtrls.hpp>
-#include "..\MyControls\YcPanel.h"
 //---------------------------------------------------------------------------
 
 class TMorphForm : public TForm

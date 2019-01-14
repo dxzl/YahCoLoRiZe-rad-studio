@@ -11,7 +11,7 @@
 //
 // Refer to KeyGen.doc in the KeyGen project directory
 //
-// Dates earlier than 1980 are not in Windows XP Calander
+// Dates earlier than 1980 are not in Windows XP Calendar
 // so we shave down today's date to fit in 4-digit, Base36
 // (range is 0-1,679,615)
 //
@@ -245,7 +245,7 @@ void __fastcall TLicenseKey::WriteStub( String StubKey,
     // "Thank You for trying my software!", //16
     utils->ShowMessageU(KEYSTRINGS[16]); // Key stored + activated...
   else // bad stub-key write...
-    // "Invalid Licence Key...\n"
+    // "Invalid License Key...\n"
     // "Operating in Restricted Mode, Some Features Unavailable...", //17
     utils->ShowMessageU(KEYSTRINGS[17]);
 }
@@ -744,7 +744,7 @@ int __fastcall TLicenseKey::WriteKey(String Key)
 int __fastcall TLicenseKey::GetActivationDays(int ActMode)
 // ActMode range is 0-31
 //
-// The least signifigant two bits are flags...
+// The least significant two bits are flags...
 // .. bit 0 if set means "ignore E-Mail"
 // .. bit 1 is reserved and should be 0
 {

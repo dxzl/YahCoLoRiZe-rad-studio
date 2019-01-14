@@ -16,7 +16,6 @@
 #include "DlgMorph.h"
 //---------------------------------------------------------------------------
 #pragma package(smart_init)
-#pragma link "YcPanel"
 #pragma resource "*.dfm"
 TMorphForm *MorphForm;
 //---------------------------------------------------------------------------

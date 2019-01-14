@@ -1,7 +1,7 @@
 ﻿<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
     <PropertyGroup>
         <ProjectGuid>{723324C5-1532-486F-92E5-FB03DCBFF10F}</ProjectGuid>
-        <ProjectVersion>18.2</ProjectVersion>
+        <ProjectVersion>18.5</ProjectVersion>
         <FrameworkType>VCL</FrameworkType>
         <AppType>Application</AppType>
         <MainSource>Colorize.cpp</MainSource>
@@ -53,7 +53,7 @@
         <ProjectType>CppVCLApplication</ProjectType>
         <PackageImports>inet;$(PackageImports)</PackageImports>
         <DCC_Namespace>System;Xml;Data;Datasnap;Web;Soap;Vcl;Vcl.Imaging;Vcl.Touch;Vcl.Samples;Vcl.Shell;$(DCC_Namespace)</DCC_Namespace>
-        <AllPackageLibs>rtl.lib;vcl.lib;vclx.lib;YcEditPackage.lib;MyControls.lib</AllPackageLibs>
+        <AllPackageLibs>rtl.lib;vcl.lib;vclx.lib;YcEditPackage.lib</AllPackageLibs>
         <_TCHARMapping>wchar_t</_TCHARMapping>
         <Multithreaded>true</Multithreaded>
         <Icon_MainIcon>$(BDS)\bin\cbuilder_PROJECTICON.ico</Icon_MainIcon>
@@ -100,7 +100,6 @@
     </PropertyGroup>
     <PropertyGroup Condition="'$(Cfg_1_Win32)'!=''">
         <AppEnableRuntimeThemes>true</AppEnableRuntimeThemes>
-        <AppEnableHighDPI>true</AppEnableHighDPI>
         <LinkPackageImports>rtl.bpi;vcl.bpi;vclx.bpi</LinkPackageImports>
         <LinkPackageStatics>YcEditPackage.lib</LinkPackageStatics>
         <VerInfo_IncludeVerInfo>true</VerInfo_IncludeVerInfo>
@@ -109,6 +108,7 @@
         <VerInfo_Keys>CompanyName=;FileDescription=$(MSBuildProjectName);FileVersion=1.0.0.0;InternalName=;LegalCopyright=;LegalTrademarks=;OriginalFilename=;ProgramID=com.embarcadero.$(MSBuildProjectName);ProductName=$(MSBuildProjectName);ProductVersion=1.0.0.0;Comments=</VerInfo_Keys>
         <BCC_OptimizeForSpeed>true</BCC_OptimizeForSpeed>
         <OutputExt>exe</OutputExt>
+        <AppDPIAwarenessMode>PerMonitor</AppDPIAwarenessMode>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Cfg_2)'!=''">
         <Defines>NDEBUG;$(Defines)</Defines>
@@ -116,20 +116,21 @@
     </PropertyGroup>
     <PropertyGroup Condition="'$(Cfg_2_Win32)'!=''">
         <AppEnableRuntimeThemes>true</AppEnableRuntimeThemes>
-        <AppEnableHighDPI>true</AppEnableHighDPI>
-        <LinkPackageStatics>rtl.lib;vcl.lib;vclx.lib;YcEditPackage.lib;MyControls.lib</LinkPackageStatics>
+        <LinkPackageStatics>rtl.lib;vcl.lib;vclx.lib;YcEditPackage.lib</LinkPackageStatics>
         <DynamicRTL>false</DynamicRTL>
         <UsingDelphiRTL>true</UsingDelphiRTL>
         <VerInfo_IncludeVerInfo>true</VerInfo_IncludeVerInfo>
         <Icon_MainIcon>Colorize.ico</Icon_MainIcon>
-        <BCC_OptimizeMaximum>true</BCC_OptimizeMaximum>
         <VerInfo_Keys>CompanyName=Discrete-Time Systems;FileDescription=$(MSBuildProjectName);FileVersion=7.46.0.0;InternalName=YahCoLoRiZe;LegalCopyright=2019;LegalTrademarks=YahCoLoRiZe;OriginalFilename=Colorize.exe;ProgramID=com.embarcadero.$(MSBuildProjectName);ProductName=$(MSBuildProjectName);ProductVersion=7.46.0.0;Comments=Distribute freely... (not for commercial use)</VerInfo_Keys>
-        <BCC_OptimizeForSpeed>false</BCC_OptimizeForSpeed>
         <BCC_OutputDir>OBJ</BCC_OutputDir>
         <VerInfo_MajorVer>7</VerInfo_MajorVer>
         <VerInfo_MinorVer>46</VerInfo_MinorVer>
         <UsePackages>false</UsePackages>
         <OutputExt>exe</OutputExt>
+        <AppDPIAwarenessMode>PerMonitor</AppDPIAwarenessMode>
+        <BCC_OptimizeMaximum>true</BCC_OptimizeMaximum>
+        <BT_BuildType>Debug</BT_BuildType>
+        <BCC_OptimizeForSpeed>false</BCC_OptimizeForSpeed>
     </PropertyGroup>
     <ItemGroup>
         <CppCompile Include="Blender.cpp">
@@ -410,33 +411,33 @@
         </CppCompile>
         <FormResources Include="Main.dfm"/>
         <FormResources Include="FormSFDlg.dfm"/>
+        <FormResources Include="FormOFSSDlg.dfm"/>
         <FormResources Include="DlgUnderline.dfm"/>
         <FormResources Include="DlgStrip.dfm"/>
         <FormResources Include="DlgSpellCheck.dfm"/>
-        <FormResources Include="DlgWebExport.dfm"/>
-        <FormResources Include="FormOFSSDlg.dfm"/>
         <FormResources Include="DlgWingEdit.dfm"/>
+        <FormResources Include="DlgWebExport.dfm"/>
         <FormResources Include="YcPrintCancelDlg.dfm"/>
         <FormResources Include="YcPreviewFrm.dfm"/>
+        <FormResources Include="DlgSmiley.dfm"/>
         <FormResources Include="DlgAbout.dfm"/>
-        <FormResources Include="DlgAlternate.dfm"/>
-        <FormResources Include="DlgColor.dfm"/>
         <FormResources Include="DlgChooseDict.dfm"/>
         <FormResources Include="DlgBlend.dfm"/>
+        <FormResources Include="DlgAlternate.dfm"/>
+        <FormResources Include="DlgColor.dfm"/>
         <FormResources Include="DlgPlay.dfm"/>
         <FormResources Include="DlgPadSpaces.dfm"/>
         <FormResources Include="DlgMorph.dfm"/>
-        <FormResources Include="DlgReplaceText.dfm"/>
-        <FormResources Include="DlgSmiley.dfm"/>
         <FormResources Include="DlgShowDict.dfm"/>
         <FormResources Include="DlgSetColors.dfm"/>
+        <FormResources Include="DlgReplaceText.dfm"/>
+        <FormResources Include="DlgMonkey.dfm"/>
         <FormResources Include="DlgFontSize.dfm"/>
         <FormResources Include="DlgFgBgColors.dfm"/>
         <FormResources Include="DlgFavColors.dfm"/>
-        <FormResources Include="DlgFontType.dfm"/>
-        <FormResources Include="DlgMonkey.dfm"/>
         <FormResources Include="DlgLicense.dfm"/>
         <FormResources Include="DlgIncDec.dfm"/>
+        <FormResources Include="DlgFontType.dfm"/>
         <BuildConfiguration Include="Release">
             <Key>Cfg_2</Key>
             <CfgParent>Base</CfgParent>
@@ -463,6 +464,10 @@
                 <Source>
                     <Source Name="MainSource">Colorize.cpp</Source>
                 </Source>
+                <Excluded_Packages>
+                    <Excluded_Packages Name="$(BDSBIN)\bcboffice2k260.bpl">Embarcadero C++Builder Office 2000 Servers Package</Excluded_Packages>
+                    <Excluded_Packages Name="$(BDSBIN)\bcbofficexp260.bpl">Embarcadero C++Builder Office XP Servers Package</Excluded_Packages>
+                </Excluded_Packages>
             </CPlusPlusBuilder.Personality>
             <Platforms>
                 <Platform value="Win32">True</Platform>

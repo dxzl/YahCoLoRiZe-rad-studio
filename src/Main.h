@@ -12,7 +12,9 @@
 //---------------------------------------------------------------------------
 #define REVISION "7.46" // Unicode Version
 
-// December 24, 2018 7.47, RAD Studio version, first release
+// January 13, 2019, 7.47, CpUpdate() in Main.cpp was very slow in the RAD
+// Studio version so we now only update the progress bar if it has changed
+// position.
 //
 // December 11, 2018, 7.46, I changed how GetTextLength() works in the TaeEdit
 // component which required changes in Utils.cpp SetOldLineVars() and GetInfoOC().
