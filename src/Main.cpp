@@ -419,6 +419,8 @@ void __fastcall TDTSColor::FormCreate(TObject *Sender)
   lk->ValidateLicenseKey(false);
   delete lk;
 #endif
+
+  tae->EnableNotifications = true; // enable EN_LINK for CN_NOTIFY to get web-links
 }
 //---------------------------------------------------------------------------
 void __fastcall TDTSColor::FormShow(TObject *Sender)
