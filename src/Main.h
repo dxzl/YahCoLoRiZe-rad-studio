@@ -10,7 +10,7 @@
 #ifndef MainH
 #define MainH
 //---------------------------------------------------------------------------
-#define REVISION "7.46" // Unicode Version
+#define REVISION "7.48" // Unicode Version
 
 // January 13, 2019, 7.47, CpUpdate() in Main.cpp was very slow in the RAD
 // Studio version so we now only update the progress bar if it has changed
