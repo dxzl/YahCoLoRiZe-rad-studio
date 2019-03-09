@@ -10,9 +10,13 @@
 #ifndef MainH
 #define MainH
 //---------------------------------------------------------------------------
-#define REVISION "7.48" // Unicode Version
+#define REVISION "7.49" // Unicode Version
 
-// January 13, 2019, 7.47, CpUpdate() in Main.cpp was very slow in the RAD
+// March 7, 2019, 7.49,
+// Added call of OldWinProc(msg) for right and left click in upper non-client
+// area to enable system menu.
+//
+// January 13, 2019, 7.48, CpUpdate() in Main.cpp was very slow in the RAD
 // Studio version so we now only update the progress bar if it has changed
 // position.
 //

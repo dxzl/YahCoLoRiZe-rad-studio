@@ -600,6 +600,20 @@ void __fastcall TDTSColor::InitAllSettings(bool RestoreFactory)
   Width = ClientWidth;
   Height = ClientHeight;
 
+  // If the client area is maximized, on Windows 10 the client area
+  // will stick at maximum with no sizing-grabbers - this is a workaround.
+  int dw = Screen->DesktopWidth;
+  int dh = Screen->DesktopHeight;
+  if (Width > dw - 50)
+    Width = dw;
+  if (Height > dh - 50)
+    Height = dh;
+
+  // Set the system menu on manually
+  TBorderIcons tempBI = BorderIcons;
+  tempBI << biMaximize << biMinimize << biSystemMenu;
+  BorderIcons = tempBI;
+
   // Init Edit-Boxes
   LMarginEdit->Text = String(regLmargin);
   RMarginEdit->Text = String(regRmargin);
@@ -1051,8 +1065,12 @@ void __fastcall TDTSColor::FormMouseWheel(TObject *Sender, TShiftState Shift,
 //----------------------------------------------------------------------------
 void __fastcall TDTSColor::CustomMessageHandler(TMessage &msg)
 {
+//OldWinProc(msg); // Call main handler
+//return;
+
   // ReplyMessage(0) not needed since we handle lengthy
   // operations via timer-delay from another handler...
+
   try
   {
     // Intercept the WM_NCPAINT message
@@ -1355,6 +1373,9 @@ void __fastcall TDTSColor::CustomMessageHandler(TMessage &msg)
     }
     else if (msg.Msg == WM_NCLBUTTONDBLCLK && msg.WParam != NULL)
     {
+      // Added 3/7/2019
+      OldWinProc(msg); // Call main handler
+
       if (!Timer2->Enabled)
       {
         wmCopyMode = CM_NCDOUBLECLICK;
@@ -1363,6 +1384,9 @@ void __fastcall TDTSColor::CustomMessageHandler(TMessage &msg)
     }
     else if (msg.Msg == WM_NCRBUTTONDOWN)
     {
+      // Added 3/7/2019 to fix missing system menu on right-click
+      OldWinProc(msg); // Call main handler
+
       if (!Timer2->Enabled)
       {
         wmCopyMode = CM_NCRIGHTCLICK;
