@@ -10,8 +10,11 @@
 #ifndef MainH
 #define MainH
 //---------------------------------------------------------------------------
-#define REVISION "7.49" // Unicode Version
+#define REVISION "7.50" // Unicode Version
 
+// March 16, 2019, 7.50,
+// Updated YcEdit to uncomment SetScrollBars. There was no vertical scroll-bar.
+//
 // March 7, 2019, 7.49,
 // Added call of OldWinProc(msg) for right and left click in upper non-client
 // area to enable system menu.
