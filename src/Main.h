@@ -10,8 +10,12 @@
 #ifndef MainH
 #define MainH
 //---------------------------------------------------------------------------
-#define REVISION "7.50" // Unicode Version
+#define REVISION "7.51" // Unicode Version
 
+// June 20, 2022, 7.51,
+// Save file dialog, FormSFDlg had the OFN_NODEREFERENCELINKS option set which
+// caused shortcut-links to actually be changed so that they no longer worked!
+//
 // March 16, 2019, 7.50,
 // Updated YcEdit to uncomment SetScrollBars. There was no vertical scroll-bar.
 //
@@ -236,7 +240,7 @@ enum TMyDuplicates {
 #define WEBEXPORT_B_HOME false
 
 // Colorize.ini file
-#define DEF_WEBSITE ("http://www.yahcolorize.com/")
+#define DEF_WEBSITE ("https://github.com/dxzl/YahCoLoRiZe")
 #define DEF_EMAIL ("dxzl@live.com")
 #define DEF_SONGFORMAT ("Playing: artist, album, C03,07song")
 

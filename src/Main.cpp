@@ -2666,7 +2666,7 @@ void __fastcall TDTSColor::FileSaveAsItemClick(TObject *Sender)
 #if LICENSE_ON
   if (PK->ComputeDaysRemaining() <= 0)
   {
-    //"Visit www.yahcolorize.com to buy this product!"
+    //"Visit https://github.com/dxzl/YahCoLoRiZe/releases to download..."
     utils->ShowMessageU(KEYSTRINGS[4] + Iftf->Strings[INFO_WEB_SITE] +
                                                               KEYSTRINGS[5]);
     return;
@@ -5276,7 +5276,7 @@ void __fastcall TDTSColor::FilePrintClick(TObject *Sender)
 #if LICENSE_ON
   if (PK->ComputeDaysRemaining() <= 0)
   {
-    //"Visit www.yahcolorize.com to buy this product!"
+    //"Visit https://github.com/dxzl/YahCoLoRiZe/releases to to download..."
     utils->ShowMessageU(KEYSTRINGS[4] +
             Iftf->Strings[INFO_WEB_SITE] + KEYSTRINGS[5]);
     return;
@@ -9746,7 +9746,7 @@ void __fastcall TDTSColor::ExportAsWebPage1Click(TObject *Sender)
 #if LICENSE_ON
   if (PK->ComputeDaysRemaining() <= 0)
   {
-    //"Visit www.yahcolorize.com to buy this product!"
+    //"Visit https://github.com/dxzl/YahCoLoRiZe/releases to download..."
     utils->ShowMessageU(KEYSTRINGS[4] +
                   Iftf->Strings[INFO_WEB_SITE] + KEYSTRINGS[5]);
     return;
@@ -9761,7 +9761,7 @@ void __fastcall TDTSColor::ViewInBrowser1Click(TObject *Sender)
 {
   // No TWebExportForm is shown and no TSFDlgForm.
   // Generate HTML in temp-file for browser to read...
-//  WideString fileName = GenerateHTML(false);
+  //  WideString fileName = GenerateHTML(false);
   String fileName = utils->WideToUtf8(GenerateHTML(false));
 
   if (!fileName.IsEmpty())

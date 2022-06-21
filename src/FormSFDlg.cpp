@@ -124,7 +124,9 @@ bool __fastcall TSFDlgForm::ExecuteW(WideString wDefFile,
   m_sfn.lpstrInitialDir = FInitialDir.c_bstr();
 
   m_sfn.Flags = OFN_NOTESTFILECREATE|OFN_HIDEREADONLY|OFN_EXPLORER|
-      OFN_NODEREFERENCELINKS|OFN_PATHMUSTEXIST|OFN_ENABLEHOOK|OFN_ENABLESIZING|OFN_PATHMUSTEXIST;
+      OFN_PATHMUSTEXIST|OFN_ENABLEHOOK|OFN_ENABLESIZING|OFN_PATHMUSTEXIST;
+  // OFN_NODEREFERENCELINKS, Directs the dialog box to return the path and file
+  // name of the selected shortcut (.LNK) file. (BAD - don't want this!)
   //OFN_FILEMUSTEXIST | OFN_OVERWRITEPROMPT;
 
   // If the user specifies a file name and clicks the OK button and the function is successful,
@@ -539,13 +541,13 @@ UINT CALLBACK TSFDlgForm::SFNHookProc(HWND hDlg, UINT msg, WPARAM wParam, LPARAM
 
           // Get the file-box text and put a new filter on it...
 
-          HWND hFileName = GetDlgItem(GetParent(hDlg), ID_FileName);
+          HWND hFileNameCombo = GetDlgItem(GetParent(hDlg), ID_FileNameCombo);
 
-          if (hFileName == NULL)
+          if (hFileNameCombo == NULL)
             break;
 
           // Get the file-name box text-length
-          int len = GetWindowTextLengthW(hFileName);
+          int len = GetWindowTextLengthW(hFileNameCombo);
 
           WideString sText;
 
@@ -553,7 +555,7 @@ UINT CALLBACK TSFDlgForm::SFNHookProc(HWND hDlg, UINT msg, WPARAM wParam, LPARAM
           {
             // Get the text in the file-name box
             wchar_t* buf = new wchar_t[len+1];
-            GetWindowTextW(hFileName, buf, len+1);
+            GetWindowTextW(hFileNameCombo, buf, len+1);
             sText = WideString(buf);
             delete [] buf;
           }
@@ -581,7 +583,7 @@ UINT CALLBACK TSFDlgForm::SFNHookProc(HWND hDlg, UINT msg, WPARAM wParam, LPARAM
             sText += pThis->CurrentFilter;
 
           // write the old text (or default file-name) with the new filter to the file-name box
-          SetWindowTextW(hFileName, sText.c_bstr());
+          SetWindowTextW(hFileNameCombo, sText.c_bstr());
 
 #if DEBUG_ON
           SFDbg->CWrite("\r\nCDN_TYPECHANGE text: " + sText + "\r\n");

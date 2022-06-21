@@ -1,5 +1,9 @@
 # YahCoLoRiZe-rad-studio
-Port of the YahCoLoRiZe IRC-chat color-text processor to Embarcadero RAD Studio C++ Builder 10.2 Rio (Community edition for Windows)
+Port of the YahCoLoRiZe IRC-chat color-text processor to Embarcadero RAD Studio C++ Builder for Windows.
+
+This project builds with Embarcadero RAD Studio 10.4 Community Edition
+
+Free compiler: [Embarcadero C++ Builder 10.4 Community Edition](https://www.embarcadero.com/products/cbuilder/starter)
 
 The new edit component that goes with YahCoLoRiZe-rad-studio is YcEdit-rad-studio. There are a lot of demo, help, spelling dictionaries and other ancillary files for YahCoLoRiZe that are not included here but are in the old YahCoLoRiZe repository.
 

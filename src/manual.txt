@@ -71,11 +71,11 @@ press Alt+X. Example: type 231a followed by Alt+X gives you a watch: ⌚ :)
 To Uninstall: Go to "Apps and Features", scroll down to YahCoLoRiZe,
 click it and select Uninstall.
 
-For additional help, E-Mail: dxzl@live.com or visit my web-site.
+For additional help, E-Mail: dxzl@live.com or visit the web-site.
 
 YahCoLoRiZe is a native IRC (mIRC) text-editor. This document was
 written and saved to a file using YahCoLoRiZe.
 
 Try some experimenting with different settings and have fun!
 
-(www.YahCoLoRiZe.com)
+(https://github.com/dxzl/YahCoLoRiZe/releases)

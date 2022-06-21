@@ -1023,7 +1023,7 @@ const char* KEYSTRINGS[TOTAL_KEY_STRINGS] =
 
 "There was a problem validating the license key!", //3
 "Visit ", //4
-" to buy this product!", //5
+" to download...", //5
 
 "Your need to obtain a License Key and enter\n"
 "it in order to validate this product.", //6
@@ -1510,7 +1510,7 @@ const char* DS[TOTALSTRINGS] =
 "Thank you for trying YahCoLoRiZe!\n\n"
 "To delete the YahCoLoRiZe icons,\n"
 "right-click them and choose Delete!\n\n"
-"Visit: www.yahcolorize.com!", // 135
+"Visit: https://github.com/dxzl/YahCoLoRiZe/releases", // 135
 
 "Uninstall YahCoLoRiZe?", // 136
 "User-cancelled operation!", // 137
