@@ -116,7 +116,7 @@ void __fastcall TShowDictForm::FormClose(TObject *Sender,
 //---------------------------------------------------------------------------
 void __fastcall TShowDictForm::HelpButtonClick(TObject *Sender)
 {
-  utils->ShowMessageU(SPELLINGMSG[46]);
+  utils.ShowMessageU(SPELLINGMSG[46]);
 }
 //---------------------------------------------------------------------------
 void __fastcall TShowDictForm::DictListBoxClick(TObject *Sender)
@@ -146,7 +146,7 @@ void __fastcall TShowDictForm::DictListBoxDrawItem(TWinControl *Control,
   String sIn = DictListBox->Items->Strings[Index];
 
   if (!sIn.IsEmpty())
-    sOut = utils->Utf8ToWide(sIn);
+    sOut = utils.Utf8ToWide(sIn);
 
   ::TextOutW(DictListBox->Canvas->Handle, Rect.Left, Rect.Top,
                                                 sOut.c_bstr(), sOut.Length());

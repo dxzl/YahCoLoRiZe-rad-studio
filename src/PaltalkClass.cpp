@@ -144,7 +144,7 @@ bool __fastcall TPaltalkClass::postTextToCurrentRoom(String txt)
   {
     if (!txt.IsEmpty() && IsWindow(_sendHwnd))
     {
-      WideString wTxt = utils->Utf8ToWide(txt);
+      WideString wTxt = utils.Utf8ToWide(txt);
 
       DWORD result;
       if (SendMessageTimeoutW(_sendHwnd, WM_SETTEXT, 0, (LPARAM)wTxt.c_bstr(),

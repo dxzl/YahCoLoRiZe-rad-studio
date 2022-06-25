@@ -167,14 +167,14 @@ TPoint __fastcall TStringsW::SetStringEx(WideString s, long idx, bool bAddState)
     TStringsW* sl = new TStringsW();
     WideString wTemp;
 
-//DTSColor->CWrite("\r\n" + utils->GetHex(s) + "\r\n");
+//DTSColor->CWrite("\r\n" + utils.GetHex(s) + "\r\n");
     for (long jj = 1; jj <= len; jj++)
     {
       if (s[jj] == C_CR)
       {
         if (bAddState)
         {
-          WideString wState = utils->GetTrailingState(wTemp);
+          WideString wState = utils.GetTrailingState(wTemp);
           sl->Add(wTemp);
 //DTSColor->CWrite("\r\nAdd A\r\n");
           wTemp = wState; // init next line with trailing state of previous line
@@ -400,7 +400,7 @@ int __fastcall TStringsW::IndexOf(WideString sIn, bool bMatchCase)
     return -1;
 
   if (!bMatchCase)
-    sIn = utils->LowerCaseW(sIn);
+    sIn = utils.LowerCaseW(sIn);
 
   WideString sCompare;
 
@@ -409,7 +409,7 @@ int __fastcall TStringsW::IndexOf(WideString sIn, bool bMatchCase)
     sCompare = this->GetString(ii);
 
     if (!bMatchCase)
-      sCompare = utils->LowerCaseW(sCompare);
+      sCompare = utils.LowerCaseW(sCompare);
 
     if (sCompare == sIn)
       return ii;
@@ -497,7 +497,7 @@ void __fastcall TStringsW::AddStrings(TStringsW* sl)
 // Convert to UTF8 and save in TMemoryStream
 bool __fastcall TStringsW::SaveToStream(TMemoryStream* ms)
 {
-  AnsiString s = utils->WideToUtf8(this->Text);
+  AnsiString s = utils.WideToUtf8(this->Text);
   return ms->Write(s.c_str(), s.Length());
 }
 //---------------------------------------------------------------------------
@@ -516,7 +516,7 @@ int __fastcall TStringsW::LoadFromStream(TMemoryStream* ms)
 
   char* buf = new char[ms->Size];
   int iBytes = ms->Read(buf, ms->Size);
-  this->Text = utils->Utf8ToWide(buf, iBytes);
+  this->Text = utils.Utf8ToWide(buf, iBytes);
   delete [] buf;
 
   ms->Position = savePos; // restore
@@ -865,7 +865,7 @@ WideString __fastcall TStringsW::CDText(TPoint locStart, TPoint locEnd,
     catch(...)
     {
 #if DEBUG_ON
-      DTSColor->CWrite("\r\nException: utils->CDText(TPoint locStart, TPoint locEnd)\r\n");
+      DTSColor->CWrite("\r\nException: utils.CDText(TPoint locStart, TPoint locEnd)\r\n");
 #endif
     }
   }
@@ -950,7 +950,7 @@ void __fastcall TStringsW::Trim(long idx)
     if (this->Count > 0 && idx >= 0 && idx < this->Count)
     {
       WideString wTemp = this->GetString(idx);
-      wTemp = utils->TrimW(wTemp);
+      wTemp = utils.TrimW(wTemp);
       this->SetString(wTemp, idx);
     }
   }
@@ -966,20 +966,20 @@ bool __fastcall TStringsW::SaveToFile(WideString path, bool bAnsi)
 // bAnsi defaults false
 {
   if (bAnsi)
-    return utils->WriteStringToFileW(path, AnsiString(this->Text));
+    return utils.WriteStringToFileW(path, AnsiString(this->Text));
 
-  return utils->WriteStringToFileW(path, utils->WideToUtf8(this->Text));
+  return utils.WriteStringToFileW(path, utils.WideToUtf8(this->Text));
 }
 //---------------------------------------------------------------------------
 void __fastcall TStringsW::LoadFromFile(WideString path, bool bAnsi)
 // bAnsi defaults false
 {
-  String s = utils->ReadStringFromFileW(path);
+  String s = utils.ReadStringFromFileW(path);
 
   if (bAnsi)
     this->Text = WideString(s);
   else
-    this->Text = utils->Utf8ToWide(s);
+    this->Text = utils.Utf8ToWide(s);
 }
 //---------------------------------------------------------------------------
 void __fastcall TStringsW::Assign(TStringsW* dest)

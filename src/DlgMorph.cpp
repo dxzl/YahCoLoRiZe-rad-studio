@@ -78,10 +78,10 @@ void __fastcall TMorphForm::MorphFgFromPanelMouseDown(TObject *Sender,
   // Right-click opens DTSColor->ColorCopyPasteMenu
   if (Button == mbLeft)
   {
-    int C = utils->PanelColorDialog(MorphFgFromPanel, COLORDIALOGMSG[10],
+    int C = utils.PanelColorDialog(MorphFgFromPanel, COLORDIALOGMSG[10],
                                                     clAqua, COLOR_FORM_EFG);
     if (C != IRCCANCEL)
-      fgFromColor = utils->YcToRgb(C);
+      fgFromColor = utils.YcToRgb(C);
   }
 }
 //---------------------------------------------------------------------------
@@ -91,10 +91,10 @@ void __fastcall TMorphForm::MorphBgFromPanelMouseDown(TObject *Sender,
   // Right-click opens DTSColor->ColorCopyPasteMenu
   if (Button == mbLeft)
   {
-    int C = utils->PanelColorDialog(MorphBgFromPanel, COLORDIALOGMSG[11],
+    int C = utils.PanelColorDialog(MorphBgFromPanel, COLORDIALOGMSG[11],
                                                     clAqua, COLOR_FORM_EBG);
     if (C != IRCCANCEL)
-      bgFromColor = utils->YcToRgb(C);
+      bgFromColor = utils.YcToRgb(C);
   }
 }
 //---------------------------------------------------------------------------
@@ -104,10 +104,10 @@ void __fastcall TMorphForm::MorphFgToPanelMouseDown(TObject *Sender,
   // Right-click opens DTSColor->ColorCopyPasteMenu
   if (Button == mbLeft)
   {
-    int C = utils->PanelColorDialog(MorphFgToPanel, COLORDIALOGMSG[10],
+    int C = utils.PanelColorDialog(MorphFgToPanel, COLORDIALOGMSG[10],
                                                   clAqua, COLOR_FORM_EFG);
     if (C != IRCCANCEL)
-      fgToColor = utils->YcToRgb(C);
+      fgToColor = utils.YcToRgb(C);
   }
 }
 //---------------------------------------------------------------------------
@@ -117,39 +117,39 @@ void __fastcall TMorphForm::MorphBgToPanelMouseDown(TObject *Sender,
   // Right-click opens DTSColor->ColorCopyPasteMenu
   if (Button == mbLeft)
   {
-    int C = utils->PanelColorDialog(MorphBgToPanel, COLORDIALOGMSG[11],
+    int C = utils.PanelColorDialog(MorphBgToPanel, COLORDIALOGMSG[11],
                                                   clAqua, COLOR_FORM_EBG);
     if (C != IRCCANCEL)
-      bgToColor = utils->YcToRgb(C);
+      bgToColor = utils.YcToRgb(C);
   }
 }
 //---------------------------------------------------------------------------
 void __fastcall TMorphForm::SetFgFromColor(int val)
 // property setter
 {
-  if (utils->SetPanelColorAndCaption(MorphFgFromPanel, val))
-    fgFromColor = utils->YcToRgb(val);
+  if (utils.SetPanelColorAndCaption(MorphFgFromPanel, val))
+    fgFromColor = utils.YcToRgb(val);
 }
 //---------------------------------------------------------------------------
 void __fastcall TMorphForm::SetBgFromColor(int val)
 // property setter
 {
-  if (utils->SetPanelColorAndCaption(MorphBgFromPanel, val))
-    bgFromColor = utils->YcToRgb(val);
+  if (utils.SetPanelColorAndCaption(MorphBgFromPanel, val))
+    bgFromColor = utils.YcToRgb(val);
 }
 //---------------------------------------------------------------------------
 void __fastcall TMorphForm::SetFgToColor(int val)
 // property setter
 {
-  if (utils->SetPanelColorAndCaption(MorphFgToPanel, val))
-    fgToColor = utils->YcToRgb(val);
+  if (utils.SetPanelColorAndCaption(MorphFgToPanel, val))
+    fgToColor = utils.YcToRgb(val);
 }
 //---------------------------------------------------------------------------
 void __fastcall TMorphForm::SetBgToColor(int val)
 // property setter
 {
-  if (utils->SetPanelColorAndCaption(MorphBgToPanel, val))
-    bgToColor = utils->YcToRgb(val);
+  if (utils.SetPanelColorAndCaption(MorphBgToPanel, val))
+    bgToColor = utils.YcToRgb(val);
 }
 //---------------------------------------------------------------------------
 void __fastcall TMorphForm::FgCheckBoxClick(TObject *Sender)

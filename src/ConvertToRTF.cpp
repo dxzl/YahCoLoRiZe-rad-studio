@@ -70,7 +70,7 @@ TMemoryStream* __fastcall TConvertToRTF::Execute(TMemoryStream* msOrig, int &ret
 
   try
   {
-    buf = utils->StreamToBufferW(msOrig);
+    buf = utils.StreamToBufferW(msOrig);
 
     if (buf)
       msNew = Execute(buf, msOrigSize, retVal);
@@ -130,7 +130,7 @@ TMemoryStream* __fastcall TConvertToRTF::Execute(wchar_t* buf,
 
   try
   {
-    utils->PageBreaksToFormFeed(buf, size); // convert <<page>> to C_FF
+    utils.PageBreaksToFormFeed(buf, size); // convert <<page>> to C_FF
 
     slRtfFonts = CreateFontList(buf, size);
     msNew = new TMemoryStream();
@@ -201,7 +201,7 @@ int __fastcall TConvertToRTF::Convert(wchar_t* buf, int size,
       // Add a default fg color of black if no colors before first
       // non-space char
       PUSHSTRUCT ps;
-      if (utils->SetStateFlags(buf, size, 0, ps, true) >= 0)
+      if (utils.SetStateFlags(buf, size, 0, ps, true) >= 0)
         if (ps.fg == NO_COLOR)
           AddOrResolveColor(IRCBLACK, PosRgbList);
 
@@ -284,7 +284,7 @@ int __fastcall TConvertToRTF::Convert(wchar_t* buf, int size,
         }
         else if (c == CTRL_F)
         {
-          int ft = utils->CountFontSequence(buf, ii, size);
+          int ft = utils.CountFontSequence(buf, ii, size);
 
           if (ft >= 0)
           {
@@ -295,7 +295,7 @@ int __fastcall TConvertToRTF::Convert(wchar_t* buf, int size,
             else
               State.fontType = ft;
 
-            WideString sFont = utils->GetLocalFontString(State.fontType);
+            WideString sFont = utils.GetLocalFontString(State.fontType);
 
             int idx;
 
@@ -312,14 +312,14 @@ int __fastcall TConvertToRTF::Convert(wchar_t* buf, int size,
               sLine += "\\f" + AnsiString(idx);
 
               // Write space if next char is not a color or font-size or newline
-              if (ii+1 < size && !utils->AnySpecialChar(buf[ii+1]))
+              if (ii+1 < size && !utils.AnySpecialChar(buf[ii+1]))
                 sLine += " ";
             }
           }
         }
         else if (c == CTRL_S)
         {
-          int fs = utils->CountFontSequence(buf, ii, size);
+          int fs = utils.CountFontSequence(buf, ii, size);
 
           if (fs >= 0)
           {
@@ -335,7 +335,7 @@ int __fastcall TConvertToRTF::Convert(wchar_t* buf, int size,
               sLine += "\\fs" + AnsiString(State.fontSize*2);
 
               // Write space if next char is not a color or font-size or newline
-              if (ii+1 < size && !utils->AnySpecialChar(buf[ii+1]))
+              if (ii+1 < size && !utils.AnySpecialChar(buf[ii+1]))
                 sLine += " ";
             }
           }
@@ -346,7 +346,7 @@ int __fastcall TConvertToRTF::Convert(wchar_t* buf, int size,
           int bg = NO_COLOR;
           int idx;
 
-          ii += utils->CountColorSequence(buf, ii, size, fg, bg);
+          ii += utils.CountColorSequence(buf, ii, size, fg, bg);
 
           bool bFgNoColor = (fg == NO_COLOR || fg == IRCNOCOLOR);
           bool bBgNoColor = (bg == NO_COLOR || bg == IRCNOCOLOR);
@@ -365,7 +365,7 @@ int __fastcall TConvertToRTF::Convert(wchar_t* buf, int size,
               // Write space if next char is not a color or font-size or newline
               // and we aren't going to write a bg color...
               if (bBgNoColor && ii+1 < size &&
-                                       !utils->AnySpecialChar(buf[ii+1]))
+                                       !utils.AnySpecialChar(buf[ii+1]))
                 sLine += " ";
             }
 
@@ -375,12 +375,12 @@ int __fastcall TConvertToRTF::Convert(wchar_t* buf, int size,
               sLine += "\\highlight" + AnsiString(idx+1);
 
               // Write space if next char is not a color or font-size or newline
-              if (ii+1 < size && !utils->AnySpecialChar(buf[ii+1]))
+              if (ii+1 < size && !utils.AnySpecialChar(buf[ii+1]))
                 sLine += " ";
             }
           }
         }
-        else if (c == C_FF || utils->FoundCRLF(buf, size, ii)) // may increment ii
+        else if (c == C_FF || utils.FoundCRLF(buf, size, ii)) // may increment ii
         {
           sLine = TerminateLine(sLine, State);
 
@@ -388,7 +388,7 @@ int __fastcall TConvertToRTF::Convert(wchar_t* buf, int size,
           {
             // skip first cr/lf immediately following a page-break
             int idx = ii+1;
-            if (utils->FoundCRLF(buf, size, idx))
+            if (utils.FoundCRLF(buf, size, idx))
               ii = idx;
 
             // Problem I am having: If the user wants to delete a page-break
@@ -422,7 +422,7 @@ int __fastcall TConvertToRTF::Convert(wchar_t* buf, int size,
 
           State.Clear();
         }
-        else if (!utils->AnySpecialChar(c))
+        else if (!utils.AnySpecialChar(c))
         {
           //  if (c == '@')
           //    sLine += "\\u65510?"; // test!!!!!!!!! "wan sign"
@@ -497,7 +497,7 @@ int __fastcall TConvertToRTF::AddOrResolveColor(int C, TList* cList)
 //
 // We return a 0-based index into cList.
 {
-  C = -utils->YcToRgb(C); // Convert YahCoLoRiZe +/- color to pos RGB
+  C = -utils.YcToRgb(C); // Convert YahCoLoRiZe +/- color to pos RGB
 
   int idx = this->FindColorIndex(C, cList);
 
@@ -560,7 +560,7 @@ int __fastcall TConvertToRTF::ResolveColor(int C, TList* cList)
   int smallestdistance = 500000; // big miscelaneous number
   int idx = 0;
 
-  BlendColor BC = utils->RgbToBlendColor(C);
+  BlendColor BC = utils.RgbToBlendColor(C);
 
   BlendColor P;
 
@@ -568,7 +568,7 @@ int __fastcall TConvertToRTF::ResolveColor(int C, TList* cList)
 
   for (int ii = 0; ii < cList->Count; ii++)
   {
-    P = utils->RgbToBlendColor((int)cList->Items[ii]);
+    P = utils.RgbToBlendColor((int)cList->Items[ii]);
 
     // Geometric distance
     // largest val (255*255)+(255*255)+(255*255) = 195075
@@ -651,7 +651,7 @@ AnsiString __fastcall TConvertToRTF::RgbToRtfColorTable(TList* cList)
 AnsiString __fastcall TConvertToRTF::YcToRtfColorString(int C)
 // Color is a positive RGB color
 {
-  BlendColor bc = utils->RgbToBlendColor(C);
+  BlendColor bc = utils.RgbToBlendColor(C);
 
   return "\\red" + AnsiString(bc.red) + "\\green" +
                   AnsiString(bc.green) + "\\blue" + AnsiString(bc.blue) + ";";
@@ -691,7 +691,7 @@ TStringsW* __fastcall TConvertToRTF::CreateFontList(wchar_t* buf, int size)
       else
         idx = USER_DEF_TYPE;
 
-      slRtfFonts->Add(utils->GetLocalFontString(idx));
+      slRtfFonts->Add(utils.GetLocalFontString(idx));
 
       // don't need more than the default font for Paltalk...
       if (this->bStripFontType)
@@ -719,7 +719,7 @@ TStringsW* __fastcall TConvertToRTF::CreateFontList(wchar_t* buf, int size)
 
         if (c == CTRL_F)
         {
-          int ft = utils->CountFontSequence(buf, ii, size);
+          int ft = utils.CountFontSequence(buf, ii, size);
 
           if (ft >= 0)
           {
@@ -735,7 +735,7 @@ TStringsW* __fastcall TConvertToRTF::CreateFontList(wchar_t* buf, int size)
           }
 
           // Unfortunately, can't do a case-independant search?
-          sFont = utils->GetLocalFontString(ft);
+          sFont = utils.GetLocalFontString(ft);
 
           // Add just the font name (from FONTS[]) if not already in the table
           if (!sFont.IsEmpty() && slRtfFonts->IndexOf(sFont) < 0)
@@ -783,7 +783,7 @@ AnsiString __fastcall TConvertToRTF::GetFontTable(TStringsW* slRtfFonts)
       // (\fcharset0 is the ANSI charset, 1 is default)
       // (\fprq1 is the fixed-pitch, 2 is variable and 0 is default)
       sTable += "{\\f" + AnsiString(ii) + "\\fnil " +
-                  utils->WideToUtf8(slRtfFonts->GetString(ii)) + ";}";
+                  utils.WideToUtf8(slRtfFonts->GetString(ii)) + ";}";
 
     // NOTES 5/19/2015: in place of \rtf1 use \urtf8 if the documant is in UTF-8.
     // (is \urtf1 UTF-16?)
@@ -852,7 +852,7 @@ int __fastcall TConvertToRTF::WriteRtfToStream(AnsiString sBody, AnsiString Colo
     msOut->Position = 0; // Reset
 
     // Diagnostic code!!!!!!!!!!!!!!
-    //ShowMessage((String)utils->StreamToStringA(msOut));
+    //ShowMessage((String)utils.StreamToStringA(msOut));
 
     return 0;
   }

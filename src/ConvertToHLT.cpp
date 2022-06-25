@@ -85,7 +85,7 @@ int __fastcall TConvertToHLT::Execute(bool bShowStatus)
       //
       re->CopyToStream(MS_Temp, false, false, true, true);
 //!!!!!!!!!!!!!!!!!!!!!
-//utils->ShowMessageW(utils->StreamToStringA(MS_Temp));
+//utils.ShowMessageW(utils.StreamToStringA(MS_Temp));
 
       // Test code to view this RTF file!!!!!!!!!!!!!!!!
 //       MS_Temp->Position = 0;
@@ -125,7 +125,7 @@ int __fastcall TConvertToHLT::Execute(bool bShowStatus)
         ReturnValue = ScanForCtrlK(MS_Temp);
       }
 //!!!!!!!!!!!!!!!!!!!!!
-//utils->ShowMessageW(utils->StreamToStringA(ms));
+//utils.ShowMessageW(utils.StreamToStringA(ms));
     }
     catch(...)
     {
@@ -155,9 +155,9 @@ void __fastcall TConvertToHLT::ReplaceColortbl(void)
   int iRed, iGreen, iBlue;
 
   int colors[2];
-  //colors[0] = -utils->YcToRgb(dts->Afg); // default
-  colors[0] = -utils->YcToRgb(IRCBLACK); // default
-  colors[1] = -utils->YcToRgb(HIGHLIGHT_COLOR);
+  //colors[0] = -utils.YcToRgb(dts->Afg); // default
+  colors[0] = -utils.YcToRgb(IRCBLACK); // default
+  colors[1] = -utils.YcToRgb(HIGHLIGHT_COLOR);
 
   for (int ii = 0; ii < 2; ii++)
   {

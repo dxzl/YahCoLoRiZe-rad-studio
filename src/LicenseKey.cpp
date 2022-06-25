@@ -1,5 +1,5 @@
 //
-// TODO - need to port to Unicode... Application->ExeName to utils->GetExeNamwW() Etc.
+// TODO - need to port to Unicode... Application->ExeName to utils.GetExeNamwW() Etc.
 //---------------------------------------------------------------------------
 // All Routines for getting/decoding/entering a license key
 // from either the registry/user-input/or a pre-attached Stub.
@@ -67,7 +67,7 @@ int __fastcall KeyClass::ComputeDaysRemaining(void)
   {
 #if ERROR_MESSAGES
     String S = RegKeyIsExpired ? "true" : "false";
-    utils->ShowMessageU("ActivationDays: " + String(ActivationDays) +
+    utils.ShowMessageU("ActivationDays: " + String(ActivationDays) +
                  "\nToday:" + String(Today) +
                  "\nRegKeyIsExpired:" + S +
                  "\nKeyCreateDay:" + String(KeyCreateDay) +
@@ -175,7 +175,7 @@ bool __fastcall TLicenseKey::ValidateLicenseKey(bool bPrompt)
         // "To enter a purchased license key, click\n\n"
         // "     Options->About->Install License Key\n\n"
         // "Thank You for trying my software!", //16
-        utils->ShowMessageU(KEYSTRINGS[16]); // Key stored + activated...
+        utils.ShowMessageU(KEYSTRINGS[16]); // Key stored + activated...
       else if (bPrompt)
         DoKey(); // bad stub-key
       else if (RegCode != -100)
@@ -213,7 +213,7 @@ bool __fastcall TLicenseKey::ValidateLicenseKey(bool bPrompt)
     {
       PK->Clear();
 #if ERROR_MESSAGES
-      utils->ShowMessageU("Calling DoKey() with expired reg-key\n"
+      utils.ShowMessageU("Calling DoKey() with expired reg-key\n"
                       "and bad or missing stub-key...");
 #endif
       DoKey();
@@ -221,7 +221,7 @@ bool __fastcall TLicenseKey::ValidateLicenseKey(bool bPrompt)
   }
   catch(...)
   {
-    utils->ShowMessageU("There was a problem validating the product key!");
+    utils.ShowMessageU("There was a problem validating the product key!");
     return(false);
   }
 
@@ -243,11 +243,11 @@ void __fastcall TLicenseKey::WriteStub( String StubKey,
     // "To enter a purchased license key, click\n\n"
     // "     Options->About->Install License Key\n\n"
     // "Thank You for trying my software!", //16
-    utils->ShowMessageU(KEYSTRINGS[16]); // Key stored + activated...
+    utils.ShowMessageU(KEYSTRINGS[16]); // Key stored + activated...
   else // bad stub-key write...
     // "Invalid License Key...\n"
     // "Operating in Restricted Mode, Some Features Unavailable...", //17
-    utils->ShowMessageU(KEYSTRINGS[17]);
+    utils.ShowMessageU(KEYSTRINGS[17]);
 }
 //---------------------------------------------------------------------------
 
@@ -280,7 +280,7 @@ ShowForm:
     {
         //"Your need to obtain a License Key and enter\n"
         //"it in order to validate this product.");
-        utils->ShowMessageU(KEYSTRINGS[6]);
+        utils.ShowMessageU(KEYSTRINGS[6]);
         goto ShowForm;
     }
 
@@ -289,15 +289,15 @@ ShowForm:
         bOK = true;
 
         // "New License Key Entered Successfully!", //15
-        utils->ShowMessageU(KEYSTRINGS[15]);
+        utils.ShowMessageU(KEYSTRINGS[15]);
     }
       else
         // "Key you entered was not valid!" //18
-        utils->ShowMessageU(KEYSTRINGS[18]); // Invalid key
+        utils.ShowMessageU(KEYSTRINGS[18]); // Invalid key
   }
     else if (bMessageOnCancel)
       // "Key you entered was not valid!" //18
-      utils->ShowMessageU(KEYSTRINGS[18]);
+      utils.ShowMessageU(KEYSTRINGS[18]);
 
     LicenseForm->Release();
 }
@@ -367,7 +367,7 @@ bool __fastcall TLicenseKey::DecodeAndWriteKey(String Key, String Email )
         else if (StoreCode == -203)
           // "Hint: The first time you run this program,\n"
           // "you must have Administrator access rights!");
-          utils->ShowMessageU(KEYSTRINGS[7]);
+          utils.ShowMessageU(KEYSTRINGS[7]);
 #if ERROR_MESSAGES
         else
           ShowMessage("License Key Storage Failed: " + String(StoreCode));
@@ -643,24 +643,24 @@ void __fastcall TLicenseKey::ErrorCode(int Code)
 {
   if (Code == -6)
     // "Please set your calendar to the proper date!"
-    utils->ShowMessageU(KEYSTRINGS[8]);
+    utils.ShowMessageU(KEYSTRINGS[8]);
   else if (Code == -7)
     // "Your activation has expired.\n"
-    utils->ShowMessageU(KEYSTRINGS[9] +
+    utils.ShowMessageU(KEYSTRINGS[9] +
         DTSColor->Iftf->Strings[INFO_WEB_SITE] + KEYSTRINGS[10]);
   else if (Code == -8)
     // "You must enter the E-mail address\n"
     // "you used when requesting your License Key!"
-    utils->ShowMessageU(KEYSTRINGS[11]);
+    utils.ShowMessageU(KEYSTRINGS[11]);
   else if (Code == -9)
     // "The E-mail address you entered is not the\n"
     // "same as that used to request your License Key!"
-    utils->ShowMessageU(KEYSTRINGS[12]);
+    utils.ShowMessageU(KEYSTRINGS[12]);
   else if (Code == -10)
     // "Your computer's name may have changed since\n"
     // "the last time you used YahCoLoRiZe.  You will need to\n"
     // "re-install the license key! For information visit:\n\n"
-    utils->ShowMessageU(KEYSTRINGS[13] +
+    utils.ShowMessageU(KEYSTRINGS[13] +
         DTSColor->Iftf->Strings[INFO_WEB_SITE]);
 #if ERROR_MESSAGES
   else
@@ -784,7 +784,7 @@ int __fastcall TLicenseKey::StoreProductKey(String Key)
       // "of said damages.\n\n"
       // "If you AGREE, press Yes, otherwise, press No.", //14
       int button =
-        MessageBox(NULL, utils->Utf8ToWide(KEYSTRINGS[14]).c_bstr(),
+        MessageBox(NULL, utils.Utf8ToWide(KEYSTRINGS[14]).c_bstr(),
             L"License", MB_ICONQUESTION|MB_YESNO|MB_DEFBUTTON2|MB_APPLMODAL);
 
       if (button == IDNO) return -201;

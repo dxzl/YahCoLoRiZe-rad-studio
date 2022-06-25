@@ -30,11 +30,11 @@ __fastcall TFgBgColorsForm::TFgBgColorsForm(TComponent* Owner)
 //---------------------------------------------------------------------------
 void __fastcall TFgBgColorsForm::FormShow(TObject *Sender)
 {
-  fgColor = utils->ConvertColor(dts->Foreground, false);
-  SetColors2FgPanel->Color = utils->YcToTColor(fgColor);
+  fgColor = utils.ConvertColor(dts->Foreground, false);
+  SetColors2FgPanel->Color = utils.YcToTColor(fgColor);
   SetColors2FgPanel->Caption = "";
-  bgColor = utils->ConvertColor(dts->Background, false);
-  SetColors2BgPanel->Color = utils->YcToTColor(bgColor);
+  bgColor = utils.ConvertColor(dts->Background, false);
+  SetColors2BgPanel->Color = utils.YcToTColor(bgColor);
   SetColors2BgPanel->Caption = "";
 }
 //---------------------------------------------------------------------------
@@ -43,7 +43,7 @@ void __fastcall TFgBgColorsForm::SetColors2FgPanelMouseDown(TObject *Sender,
 {
   if (Button == mbLeft)
   {
-    int C = utils->PanelColorDialog(SetColors2FgPanel, COLORDIALOGMSG[10],
+    int C = utils.PanelColorDialog(SetColors2FgPanel, COLORDIALOGMSG[10],
                                                       clAqua, COLOR_FORM_EFG);
     if (C != IRCCANCEL)
       fgColor = C;
@@ -55,7 +55,7 @@ void __fastcall TFgBgColorsForm::SetColors2BgPanelMouseDown(TObject *Sender,
 {
   if (Button == mbLeft)
   {
-    int C = utils->PanelColorDialog(SetColors2BgPanel, COLORDIALOGMSG[11],
+    int C = utils.PanelColorDialog(SetColors2BgPanel, COLORDIALOGMSG[11],
                                                         clAqua, COLOR_FORM_EBG);
     if (C != IRCCANCEL)
       bgColor = C;
@@ -65,14 +65,14 @@ void __fastcall TFgBgColorsForm::SetColors2BgPanelMouseDown(TObject *Sender,
 void __fastcall TFgBgColorsForm::SetFgColor(int val)
 // property setter
 {
-  if (utils->SetPanelColorAndCaption(SetColors2FgPanel, val))
+  if (utils.SetPanelColorAndCaption(SetColors2FgPanel, val))
     fgColor = val;
 }
 //---------------------------------------------------------------------------
 void __fastcall TFgBgColorsForm::SetBgColor(int val)
 // property setter
 {
-  if (utils->SetPanelColorAndCaption(SetColors2BgPanel, val))
+  if (utils.SetPanelColorAndCaption(SetColors2BgPanel, val))
     bgColor = val;
 }
 //---------------------------------------------------------------------------

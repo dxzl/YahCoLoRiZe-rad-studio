@@ -40,8 +40,8 @@ void __fastcall TSetColorsForm::FormShow(TObject *Sender)
   }
   else
   {
-    fgColor = utils->ConvertColor(DTSColor->Foreground, false);
-    SetColorsFgPanel->Color = utils->YcToTColor(fgColor);
+    fgColor = utils.ConvertColor(DTSColor->Foreground, false);
+    SetColorsFgPanel->Color = utils.YcToTColor(fgColor);
     SetColorsFgPanel->Caption = "";
   }
 
@@ -53,8 +53,8 @@ void __fastcall TSetColorsForm::FormShow(TObject *Sender)
   }
   else
   {
-    bgColor = utils->ConvertColor(DTSColor->Background, false);
-    SetColorsBgPanel->Color = utils->YcToTColor(bgColor);
+    bgColor = utils.ConvertColor(DTSColor->Background, false);
+    SetColorsBgPanel->Color = utils.YcToTColor(bgColor);
     SetColorsBgPanel->Caption = "";
   }
 
@@ -66,7 +66,7 @@ void __fastcall TSetColorsForm::SetColorsFgPanelMouseDown(TObject *Sender,
 {
   if (Button == mbLeft)
   {
-    int C = utils->PanelColorDialog(SetColorsFgPanel, COLORDIALOGMSG[10],
+    int C = utils.PanelColorDialog(SetColorsFgPanel, COLORDIALOGMSG[10],
                                                       clAqua, COLOR_FORM_EFG);
     if (C != IRCCANCEL)
       fgColor = C;
@@ -78,7 +78,7 @@ void __fastcall TSetColorsForm::SetColorsBgPanelMouseDown(TObject *Sender,
 {
   if (Button == mbLeft)
   {
-    int C = utils->PanelColorDialog(SetColorsBgPanel, COLORDIALOGMSG[11],
+    int C = utils.PanelColorDialog(SetColorsBgPanel, COLORDIALOGMSG[11],
                                                         clAqua, COLOR_FORM_EBG);
     if (C != IRCCANCEL)
       bgColor = C;
@@ -88,14 +88,14 @@ void __fastcall TSetColorsForm::SetColorsBgPanelMouseDown(TObject *Sender,
 void __fastcall TSetColorsForm::SetFgColor(int val)
 // property setter
 {
-  if (utils->SetPanelColorAndCaption(SetColorsFgPanel, val))
+  if (utils.SetPanelColorAndCaption(SetColorsFgPanel, val))
     fgColor = val;
 }
 //---------------------------------------------------------------------------
 void __fastcall TSetColorsForm::SetBgColor(int val)
 // property setter
 {
-  if (utils->SetPanelColorAndCaption(SetColorsBgPanel, val))
+  if (utils.SetPanelColorAndCaption(SetColorsBgPanel, val))
     bgColor = val;
 }
 //---------------------------------------------------------------------------

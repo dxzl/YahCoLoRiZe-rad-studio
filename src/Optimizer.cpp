@@ -83,7 +83,7 @@ bool __fastcall TOptimizer::StripRedundantFgRGB(wchar_t* pOld, int &OldSize, boo
           int fg = NO_COLOR;
           int bg = NO_COLOR;
 
-          int len = utils->CountColorSequence(pOld, ii, OldSize, fg, bg);
+          int len = utils.CountColorSequence(pOld, ii, OldSize, fg, bg);
 
           // Foreground RGB color?
           if (fg < 0)
@@ -98,7 +98,7 @@ bool __fastcall TOptimizer::StripRedundantFgRGB(wchar_t* pOld, int &OldSize, boo
         }
 
         // !!!!!fix bug 11/8/2018 - ii and OldSize reversed below!!!!!!
-        int iRet = utils->SkipCode(pOld, OldSize, ii);
+        int iRet = utils.SkipCode(pOld, OldSize, ii);
 
         if (iRet == S_NULL)
           break;
@@ -214,7 +214,7 @@ WideString __fastcall TOptimizer::Execute(WideString sIn, bool bShowStatus)
           State.bItalics = !State.bItalics;
         else if (pOld[ii] == CTRL_F)
         {
-          int ft = utils->CountFontSequence(pOld, ii, OldSize);
+          int ft = utils.CountFontSequence(pOld, ii, OldSize);
 
           if (ft >= 0)
           {
@@ -232,7 +232,7 @@ WideString __fastcall TOptimizer::Execute(WideString sIn, bool bShowStatus)
         }
         else if (pOld[ii] == CTRL_S)
         {
-          int fs = utils->CountFontSequence(pOld, ii, OldSize);
+          int fs = utils.CountFontSequence(pOld, ii, OldSize);
 
           if (fs >= 0)
           {
@@ -253,7 +253,7 @@ WideString __fastcall TOptimizer::Execute(WideString sIn, bool bShowStatus)
           int fg = NO_COLOR;
           int bg = NO_COLOR;
 
-          ii += utils->CountColorSequence(pOld, ii, OldSize, fg, bg);
+          ii += utils.CountColorSequence(pOld, ii, OldSize, fg, bg);
 
           if (fg == NO_COLOR && bg == NO_COLOR)
           {
@@ -302,7 +302,7 @@ WideString __fastcall TOptimizer::Execute(WideString sIn, bool bShowStatus)
         }
         else
         {
-          if (utils->FoundCRLF(pOld, OldSize, ii)) // may increment ii
+          if (utils.FoundCRLF(pOld, OldSize, ii)) // may increment ii
           {
             // Terminate effect at end of line
             if (!S.IsEmpty())
@@ -387,23 +387,23 @@ WideString __fastcall TOptimizer::SetFormatCodes(PUSHSTRUCT State,
       //if ( pOld[ii] == ' ' )
       //{
       //  if ( DTSColor->IsYahTrin() )
-      //    utils->WriteSingle( State.bg, s, false );
+      //    utils.WriteSingle( State.bg, s, false );
       //  else // mIRC/PIRCH/Vortec do not support CTRL-C ,XX format!!!!!!!
       //  {
       //    if ( SaveState.fg == -(NO_COLOR) )
       //    {
-      //      utils->WriteColors( initialFG, State.bg, s );
+      //      utils.WriteColors( initialFG, State.bg, s );
       //      SaveState.fg = initialFG;
       //    }
       //    else
-      //      utils->WriteColors( SaveState.fg, State.bg, s );
+      //      utils.WriteColors( SaveState.fg, State.bg, s );
       //  }
       //
       //  SaveState.bg = State.bg;
       //}
       //else // Write both Fg/BG
       //{
-        utils->WriteColors(State.fg, State.bg, s);
+        utils.WriteColors(State.fg, State.bg, s);
         SaveState.fg = State.fg;
         SaveState.bg = State.bg;
       //}
@@ -416,7 +416,7 @@ WideString __fastcall TOptimizer::SetFormatCodes(PUSHSTRUCT State,
         // (added because a wing that starts with " ," was causing
         // XiRCON to think a BG color existed and the "," was
         // not printed)
-        utils->WriteColors(State.fg, State.bg, s);
+        utils.WriteColors(State.fg, State.bg, s);
         SaveState.fg = State.fg;
         SaveState.bg = State.bg;
       }
@@ -425,7 +425,7 @@ WideString __fastcall TOptimizer::SetFormatCodes(PUSHSTRUCT State,
 //        else if ( pOld[ii] != ' ' )
       else
       {
-        utils->WriteSingle(State.fg, s, true);
+        utils.WriteSingle(State.fg, s, true);
         SaveState.fg = State.fg;
       }
     }
@@ -433,16 +433,16 @@ WideString __fastcall TOptimizer::SetFormatCodes(PUSHSTRUCT State,
     {
       // If an rgb color, just write one color, otherwise write two
       if (DTSColor->IsYahTrinPal() && State.bg <= 0)
-        utils->WriteSingle(State.bg, s, false);
+        utils.WriteSingle(State.bg, s, false);
       else // mIRC/IceChat/Vortec do not support CTRL-C ,XX format!
       {
         if (SaveState.fg == -(NO_COLOR))
         {
-          utils->WriteColors(initialFG, State.bg, s);
+          utils.WriteColors(initialFG, State.bg, s);
           SaveState.fg = initialFG;
         }
         else
-          utils->WriteColors(SaveState.fg, State.bg, s);
+          utils.WriteColors(SaveState.fg, State.bg, s);
       }
 
       SaveState.bg = State.bg;
@@ -453,13 +453,13 @@ WideString __fastcall TOptimizer::SetFormatCodes(PUSHSTRUCT State,
     {
       if (State.fontType != SaveState.fontType)
       {
-        s += utils->FontTypeToString(State.fontType);
+        s += utils.FontTypeToString(State.fontType);
         SaveState.fontType = State.fontType;
       }
 
       if (State.fontSize != SaveState.fontSize)
       {
-        s += utils->FontSizeToString(State.fontSize);
+        s += utils.FontSizeToString(State.fontSize);
         SaveState.fontSize = State.fontSize;
       }
     }

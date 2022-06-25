@@ -54,10 +54,10 @@ int __fastcall TConvertToYahoo::Execute(bool bShowStatus)
 
       // Flatten tabs and copy string-list
       TStringsW* sl = new TStringsW();
-      sl->Text = utils->FlattenTabs(dts->SL_IRC->Text, dts->RegTabMode);
+      sl->Text = utils.FlattenTabs(dts->SL_IRC->Text, dts->RegTabMode);
 
       // Optimize copy
-      utils->Optimize(sl, false, NO_COLOR);
+      utils.Optimize(sl, false, NO_COLOR);
 
       // Set global private used to prevent re-writing the same fg color
       // that's already in effect - optimizer did not know we would
@@ -115,7 +115,7 @@ WideString __fastcall TConvertToYahoo::ConvertLineToYahoo(WideString sIn)
   {
     // Get effective size
     int ESize;
-    utils->GetRealLength(sIn, ESize); // Return # real-chars as a reference
+    utils.GetRealLength(sIn, ESize); // Return # real-chars as a reference
 
     // return if no printable chars or all spaces
     if (!ESize)
@@ -148,7 +148,7 @@ WideString __fastcall TConvertToYahoo::ConvertLineToYahoo(WideString sIn)
     {
       if (sIn[jj] == CTRL_F)
       {
-        int ft = utils->CountFontSequence(sIn.c_bstr(), jj-1, size);
+        int ft = utils.CountFontSequence(sIn.c_bstr(), jj-1, size);
 
         if (ft >= 0)
         {
@@ -161,7 +161,7 @@ WideString __fastcall TConvertToYahoo::ConvertLineToYahoo(WideString sIn)
             if (ft == 0) idx = dts->cType;
             else idx = ft;
 
-            WideString sTemp = utils->GetLocalFontStringW(idx);
+            WideString sTemp = utils.GetLocalFontStringW(idx);
 
             if (!sTemp.IsEmpty())
               sOut += YAHFONTTYPE(sTemp);
@@ -173,7 +173,7 @@ WideString __fastcall TConvertToYahoo::ConvertLineToYahoo(WideString sIn)
 
       if (sIn[jj] == CTRL_S)
       {
-        int fs = utils->CountFontSequence(sIn.c_bstr(), jj-1, size);
+        int fs = utils.CountFontSequence(sIn.c_bstr(), jj-1, size);
 
         if (fs >= 0)
         {
@@ -195,7 +195,7 @@ WideString __fastcall TConvertToYahoo::ConvertLineToYahoo(WideString sIn)
       {
         int fg = NO_COLOR, bg = NO_COLOR;
 
-        jj += utils->CountColorSequence(sIn.c_bstr(), jj-1, size, fg, bg);
+        jj += utils.CountColorSequence(sIn.c_bstr(), jj-1, size, fg, bg);
 
         bool bFgNoColor = (fg == NO_COLOR || fg == IRCNOCOLOR);
 
@@ -224,7 +224,7 @@ WideString __fastcall TConvertToYahoo::ConvertLineToYahoo(WideString sIn)
         sOut += UnderlineOnOff(false, bUnderlineOn);
         sOut += ItalicsOnOff(false, bItalicsOn);
       }
-      else if (!utils->AnySpecialChar(sIn[jj]))
+      else if (!utils.AnySpecialChar(sIn[jj]))
         sOut += WideString(sIn[jj]);
     }
 

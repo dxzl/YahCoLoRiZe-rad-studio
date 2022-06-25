@@ -66,7 +66,7 @@ void __fastcall TColorForm::FormCreate(TObject *Sender)
     p->Top = iTop;
     p->ParentColor = false;
     p->ParentBackground = false; // IMPORTANT: HAVE TO DO THIS FOR RAD STUDIO!!!!!!!
-    p->Color = utils->RgbToTColor(DTSColor->Palette[ii]);
+    p->Color = utils.RgbToTColor(DTSColor->Palette[ii]);
     //p->Caption = IntToHex((int)p->Color);
     //ShowMessage(IntToHex((int)p->Color));
     p->Tag = ii;
@@ -122,7 +122,7 @@ void __fastcall TColorForm::FormCreate(TObject *Sender)
     };
 
     p->Caption = COLORDIALOGMSG[ii-P_BEGIN];
-    p->Color = utils->YcToTColor(c);
+    p->Color = utils.YcToTColor(c);
 
     p->Tag = ii;
     p->Visible = true;
@@ -208,7 +208,7 @@ void __fastcall TColorForm::ColorPanelClick(TObject *Sender)
 #if LICENSE_ON
     if (callerID == COLOR_FORM_BG && PK->ComputeDaysRemaining() <= 0)
     {
-      utils->ShowMessageU(KEYSTRINGS[4] +
+      utils.ShowMessageU(KEYSTRINGS[4] +
                 DTSColor->Iftf->Strings[INFO_WEB_SITE] + KEYSTRINGS[5]);
       return;
     }
@@ -228,7 +228,7 @@ void __fastcall TColorForm::ColorPanelClick(TObject *Sender)
     }
     // "Go to the Client Tab and choose Trinity or\n" "YahELite to access color blending!", // 75
     else
-      utils->ShowMessageU(DS[75]);
+      utils.ShowMessageU(DS[75]);
   }
   else if (p->Tag == P_RGB)
   {
@@ -240,7 +240,7 @@ void __fastcall TColorForm::ColorPanelClick(TObject *Sender)
     else
       // "RGB colors are not allowed for IRC chat-clients."
       // "Try selecting Client->Trinity to enable RGB colors...", // 21
-      utils->ShowMessageU(DS[21]);
+      utils.ShowMessageU(DS[21]);
 
   }
   else if (p->Tag == P_HBLEND)
@@ -254,7 +254,7 @@ void __fastcall TColorForm::ColorPanelClick(TObject *Sender)
 #if LICENSE_ON
     if (callerID == COLOR_FORM_BG && PK->ComputeDaysRemaining() <= 0)
     {
-      utils->ShowMessageU(KEYSTRINGS[4] +
+      utils.ShowMessageU(KEYSTRINGS[4] +
                         DTSColor->Iftf->Strings[INFO_WEB_SITE] + KEYSTRINGS[5]);
       return;
     }
@@ -275,7 +275,7 @@ void __fastcall TColorForm::ColorPanelClick(TObject *Sender)
     // "Go to the Client Tab and choose Trinity or\n" "YahELite to access
     // color blending!", // 75
     else
-      utils->ShowMessageU(DS[75]);
+      utils.ShowMessageU(DS[75]);
   }
   else if (p->Tag == P_RANDOM)
   {
@@ -294,7 +294,7 @@ void __fastcall TColorForm::ColorPanelClick(TObject *Sender)
     //{
     //  // "Transparent foreground text won't properly render to HTML, allow
     //  //  anyway?", // 229
-    //  if (utils->ShowMessageU(Handle, DS[229],
+    //  if (utils.ShowMessageU(Handle, DS[229],
     //               MB_ICONQUESTION|MB_YESNO|MB_DEFBUTTON2) == IDNO)
     //    return;
     //}
@@ -337,7 +337,7 @@ void __fastcall TColorForm::PanelEnter(TObject *Sender)
     p->BevelOuter = bvLowered;
     // tried to print the color as a hint but it lags 1-behind!
     ////ColorPanel->Hint = "(" + String(GetRValue(p->Color)) + ", " + String(GetGValue(p->Color)) + ", " + String(GetBValue(p->Color)) + ")";
-    //BlendColor bc = utils->YcToBlendColor(-DTSColor->Palette[p->Tag]);
+    //BlendColor bc = utils.YcToBlendColor(-DTSColor->Palette[p->Tag]);
     //ColorPanel->Hint = "(" + String(bc.red) + ", " + String(bc.green) + ", " + String(bc.blue) + ")";
   }
 }

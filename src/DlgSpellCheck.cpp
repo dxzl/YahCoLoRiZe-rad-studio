@@ -44,22 +44,22 @@ void __fastcall TSpellCheckForm::FormCreate(TObject *Sender)
 
   try
   {
-    WideString DllPath = utils->ExtractFilePathW(utils->GetExeNameW()) +
-                                "\\" + utils->Utf8ToWide(SPELLINGMSG[35]);
+    WideString DllPath = utils.ExtractFilePathW(utils.GetExeNameW()) +
+                                "\\" + utils.Utf8ToWide(SPELLINGMSG[35]);
 
-    //WideString DllPath = utils->GetSystemDir(CSIDL_SYSTEM) +
+    //WideString DllPath = utils.GetSystemDir(CSIDL_SYSTEM) +
     //                            "\\" + String(SPELLINGMSG[35]);
 
     // "hunspell.dll", HunSpell spell-checker DLL 35
     if (!LoadLibHunspell(DllPath))
     {
-      DllPath = utils->ExtractFilePathW(utils->GetExeNameW() +
-                                        utils->Utf8ToWide(SPELLINGMSG[35]));
+      DllPath = utils.ExtractFilePathW(utils.GetExeNameW() +
+                                        utils.Utf8ToWide(SPELLINGMSG[35]));
 
       if (!LoadLibHunspell(DllPath))
       {
         // "Unable to check spelling on this system...",
-        utils->ShowMessageU(SPELLINGMSG[27]);
+        utils.ShowMessageU(SPELLINGMSG[27]);
         return;
       }
     }
@@ -77,7 +77,7 @@ void __fastcall TSpellCheckForm::FormCreate(TObject *Sender)
   catch(...)
   {
     // "Unable to check spelling on this system..."
-    utils->ShowMessageU(SPELLINGMSG[27]);
+    utils.ShowMessageU(SPELLINGMSG[27]);
   }
 
 }
@@ -267,17 +267,17 @@ bool __fastcall TSpellCheckForm::LoadLibHunspell(WideString libraryName)
 bool __fastcall TSpellCheckForm::InitDictionary(void)
 {
   // Dictionary(s) will be in the install directory Dict sub-directory...
-  WideString DictPath = utils->ExtractFilePathW(utils->GetExeNameW()) +
-                                              utils->Utf8ToWide(DICTDIR);
-  //WideString DictPath = utils->GetSpecialFolder(CSIDL_APPDATA) +
-  //        "\\" + utils->Utf8ToWide(OUR_COMPANY) + "\\" + utils->Utf8ToWide(OUR_NAME) +
-                                                  "\\" + utils->Utf8ToWide(DICTDIR);
+  WideString DictPath = utils.ExtractFilePathW(utils.GetExeNameW()) +
+                                              utils.Utf8ToWide(DICTDIR);
+  //WideString DictPath = utils.GetSpecialFolder(CSIDL_APPDATA) +
+  //        "\\" + utils.Utf8ToWide(OUR_COMPANY) + "\\" + utils.Utf8ToWide(OUR_NAME) +
+                                                  "\\" + utils.Utf8ToWide(DICTDIR);
 
   WideString wAff = DictPath + dts->GDictionary + ".aff";
   WideString wDct = DictPath + dts->GDictionary + ".dic";
 
-  if (dts->GDictionary.IsEmpty() || !utils->FileExistsW(wAff) ||
-                                              !utils->FileExistsW(wDct))
+  if (dts->GDictionary.IsEmpty() || !utils.FileExistsW(wAff) ||
+                                              !utils.FileExistsW(wDct))
   {
     Application->CreateForm(__classid(TChooseDictForm), &ChooseDictForm);
 
@@ -295,8 +295,8 @@ bool __fastcall TSpellCheckForm::InitDictionary(void)
 
     if (dts->GDictionary.IsEmpty())
     {
-      dts->GDictionary = utils->Utf8ToWide(DEF_DICTIONARY);
-      utils->ShowMessageU(SPELLINGMSG[28]); // Instructions to find a dictionary...
+      dts->GDictionary = utils.Utf8ToWide(DEF_DICTIONARY);
+      utils.ShowMessageU(SPELLINGMSG[28]); // Instructions to find a dictionary...
       return false;
     }
 
@@ -321,7 +321,7 @@ bool __fastcall TSpellCheckForm::InitDictionary(void)
     }
 
     // pass in UTF-8 file paths
-    pSpell = HSInit(utils->WideToUtf8(wAff).c_str(), utils->WideToUtf8(wDct).c_str());
+    pSpell = HSInit(utils.WideToUtf8(wAff).c_str(), utils.WideToUtf8(wDct).c_str());
 
     if (pSpell == NULL)
       return false;
@@ -341,14 +341,14 @@ bool __fastcall TSpellCheckForm::SpellCheck(void)
     if (pSpell == NULL)
     {
       // "Unable to check spelling on this system...", // 187
-      utils->ShowMessageU(DS[187]);
+      utils.ShowMessageU(DS[187]);
       return false;
     }
 
     if (tae->LineCount == 0)
     {
       // "There is no text to process...", // 45
-      utils->ShowMessageU(DS[45]);
+      utils.ShowMessageU(DS[45]);
       return false;
     }
 
@@ -363,7 +363,7 @@ bool __fastcall TSpellCheckForm::SpellCheck(void)
 //
 // Also should change TStringsW() to only return CR - and mod all the program to be simpler to
 // compute offsets... but a lot of stuff would need to be changed
-    wText = utils->StripChar(tae->TextW, C_LF) + WideString(C_SPACE);
+    wText = utils.StripChar(tae->TextW, C_LF) + WideString(C_SPACE);
 
     CurrentIdx = 1; // Start at the beginning
     ReplaceCount = 0;
@@ -426,7 +426,7 @@ bool __fastcall TSpellCheckForm::ProcessNextWord(void)
                   !dts->GDictList->Find(sUtf8CW, Idx))
         {
           if (bUTF8)
-            sUtf8CW = utils->WideToUtf8(wCW);
+            sUtf8CW = utils.WideToUtf8(wCW);
           else
             sUtf8CW = String(wCW);
 
@@ -456,7 +456,7 @@ bool __fastcall TSpellCheckForm::ProcessNextWord(void)
                   OutWord = strings[jj];
 
                   if (!bUTF8)
-                    OutWord = utils->AnsiToUtf8(OutWord);
+                    OutWord = utils.AnsiToUtf8(OutWord);
 
                   SuggestionListBox->Items->Add(OutWord);
                 }
@@ -474,7 +474,7 @@ bool __fastcall TSpellCheckForm::ProcessNextWord(void)
 
               // Relocate this dialog if it's on top of the new selection!
               if (this->Visible)
-                utils->RelocateDialog(this);
+                utils.RelocateDialog(this);
 
               CurrentIdx = ii+1; // save for the next call...
               return true;
@@ -490,7 +490,7 @@ bool __fastcall TSpellCheckForm::ProcessNextWord(void)
       }
 
       wCW += WideString(wText[ii]);
-      sUtf8CW = utils->WideToUtf8(wCW); // any better way to do this?
+      sUtf8CW = utils.WideToUtf8(wCW); // any better way to do this?
     }
 
     // Back to the top!
@@ -504,7 +504,7 @@ bool __fastcall TSpellCheckForm::ProcessNextWord(void)
     // Simulate Del button-click if they answer Yes...
     if (ReplaceCount == 0 && !Visible)
     {
-      if (utils->ShowMessageU(Handle, SPELLINGMSG[26],
+      if (utils.ShowMessageU(Handle, SPELLINGMSG[26],
                       MB_ICONQUESTION|MB_YESNO|MB_DEFBUTTON1) == IDYES)
       {
         Application->CreateForm(__classid(TShowDictForm), &ShowDictForm);
@@ -551,7 +551,7 @@ void __fastcall TSpellCheckForm::SuggestionListBoxClick(TObject *Sender)
 {
   WordEdit->OnChange = NULL;
   String sIn = SuggestionListBox->Items->Strings[SuggestionListBox->ItemIndex];
-  WordEdit->TextW = utils->Utf8ToWide(sIn);
+  WordEdit->TextW = utils.Utf8ToWide(sIn);
   WordEdit->OnChange = WordEditChange;
 }
 //---------------------------------------------------------------------------
@@ -562,10 +562,10 @@ void __fastcall TSpellCheckForm::ReplaceButtonClick(TObject *Sender)
 
   if (tae->View == V_RTF && OrigWord.Length() > 0 && OrigWord != ReplaceWord)
   {
-    utils->PushOnChange(tae);
+    utils.PushOnChange(tae);
 
     int iFirst, iLast, CI;
-    if (!utils->GetCodeIndices(dts->SL_IRC, iFirst, iLast, CI, tae->SelStart, tae->SelLength))
+    if (!utils.GetCodeIndices(dts->SL_IRC, iFirst, iLast, CI, tae->SelStart, tae->SelLength))
       return;
 
     int lenDiff = ReplaceWord.Length() - tae->SelLength;
@@ -573,7 +573,7 @@ void __fastcall TSpellCheckForm::ReplaceButtonClick(TObject *Sender)
 
     // Add an undo including the text we will remove and the length of
     // the text we will put in it's place
-    ONCHANGEW oc = utils->GetInfoOC(tae, dts->SL_IRC);
+    ONCHANGEW oc = utils.GetInfoOC(tae, dts->SL_IRC);
     WideString Temp = dts->SL_IRC->Text.SubString(iFirst+1, iLast-iFirst);
     TOCUndo->Add(UNDO_REPLACE, iFirst, ReplaceWord.Length(), oc, Temp);
 
@@ -585,7 +585,7 @@ void __fastcall TSpellCheckForm::ReplaceButtonClick(TObject *Sender)
 
     ReplaceCount++;
 
-    utils->PopOnChange(tae);
+    utils.PopOnChange(tae);
   }
 
   ProcessNextWord();
@@ -617,7 +617,7 @@ void __fastcall TSpellCheckForm::ReplaceAllButtonClick(TObject *Sender)
     // Reload wText and set SelStart and CurrentIndex into wText to the
     // index where spell-checking needs to resume when ProcessNextWord()
     // is called.
-    wText = utils->StripChar(tae->TextW, C_LF) + WideString(L' ');
+    wText = utils.StripChar(tae->TextW, C_LF) + WideString(L' ');
     tae->SelStart = SaveSelStart;
     CurrentIdx = SaveSelStart + 1; // 1-based index!
 
@@ -633,7 +633,7 @@ void __fastcall TSpellCheckForm::ReplaceAllButtonClick(TObject *Sender)
     if (Count != 0)
     {
       ReplaceCount += Count; // Add to total count
-      utils->ShowMessageU(String(Count) + REPLACEMSG[25]); // x replacements made
+      utils.ShowMessageU(String(Count) + REPLACEMSG[25]); // x replacements made
     }
 
     // Set focus back to the main edit-control so the carat can blink
@@ -703,7 +703,7 @@ void __fastcall TSpellCheckForm::AddButtonClick(TObject *Sender)
     ProcessNextWord();
   }
   else // "Max custom dictionary entries is "
-    utils->ShowMessageU(SPELLINGMSG[14] + String(MAX_DICT_COUNT));
+    utils.ShowMessageU(SPELLINGMSG[14] + String(MAX_DICT_COUNT));
 }
 //---------------------------------------------------------------------------
 void __fastcall TSpellCheckForm::DelButtonClick(TObject *Sender)
@@ -741,7 +741,7 @@ void __fastcall TSpellCheckForm::FormDestroy(TObject *Sender)
 //---------------------------------------------------------------------------
 void __fastcall TSpellCheckForm::HelpButtonClick(TObject *Sender)
 {
-  utils->ShowMessageU(SPELLINGMSG[47]);
+  utils.ShowMessageU(SPELLINGMSG[47]);
 }
 //---------------------------------------------------------------------------
 void __fastcall TSpellCheckForm::LanguageButtonClick(TObject *Sender)
@@ -762,8 +762,8 @@ void __fastcall TSpellCheckForm::LanguageButtonClick(TObject *Sender)
 
   if (dts->GDictionary.IsEmpty())
   {
-    dts->GDictionary = utils->Utf8ToWide(DEF_DICTIONARY);
-    utils->ShowMessageU(SPELLINGMSG[28]); // Instructions to find a dictionary...
+    dts->GDictionary = utils.Utf8ToWide(DEF_DICTIONARY);
+    utils.ShowMessageU(SPELLINGMSG[28]); // Instructions to find a dictionary...
     return;
   }
 
@@ -795,7 +795,7 @@ void __fastcall TSpellCheckForm::WordEditChange(TObject *Sender)
     AnsiString CurrentWord = WordEdit->TextW;
 
     if (bUTF8)
-      CurrentWord = utils->WideToUtf8(CurrentWord);
+      CurrentWord = utils.WideToUtf8(CurrentWord);
 
     // Check spelling
     if (!HSSpell(pSpell, CurrentWord.c_str()))
@@ -803,7 +803,7 @@ void __fastcall TSpellCheckForm::WordEditChange(TObject *Sender)
       // Get suggestions
       char** strings = NULL;
       int iLen = HSSuggest(pSpell,
-                    utils->WideToUtf8(WordEdit->TextW).c_str(), strings);
+                    utils.WideToUtf8(WordEdit->TextW).c_str(), strings);
 
       if (strings != NULL)
       {
@@ -820,7 +820,7 @@ void __fastcall TSpellCheckForm::WordEditChange(TObject *Sender)
               OutWord = strings[jj];
 
               if (bUTF8)
-                OutWord = utils->Utf8ToAnsi(OutWord);
+                OutWord = utils.Utf8ToAnsi(OutWord);
 
               SuggestionListBox->Items->Add(OutWord);
             }
@@ -846,7 +846,7 @@ void __fastcall TSpellCheckForm::SuggestionListBoxDrawItem(
   String sIn = SuggestionListBox->Items->Strings[Index];
 
   if (!sIn.IsEmpty())
-    sOut = utils->Utf8ToWide(sIn);
+    sOut = utils.Utf8ToWide(sIn);
 
   ::TextOutW(SuggestionListBox->Canvas->Handle, Rect.Left, Rect.Top,
                                                 sOut.c_bstr(), sOut.Length());

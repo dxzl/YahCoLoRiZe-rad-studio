@@ -233,21 +233,21 @@ void __fastcall TFontTypeForm::FormClose(TObject *Sender, TCloseAction &Action)
              FontTypeListBox->ItemIndex < FontTypeListBox->Items->Count)
   {
     sTemp = FontTypeListBox->Items->Strings[FontTypeListBox->ItemIndex];
-    fontType = utils->GetLocalFontIndex(sTemp);
+    fontType = utils.GetLocalFontIndex(sTemp);
   }
   else
     fontType = -1;
 
   if (fontType <= 0)
   {
-    utils->ShowMessageU("Bad font-index!");
+    utils.ShowMessageU("Bad font-index!");
     fontType = 1;
   }
 }
 //---------------------------------------------------------------------------
 void __fastcall TFontTypeForm::Copy1Click(TObject *Sender)
 {
-  utils->CopyTextToClipboard(utils->Utf8ToWide(FontTypeListBox->Items->Text));
+  utils.CopyTextToClipboard(utils.Utf8ToWide(FontTypeListBox->Items->Text));
 }
 //---------------------------------------------------------------------------
 

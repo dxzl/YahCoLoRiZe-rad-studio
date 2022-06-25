@@ -53,7 +53,7 @@ void __fastcall TAboutForm::EnterKeyButtonClick(TObject *Sender)
     if ( bOK )
       DisplayDaysRemaining();
     else
-      utils->ShowMessageU(KEYSTRINGS[18]);
+      utils.ShowMessageU(KEYSTRINGS[18]);
 #else
     DisplayDaysRemaining();
 #endif

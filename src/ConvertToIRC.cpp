@@ -74,9 +74,6 @@ int __fastcall TConvertToIRC::Execute(bool bShowStatus)
   if (dts->SL_IRC == NULL)
     return 10;
 
-  if (utils == NULL)
-    return 11;
-
   int ReturnValue = 0;
 
   // Change processing status panel... Processing to IRC format
@@ -88,16 +85,16 @@ int __fastcall TConvertToIRC::Execute(bool bShowStatus)
     try
     {
       // Move edit text to a buffer (iSize will include the NULL!)
-      utils->MoveMainTextToBuffer(pBuf, iSize);
+      utils.MoveMainTextToBuffer(pBuf, iSize);
 
       // Flatten tabs
-      utils->FlattenTabs(pBuf, iSize, dts->RegTabMode);
+      utils.FlattenTabs(pBuf, iSize, dts->RegTabMode);
 
       // Flatten tabs
       // this will search for "<<page>" and replace them all with C_FF
       // so that we can delay-process them below and replace the C_FF
       // with "\pagebreak" again - but on their own lines, post-text-processing.
-      utils->PageBreaksToFormFeed(pBuf, iSize);
+      utils.PageBreaksToFormFeed(pBuf, iSize);
 
       if (pBuf == NULL || iSize == 0)
       {
@@ -112,12 +109,12 @@ int __fastcall TConvertToIRC::Execute(bool bShowStatus)
 
       // Scan text buffer for longest line width and original text height
       // values are returned by reference...
-      bOrigTextHasColor = utils->LongestWidthAndLineCount(pBuf, iSize,
+      bOrigTextHasColor = utils.LongestWidthAndLineCount(pBuf, iSize,
                                           OrigLineWidth, OrigLineCount);
 
-      bOrigTextHasBold = utils->ContainsChar(WideString(pBuf, iSize), CTRL_B);
-      bOrigTextHasUnderline = utils->ContainsChar(WideString(pBuf, iSize), CTRL_U);
-      bOrigTextHasItalics = utils->ContainsChar(WideString(pBuf, iSize), CTRL_R);
+      bOrigTextHasBold = utils.ContainsChar(WideString(pBuf, iSize), CTRL_B);
+      bOrigTextHasUnderline = utils.ContainsChar(WideString(pBuf, iSize), CTRL_U);
+      bOrigTextHasItalics = utils.ContainsChar(WideString(pBuf, iSize), CTRL_R);
 
       // No real chars here?
       if (OrigLineWidth == 0 && OrigLineCount == 0)
@@ -182,8 +179,8 @@ int __fastcall TConvertToIRC::Execute(bool bShowStatus)
 
       // Choose initial wings for very first word...
       int iDummy;
-      NextWordLength = utils->GetWordLength(pBuf, iSize,
-                  utils->SkipAllCodes(pBuf, 0, iSize), iDummy);
+      NextWordLength = utils.GetWordLength(pBuf, iSize,
+                  utils.SkipAllCodes(pBuf, 0, iSize), iDummy);
 
       TotalWingLength = SelectWings(NextWordLength);
 
@@ -281,8 +278,8 @@ int __fastcall TConvertToIRC::Execute(bool bShowStatus)
           for (int TempInt = 0; TempInt < TotalWidth; TempInt += TopLength)
           {
             // Add Font Type/Size - Optimizer will flatten this...
-            TopStr += utils->FontTypeToString(dts->cType);
-            TopStr += utils->FontSizeToString(dts->cSize);
+            TopStr += utils.FontTypeToString(dts->cType);
+            TopStr += utils.FontSizeToString(dts->cSize);
             TopStr += dts->TopBorder;
           }
 
@@ -345,7 +342,7 @@ int __fastcall TConvertToIRC::Execute(bool bShowStatus)
 
           if (c == CTRL_F)
           {
-            int ft = utils->CountFontSequence(pBuf, iBuf, iSize);
+            int ft = utils.CountFontSequence(pBuf, iBuf, iSize);
 
             if (ft >= 0)
             {
@@ -356,7 +353,7 @@ int __fastcall TConvertToIRC::Execute(bool bShowStatus)
                 RestoreFontType(TextLine);
               else
               {
-                TextLine += utils->FontTypeToString(ft);
+                TextLine += utils.FontTypeToString(ft);
                 State.fontType = ft;
                 State.bFontTypefast = true;
               }
@@ -370,7 +367,7 @@ int __fastcall TConvertToIRC::Execute(bool bShowStatus)
 
           if (c == CTRL_S)
           {
-            int fs = utils->CountFontSequence(pBuf, iBuf, iSize);
+            int fs = utils.CountFontSequence(pBuf, iBuf, iSize);
 
             if (fs >= 0)
             {
@@ -381,7 +378,7 @@ int __fastcall TConvertToIRC::Execute(bool bShowStatus)
                 RestoreFontSize(TextLine);
               else
               {
-                TextLine += utils->FontSizeToString(fs);
+                TextLine += utils.FontSizeToString(fs);
                 State.fontSize = fs;
                 State.bFontSizefast = true;
               }
@@ -398,7 +395,7 @@ int __fastcall TConvertToIRC::Execute(bool bShowStatus)
             int fg = NO_COLOR;
             int bg = NO_COLOR;
 
-            int Count = utils->CountColorSequence(pBuf, iBuf, iSize, fg, bg);
+            int Count = utils.CountColorSequence(pBuf, iBuf, iSize, fg, bg);
 
             if (Count)
             {
@@ -415,7 +412,7 @@ int __fastcall TConvertToIRC::Execute(bool bShowStatus)
               }
 
               // Add the color-sequence to the current line
-              utils->WriteColors(fg, bg, TextLine);
+              utils.WriteColors(fg, bg, TextLine);
               iBuf += Count;
             }
             else
@@ -444,7 +441,7 @@ int __fastcall TConvertToIRC::Execute(bool bShowStatus)
           else if (c == CTRL_R)
             State.bItalics = !State.bItalics;
           // Line-break?
-          else if (utils->FoundCRLF(pBuf, iSize, iBuf))
+          else if (utils.FoundCRLF(pBuf, iSize, iBuf))
           {
             iBuf++;
             bFoundCRLF = true;
@@ -454,12 +451,12 @@ int __fastcall TConvertToIRC::Execute(bool bShowStatus)
             ProperlyTerminateBoldUnderlineItalics(TextLine);
 
             // Look for a paragraph
-            if (utils->FoundCRLF(pBuf, iSize, iBuf))
+            if (utils.FoundCRLF(pBuf, iSize, iBuf))
             {
               iBuf++;
 
               // Bypass extra lines between paragraphs
-              while (utils->FoundCRLF(pBuf, iSize, iBuf))
+              while (utils.FoundCRLF(pBuf, iSize, iBuf))
               {
                 if (!dts->PackLines->Checked)
                   AddColorLine(true);
@@ -506,7 +503,7 @@ int __fastcall TConvertToIRC::Execute(bool bShowStatus)
                 iBuf++; // skip the C_FF
 
                 // Skip cr/lf after page-break (if any)
-                if (utils->FoundCRLF(pBuf, iSize, iBuf))
+                if (utils.FoundCRLF(pBuf, iSize, iBuf))
                   iBuf++; // skip the C_LF
                 else
                   EditStrings->Add(""); // add cr/lf after PAGE_BREAK
@@ -532,7 +529,7 @@ int __fastcall TConvertToIRC::Execute(bool bShowStatus)
               int iTemp = iBuf + 1; // skip the C_FF
 
               // Skip cr/lf after page-break (if any)
-              if (utils->FoundCRLF(pBuf, iSize, iTemp))
+              if (utils.FoundCRLF(pBuf, iSize, iTemp))
                 iBuf += iTemp-iBuf; // skip the CR or CRLF
 
               continue; // Do NOT add C_FF to TextLine!
@@ -592,7 +589,7 @@ int __fastcall TConvertToIRC::Execute(bool bShowStatus)
             // any in our immediate path...
             if (bFoundCRLF && dts->PackText->Checked)
             {
-              idx = utils->SkipCRLF(pBuf, iSize, iBuf);
+              idx = utils.SkipCRLF(pBuf, iSize, iBuf);
               bCheckWordLength = true; // Check 1st word of next line
             }
             else
@@ -603,10 +600,10 @@ int __fastcall TConvertToIRC::Execute(bool bShowStatus)
             // AutoDetectEmotes Checked keeps a smiley intact if its embedded
             // in a word. Ex:  "h:-)owdy!"
             if (dts->AutoDetectEmotes->Checked &&
-                                utils->SkipSmileys(idx, pBuf, Smiley, iSize))
+                                utils.SkipSmileys(idx, pBuf, Smiley, iSize))
               NextWordLength = Smiley.Length();
             else if (bCheckWordLength)
-              NextWordLength = utils->GetWordLength(pBuf, iSize, idx, hyphidx);
+              NextWordLength = utils.GetWordLength(pBuf, iSize, idx, hyphidx);
 
             if (bAddLineOnHyphen)
             {
@@ -615,7 +612,7 @@ int __fastcall TConvertToIRC::Execute(bool bShowStatus)
             }
             // if at end of line, don't want to push the CR/LF
             // into the next line...
-            else if (!utils->FoundCRLF(pBuf, iSize, idx, true))
+            else if (!utils.FoundCRLF(pBuf, iSize, idx, true))
             {
               if (TotalLength + NextWordLength > TempWidth)
               {
@@ -628,7 +625,7 @@ int __fastcall TConvertToIRC::Execute(bool bShowStatus)
 
             // First line of a new paragraph is here (diagnostic)
   //        else if (bIsFirstLineOfPar)
-  //          utils->ShowMessageU(PrintableText);
+  //          utils.ShowMessageU(PrintableText);
 
           hyphidx = -1; // reset
           }
@@ -646,8 +643,8 @@ int __fastcall TConvertToIRC::Execute(bool bShowStatus)
             if (dts->Wingdings->Checked)
             {
               // Remove this char and print the line
-              PrintableText = utils->DeleteW(PrintableText, PrintableText.Length(), 1);
-              TextLine = utils->DeleteW(TextLine, TextLine.Length(), 1);
+              PrintableText = utils.DeleteW(PrintableText, PrintableText.Length(), 1);
+              TextLine = utils.DeleteW(TextLine, TextLine.Length(), 1);
 
               // Walk the buffer back one unless we want to skip over a space
               // or tab that would lead the next line...
@@ -660,8 +657,8 @@ int __fastcall TConvertToIRC::Execute(bool bShowStatus)
             else
             {
               // Remove this char and print the line
-              PrintableText = utils->DeleteW(PrintableText, PrintableText.Length(), 1);
-              TextLine = utils->DeleteW(TextLine, TextLine.Length(), 1);
+              PrintableText = utils.DeleteW(PrintableText, PrintableText.Length(), 1);
+              TextLine = utils.DeleteW(TextLine, TextLine.Length(), 1);
 
               // Walk the buffer back one unless we want to skip over a space
               // or tab that would lead the next line...
@@ -702,7 +699,7 @@ int __fastcall TConvertToIRC::Execute(bool bShowStatus)
         EditStrings->Add(TopStr); // Add bottom border
 
       // Optimize
-      WideString sTemp = utils->Optimize(EditStrings->Text, bShowStatus);
+      WideString sTemp = utils.Optimize(EditStrings->Text, bShowStatus);
 
       delete EditStrings;
 
@@ -808,7 +805,7 @@ bool __fastcall TConvertToIRC::AddColorLine(bool bInhibitColors)
 
     // Don't reset "first line of paragraph" flag if we printed
     // a blank line... (used for applying +/- paragraph indent)
-    if (bIsFirstLineOfPar && !utils->IsAllSpaces(PrintableText))
+    if (bIsFirstLineOfPar && !utils.IsAllSpaces(PrintableText))
       bIsFirstLineOfPar = false;
 
     InitNextLine(bInhibitColors);
@@ -837,7 +834,7 @@ bool __fastcall TConvertToIRC::AddLine(void)
     // trim any extranious leading spaces
     // (THIS TOTALLY WRECKS ASCII ART!)
     // fixes space from word-break or new paragraph
-    //  utils->StripLeadingSpaces(TextLine);
+    //  utils.StripLeadingSpaces(TextLine);
 
     // When re-processing for effects, we may write bold code across
     // one or more line-breaks (for example).  So we must terminate
@@ -847,12 +844,12 @@ bool __fastcall TConvertToIRC::AddLine(void)
 
     // Set ColorFormatStr to default colors and font
     WideString ColorFormatStr;
-    utils->WriteColors(dts->Afg, dts->Abg, ColorFormatStr);
+    utils.WriteColors(dts->Afg, dts->Abg, ColorFormatStr);
 
     // Add Font Type/Size if YahTrinPal
     if (dts->IsYahTrinPal())
-      ColorFormatStr += utils->FontTypeToString(dts->cType) +
-                                      utils->FontSizeToString(dts->cSize);
+      ColorFormatStr += utils.FontTypeToString(dts->cType) +
+                                      utils.FontSizeToString(dts->cSize);
 
     // Returns length of text with both wings, without color-codes
     int TempLength = AddScriptingChars(ColorFormatStr);
@@ -895,8 +892,8 @@ bool __fastcall TConvertToIRC::AddLine(void)
           MargAdjust = -Indent; // Not 1st line of a paragraph
       }
 
-      WideString LmarginStr = utils->StringOfCharW(C_SPACE, Lmargin + MargAdjust);
-      WideString RmarginStr = utils->StringOfCharW(C_SPACE, Rmargin);
+      WideString LmarginStr = utils.StringOfCharW(C_SPACE, Lmargin + MargAdjust);
+      WideString RmarginStr = utils.StringOfCharW(C_SPACE, Rmargin);
 
       WideString PaddingStr;
 
@@ -904,7 +901,7 @@ bool __fastcall TConvertToIRC::AddLine(void)
       if (!dts->LeftJustify->Checked)
       {
         // No left-justify
-        PaddingStr = utils->StringOfCharW(C_SPACE, (PaddingLength/2));
+        PaddingStr = utils.StringOfCharW(C_SPACE, (PaddingLength/2));
 
         // Add trailing padding, colors and margin to text
         // unless text is in a "push/pop zone
@@ -915,27 +912,27 @@ bool __fastcall TConvertToIRC::AddLine(void)
           PaddingStr += WideString(C_SPACE); // Adjust padding length up by 1
 
         // Add leading spaces unless text is in a "push/pop zone
-        TextLine = utils->InsertW(TextLine, ColorFormatStr + LmarginStr + PaddingStr, 1);
+        TextLine = utils.InsertW(TextLine, ColorFormatStr + LmarginStr + PaddingStr, 1);
       }
       else // Left-Justify
       {
-        PaddingStr = utils->StringOfCharW(C_SPACE, PaddingLength);
+        PaddingStr = utils.StringOfCharW(C_SPACE, PaddingLength);
 
         // Add trailing padding, colors and margin to text
         TextLine += ColorFormatStr + RmarginStr + PaddingStr;
 
         // Add leading margin and colors
-        TextLine = utils->InsertW(TextLine, ColorFormatStr + LmarginStr , 1);
+        TextLine = utils.InsertW(TextLine, ColorFormatStr + LmarginStr , 1);
       }
     }
 
     if (dts->Borders->Checked && dts->bSideEnabled)
     {
       // Add the leading border
-      TextLine = utils->InsertW(TextLine, dts->LeftSideBorder, 1);
+      TextLine = utils.InsertW(TextLine, dts->LeftSideBorder, 1);
 
       // Add color-format to beginning of text-string
-      TextLine = utils->InsertW(TextLine, ColorFormatStr, 1);
+      TextLine = utils.InsertW(TextLine, ColorFormatStr, 1);
 
       // Add the trailing border
       TextLine += dts->RightSideBorder;
@@ -987,14 +984,14 @@ bool __fastcall TConvertToIRC::InitNextLine(bool bInhibitColors)
           State.bg = dts->Abg;
 
         // Write colors for next line
-        utils->WriteColors(State.fg, State.bg, TextLine);
+        utils.WriteColors(State.fg, State.bg, TextLine);
 
         // Write font for next line if YahTrinPal
         if (State.bFontTypefast)
-          TextLine += utils->FontTypeToString(State.fontType);
+          TextLine += utils.FontTypeToString(State.fontType);
           
         if (State.bFontSizefast)
-          TextLine += utils->FontSizeToString(State.fontSize);
+          TextLine += utils.FontSizeToString(State.fontSize);
 
         // Set state-flags based upon leading format chars still unprocessed
         // in pBuf and the font-effects mode from the font-dialog
@@ -1026,7 +1023,7 @@ void __fastcall TConvertToIRC::DoPop(PUSHSTRUCT TempState, WideString &TempStr)
 
   // Write in the most recent blend-colors after a pop
   if (dts->Foreground == IRCVERTBLEND || dts->Foreground == IRCHORIZBLEND)
-    utils->WritePrevBlendColors(dts->PrevFG, dts->PrevBG, TempStr);
+    utils.WritePrevBlendColors(dts->PrevFG, dts->PrevBG, TempStr);
 }
 //---------------------------------------------------------------------------
 // Overloaded!!!!!!!!!!!!!!!!!!
@@ -1040,7 +1037,7 @@ void __fastcall TConvertToIRC::RestoreFGBG(int fg, int bg, WideString &TempStr)
 {
   if (State.fg != fg && State.bg != bg)
   {
-    utils->WriteColors(fg, bg, TempStr);
+    utils.WriteColors(fg, bg, TempStr);
     State.fg = fg;
     State.bg = bg;
     State.bFGfast = false; // UnLock color-changes
@@ -1048,13 +1045,13 @@ void __fastcall TConvertToIRC::RestoreFGBG(int fg, int bg, WideString &TempStr)
   }
   else if (State.fg != fg)
   {
-    utils->WriteSingle(fg, TempStr, true);
+    utils.WriteSingle(fg, TempStr, true);
     State.fg = fg;
     State.bFGfast = false; // UnLock color-changes
   }
   else if (State.bg != bg)
   {
-    utils->WriteSingle(bg, TempStr, false);
+    utils.WriteSingle(bg, TempStr, false);
     State.bg = bg;
     State.bBGfast = false; // UnLock color-changes
   }
@@ -1071,7 +1068,7 @@ void __fastcall TConvertToIRC::RestoreFontType(WideString &TempStr, int ft)
 
   if (State.fontType != ft)
   {
-    TempStr += utils->FontTypeToString(ft);
+    TempStr += utils.FontTypeToString(ft);
     State.fontType = ft;
     State.bFontTypefast = false; // UnLock font-changes
   }
@@ -1088,7 +1085,7 @@ void __fastcall TConvertToIRC::RestoreFontSize(WideString &TempStr, int fs)
 
   if (State.fontSize != fs)
   {
-    TempStr += utils->FontSizeToString(fs);
+    TempStr += utils.FontSizeToString(fs);
     State.fontSize = fs;
     State.bFontSizefast = false; // UnLock font-changes
   }
@@ -1124,7 +1121,7 @@ void __fastcall TConvertToIRC::InitBoldUnderlineReverseForNextLine(void)
   // need the state at the beginning of the document not at the present
   // location in the document! This is all about setting underline, etc.
   // from the font-dialog!)
-  int InsertIdx = utils->SetStateFlags(pBuf, iSize, STATE_MODE_FIRSTCHAR,
+  int InsertIdx = utils.SetStateFlags(pBuf, iSize, STATE_MODE_FIRSTCHAR,
                                                                  NewState);
 
   if (InsertIdx >= 0)
@@ -1197,7 +1194,7 @@ int __fastcall TConvertToIRC::AddScriptingChars(WideString ColorFormatStr)
   int NextWordLength;
 
   // Get actual length of text minus special sequences
-  (void)utils->GetRealLength(TextLine, NextWordLength);
+  (void)utils.GetRealLength(TextLine, NextWordLength);
 
   // Return background to default color if color-codes
   // are embedded in original text
@@ -1211,8 +1208,8 @@ int __fastcall TConvertToIRC::AddScriptingChars(WideString ColorFormatStr)
   {
     if (TextLine[ii] == CTRL_O)
     {
-      TextLine = utils->DeleteW(TextLine, ii, 1); // Delete CTRL_O
-      TextLine = utils->InsertW(TextLine, ColorFormatStr, ii+1);
+      TextLine = utils.DeleteW(TextLine, ii, 1); // Delete CTRL_O
+      TextLine = utils.InsertW(TextLine, ColorFormatStr, ii+1);
       Length = TextLine.Length(); // Length has increased
     }
   }
@@ -1220,7 +1217,7 @@ int __fastcall TConvertToIRC::AddScriptingChars(WideString ColorFormatStr)
   if (dts->Borders->Checked || dts->Wingdings->Checked)
   {
     TextLine += ColorFormatStr; // Add color-format to end of text-string
-    TextLine = utils->InsertW(TextLine, ColorFormatStr, 1); // Add color-format to beginning of text-string
+    TextLine = utils.InsertW(TextLine, ColorFormatStr, 1); // Add color-format to beginning of text-string
   }
 
   if (bWingActive && dts->Wingdings->Checked) AddWingToText(ColorFormatStr);
@@ -1244,8 +1241,8 @@ int __fastcall TConvertToIRC::LargestWingLength(void)
   {
     if ((bool)dts->LeftWings->GetTag(ii)) // Enable flag set?
     {
-      (void)utils->GetRealLength(dts->LeftWings->GetString(ii), LWingLength);
-      (void)utils->GetRealLength(dts->RightWings->GetString(ii), RWingLength);
+      (void)utils.GetRealLength(dts->LeftWings->GetString(ii), LWingLength);
+      (void)utils.GetRealLength(dts->RightWings->GetString(ii), RWingLength);
 
       // We will pad out the shorter wing for symmetry so use 2 * Longest wing to compute max length
       if (RWingLength > LWingLength)
@@ -1282,16 +1279,16 @@ int __fastcall TConvertToIRC::SelectWings(int NextWordLen)
 
     for (ii = 0; ii < lCount; ii++)
     {
-      LeftWingStr = utils->StripCRLF(dts->LeftWings->GetString(Index));
+      LeftWingStr = utils.StripCRLF(dts->LeftWings->GetString(Index));
 
       if (Index < rCount)
-        RightWingStr = utils->StripCRLF(dts->RightWings->GetString(Index));
+        RightWingStr = utils.StripCRLF(dts->RightWings->GetString(Index));
 
       bWingActive = (bool)dts->LeftWings->GetTag(Index);
 
       int LeftLen, RightLen;
-      bLeftHasColor = utils->GetRealLength(LeftWingStr, LeftLen);
-      bRightHasColor = utils->GetRealLength(RightWingStr, RightLen);
+      bLeftHasColor = utils.GetRealLength(LeftWingStr, LeftLen);
+      bRightHasColor = utils.GetRealLength(RightWingStr, RightLen);
 
       TotalWingLen = LeftLen + RightLen;
 
@@ -1324,7 +1321,7 @@ int __fastcall TConvertToIRC::SelectWings(int NextWordLen)
       if (bWingActive && TotalWingLen + NextWordLen <= LineWidth)
       {
         if (diff > 0)
-          WingPadding = utils->StringOfCharW(C_SPACE, diff);
+          WingPadding = utils.StringOfCharW(C_SPACE, diff);
 
         return TotalWingLen;
       }
@@ -1347,25 +1344,25 @@ void __fastcall TConvertToIRC::AddWingToText(WideString ColorFormatStr)
 {
   // Put wing-color in TempStr
   WideString TempStr;
-  utils->WriteSingle(dts->Awc, TempStr, true);
+  utils.WriteSingle(dts->Awc, TempStr, true);
 
   WideString sL = LeftWingStr;
   WideString sR = RightWingStr;
 
   // Insert main wing color-code if user's wing has no pre-existing colors.
   if (!bLeftHasColor)
-    sL = utils->InsertW(sL, TempStr,1);
+    sL = utils.InsertW(sL, TempStr,1);
 
   // Pad in front of left wing to balance right-wing if necessary
   if (bPadLeftWing && !WingPadding.IsEmpty())
-    sL = utils->InsertW(sL, WingPadding, 1);
+    sL = utils.InsertW(sL, WingPadding, 1);
 
   // back to main foreground/background color
   sL += ColorFormatStr;
 
   // Insert main wing color-code if user's wing has no pre-existing colors.
   if (!bRightHasColor)
-    sR = utils->InsertW(sR, TempStr, 1);
+    sR = utils.InsertW(sR, TempStr, 1);
 
   // back to main foreground/background color
   sR += ColorFormatStr;
@@ -1377,7 +1374,7 @@ void __fastcall TConvertToIRC::AddWingToText(WideString ColorFormatStr)
   TextLine += sR;
 
   // add leading wing
-  TextLine = utils->InsertW(TextLine, sL, 1);
+  TextLine = utils.InsertW(TextLine, sL, 1);
 }
 //---------------------------------------------------------------------------
 void __fastcall TConvertToIRC::InitPushPop(void)
@@ -1496,7 +1493,7 @@ void __fastcall TConvertToIRC::AdjustMultiplesOfTopBorderSegment(int &TotalWidth
     }
     else
     {
-      utils->GetRealLength(dts->TopBorder, TopLength);
+      utils.GetRealLength(dts->TopBorder, TopLength);
 
       if (TopLength > TotalWidth)
         TotalWidth = TopLength;
@@ -1522,10 +1519,10 @@ int __fastcall TConvertToIRC::GetSideBorderTotalWidth(void)
   if (dts->Borders->Checked && dts->bSideEnabled)
   {
     if (!dts->LeftSideBorder.IsEmpty())
-      utils->GetRealLength(dts->LeftSideBorder, LeftSide);
+      utils.GetRealLength(dts->LeftSideBorder, LeftSide);
 
     if (!dts->RightSideBorder.IsEmpty())
-      utils->GetRealLength(dts->RightSideBorder, RightSide);
+      utils.GetRealLength(dts->RightSideBorder, RightSide);
   }
 
   return LeftSide + RightSide;

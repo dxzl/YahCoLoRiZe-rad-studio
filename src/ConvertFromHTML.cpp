@@ -64,7 +64,7 @@ WideString __fastcall TConvertFromHTML::Execute(bool bShowStatus)
       // If no fileName - we presume the input data is UTF-8 Clipboard text...
       if (this->fileName.IsEmpty())
       {
-        G_In = utils->Utf8ToWide(utils->LoadHtmlFromClipboard());
+        G_In = utils.Utf8ToWide(utils.LoadHtmlFromClipboard());
 
         if (G_In.IsEmpty())
         {
@@ -73,7 +73,7 @@ WideString __fastcall TConvertFromHTML::Execute(bool bShowStatus)
         }
 
         // Get lower-case version to use globally
-        G_InLC = utils->LowerCaseW(G_In);
+        G_InLC = utils.LowerCaseW(G_In);
         G_InLen = G_In.Length();
 
         // Get StartHTML:0000000176
@@ -98,7 +98,7 @@ WideString __fastcall TConvertFromHTML::Execute(bool bShowStatus)
             Temp += WideString(G_In[pos]);
           }
 
-          pos = utils->ToIntDefW(Temp, -1) + 1; // add one for Ansi WideString index
+          pos = utils.ToIntDefW(Temp, -1) + 1; // add one for Ansi WideString index
         }
 
         int startHTML = pos;
@@ -125,7 +125,7 @@ WideString __fastcall TConvertFromHTML::Execute(bool bShowStatus)
             Temp += WideString(G_In[pos]);
           }
 
-          pos = utils->ToIntDefW(Temp, -1) + 1;
+          pos = utils.ToIntDefW(Temp, -1) + 1;
         }
 
         // Backup attempt to find start of HTML code to process
@@ -137,7 +137,7 @@ WideString __fastcall TConvertFromHTML::Execute(bool bShowStatus)
 
           if (pos <= 0)
           {
-            utils->ShowMessageU("HTML Clipboard text is in the wrong format!");
+            utils.ShowMessageU("HTML Clipboard text is in the wrong format!");
             return "";
           }
 
@@ -167,14 +167,14 @@ WideString __fastcall TConvertFromHTML::Execute(bool bShowStatus)
       }
       else
       {
-        AnsiString sFile = utils->ReadStringFromFileW(fileName);
+        AnsiString sFile = utils.ReadStringFromFileW(fileName);
 
         if (dts->IsAnsiFile)
-          sFile = utils->AnsiToUtf8(sFile); // convert an old ANSI file to Utf-8
+          sFile = utils.AnsiToUtf8(sFile); // convert an old ANSI file to Utf-8
 
         if (!GetBody(sFile))
         {
-          utils->ShowMessageU("Unable to get HTML document body for:\r\n" + fileName);
+          utils.ShowMessageU("Unable to get HTML document body for:\r\n" + fileName);
           return "";
         }
 
@@ -255,7 +255,7 @@ bool __fastcall TConvertFromHTML::GetBody(AnsiString sRaw)
           sTemp = ParseArg(idx, sRawLC);
 
           if (sTemp == "utf-8")
-            G_In = utils->Utf8ToWide(sRaw);
+            G_In = utils.Utf8ToWide(sRaw);
           else if (sTemp == "utf-16")
             G_In = WideString((wchar_t*)sRaw.c_str());
           else // ansi
@@ -267,7 +267,7 @@ bool __fastcall TConvertFromHTML::GetBody(AnsiString sRaw)
       else
         G_In = WideString(sRaw);
 
-      G_InLC = utils->LowerCaseW(G_In);
+      G_InLC = utils.LowerCaseW(G_In);
       G_InLen = G_InLC.Length();
 
       int end = G_InLC.Pos("</body>");
@@ -286,7 +286,7 @@ bool __fastcall TConvertFromHTML::GetBody(AnsiString sRaw)
       // Put it in UTF-16 form...
       G_In = WideString(sRaw);
 
-    G_InLC = utils->LowerCaseW(G_In);
+    G_InLC = utils.LowerCaseW(G_In);
     G_InLen = G_In.Length();
 
     if (G_In.Length() == 0)
@@ -384,7 +384,7 @@ bool __fastcall TConvertFromHTML::ProcessTag(WideString Tag, WideString &wOut)
 
     //ShowMessage(Tag);
 
-    WideString tagLC = utils->LowerCaseW(Tag);
+    WideString tagLC = utils.LowerCaseW(Tag);
 
     int pos;
     WideString wTemp;
@@ -455,8 +455,8 @@ bool __fastcall TConvertFromHTML::ProcessTag(WideString Tag, WideString &wOut)
       {
         // Print url if we have one
         if (bHaveURL && G_URL.Length() > 0)
-          wOut += utils->FontTypeToString(dts->cType) +
-              utils->FontSizeToString(dts->cSize) + " " + G_URL;
+          wOut += utils.FontTypeToString(dts->cType) +
+              utils.FontSizeToString(dts->cSize) + " " + G_URL;
       }
       catch(...) {}
 
@@ -598,7 +598,7 @@ bool __fastcall TConvertFromHTML::ProcessTag(WideString Tag, WideString &wOut)
         wTemp = ParseArg(newPos, tagLC);
 
         if (!wTemp.IsEmpty() && (color = GetRgb(wTemp)) <= 0)
-          utils->WriteSingle(color, wOut, false); // Convert to IRC bg
+          utils.WriteSingle(color, wOut, false); // Convert to IRC bg
 
         // Remove "background-color   :  rgb(0,0,0)" or
         // "background=  #ACACAC" from tagLC
@@ -625,7 +625,7 @@ bool __fastcall TConvertFromHTML::ProcessTag(WideString Tag, WideString &wOut)
           wTemp = ParseArg(newPos, tagLC);
 
           if (!wTemp.IsEmpty() && (color = GetRgb(wTemp)) <= 0)
-            utils->WriteSingle(color, wOut, true); // Convert to IRC fg
+            utils.WriteSingle(color, wOut, true); // Convert to IRC fg
 
           // Remove "color:rgb(0,0,0);" from tagLC (optional...)
           //tagLC = tagLC.SubString(1, pos-1) +
@@ -645,11 +645,11 @@ bool __fastcall TConvertFromHTML::ProcessTag(WideString Tag, WideString &wOut)
         wTemp = ParseArg(newPos, tagLC);
 
         // Get 1-based index into FONTS[] in DefaultWideStringd.cpp
-        int idx = utils->GetLocalFontIndex(wTemp);
+        int idx = utils.GetLocalFontIndex(wTemp);
 
         // print the IRC font-family 1-based index-code
         if (idx >= 1)
-          wOut += utils->FontTypeToString(idx);
+          wOut += utils.FontTypeToString(idx);
       }
     }
 
@@ -737,7 +737,7 @@ bool __fastcall TConvertFromHTML::HtmlToIrcFontSize(WideString wIn, WideString &
     }
 
     if (val > 0)
-      wOut += utils->FontSizeToString(val);
+      wOut += utils.FontSizeToString(val);
 
     return true;
   }
@@ -842,7 +842,7 @@ WideString __fastcall TConvertFromHTML::ParseArg(int &pos, WideString wTag)
     // return next index
     pos = ii + 1;
 
-    return utils->TrimW(Temp);
+    return utils.TrimW(Temp);
   }
   catch(...)
   {
@@ -902,7 +902,7 @@ WideString __fastcall TConvertFromHTML::GetFontSizeAndType(WideString S, float &
 {
   WideString Size, Type;
 
-  S = utils->LowerCaseW(S);
+  S = utils.LowerCaseW(S);
 
   for (int ii = 1; ii <= S.Length(); ii++)
   {
@@ -944,7 +944,7 @@ int __fastcall TConvertFromHTML::GetRgb(WideString S)
   bc.green = 0;
   bc.blue = 0;
 
-  S = utils->LowerCaseW(S);
+  S = utils.LowerCaseW(S);
 
   // Look for a color in S of the form rgb(r,g,b)
   // where r, g and b are decimal 0-255
@@ -983,11 +983,11 @@ int __fastcall TConvertFromHTML::GetRgb(WideString S)
         break;
     }
 
-    bc.red = utils->ToIntDefW(sr, 0);
-    bc.green = utils->ToIntDefW(sg, 0);
-    bc.blue = utils->ToIntDefW(sb, 0);
+    bc.red = utils.ToIntDefW(sr, 0);
+    bc.green = utils.ToIntDefW(sg, 0);
+    bc.blue = utils.ToIntDefW(sb, 0);
 
-    return -utils->BlendColorToRgb(bc);
+    return -utils.BlendColorToRgb(bc);
   }
 
   // Look for a color in S of the form #rgb or #rrggbb
@@ -1020,7 +1020,7 @@ int __fastcall TConvertFromHTML::GetRgb(WideString S)
 
     for (int ii = 1; ii <= len; ii++)
     {
-      if (!utils->mishexw(C[ii]))
+      if (!utils.mishexw(C[ii]))
         return 1; // error
 
       if (len == 6) // 6-wchar_t hex color #rrggbb
@@ -1046,24 +1046,24 @@ int __fastcall TConvertFromHTML::GetRgb(WideString S)
     // Convert hex string starting with 0x to int, 16 is error
     if (len == 6) // 6-wchar_t hex color #rrggbb
     {
-      bc.red = utils->ToIntDefW(sr, 256);
-      bc.green = utils->ToIntDefW(sg, 256);
-      bc.blue = utils->ToIntDefW(sb, 256);
+      bc.red = utils.ToIntDefW(sr, 256);
+      bc.green = utils.ToIntDefW(sg, 256);
+      bc.blue = utils.ToIntDefW(sb, 256);
 
       if (bc.red == 256 || bc.green == 256 || bc.blue == 256)
         return 1; // error
     }
     else
     {
-      bc.red = utils->ToIntDefW(sr, 16);
-      bc.green = utils->ToIntDefW(sg, 16);
-      bc.blue = utils->ToIntDefW(sb, 16);
+      bc.red = utils.ToIntDefW(sr, 16);
+      bc.green = utils.ToIntDefW(sg, 16);
+      bc.blue = utils.ToIntDefW(sb, 16);
 
       if (bc.red == 16 || bc.green == 16 || bc.blue == 16)
         return 1; // error
     }
 
-    return -utils->BlendColorToRgb(bc);
+    return -utils.BlendColorToRgb(bc);
   }
 
   return 1; // error
@@ -1130,7 +1130,7 @@ wchar_t __fastcall TConvertFromHTML::HtmlSpecialCharDecode(WideString In)
   if (In[2] == '#' && In.Length() >= 4)
   {
     WideString S = In.SubString(3, In.Length()-3);
-    int num = utils->ToIntDefW(S, -1); // -1 if error
+    int num = utils.ToIntDefW(S, -1); // -1 if error
 
     // return ANSI or UTF-16, no control chars...
     if (num >= ' ')

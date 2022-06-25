@@ -37,8 +37,8 @@ __fastcall TUnderlineForm::TUnderlineForm(TComponent* Owner)
 void __fastcall TUnderlineForm::FormShow(TObject *Sender)
 {
   this->Caption = DlgCaption;
-  UnderlinePanelColorA->Color = utils->YcToTColor(dlgColorA);
-  UnderlinePanelColorB->Color = utils->YcToTColor(dlgColorB);
+  UnderlinePanelColorA->Color = utils.YcToTColor(dlgColorA);
+  UnderlinePanelColorB->Color = utils.YcToTColor(dlgColorB);
   RadioGroup->ItemIndex = mode;
 }
 //---------------------------------------------------------------------------
@@ -52,7 +52,7 @@ void __fastcall TUnderlineForm::UnderlinePanelColorAMouseDown(TObject *Sender,
 {
   if (Button == mbLeft)
   {
-    int C = utils->PanelColorDialog(UnderlinePanelColorA, COLORDIALOGMSG[17],
+    int C = utils.PanelColorDialog(UnderlinePanelColorA, COLORDIALOGMSG[17],
                                                         clAqua, COLOR_FORM_EFG);
     if (C != IRCCANCEL)
       dlgColorA = C;
@@ -64,7 +64,7 @@ void __fastcall TUnderlineForm::UnderlinePanelColorBMouseDown(TObject *Sender,
 {
   if (Button == mbLeft)
   {
-    int C = utils->PanelColorDialog(UnderlinePanelColorB, COLORDIALOGMSG[18],
+    int C = utils.PanelColorDialog(UnderlinePanelColorB, COLORDIALOGMSG[18],
                                                         clAqua, COLOR_FORM_EFG);
     if (C != IRCCANCEL)
       dlgColorB = C;
@@ -74,14 +74,14 @@ void __fastcall TUnderlineForm::UnderlinePanelColorBMouseDown(TObject *Sender,
 void __fastcall TUnderlineForm::SetColorA(int val)
 // property setter
 {
-  if (utils->SetPanelColorAndCaption(UnderlinePanelColorA, val))
+  if (utils.SetPanelColorAndCaption(UnderlinePanelColorA, val))
     dlgColorA = val;
 }
 //---------------------------------------------------------------------------
 void __fastcall TUnderlineForm::SetColorB(int val)
 // property setter
 {
-  if (utils->SetPanelColorAndCaption(UnderlinePanelColorB, val))
+  if (utils.SetPanelColorAndCaption(UnderlinePanelColorB, val))
     dlgColorB = val;
 }
 //---------------------------------------------------------------------------

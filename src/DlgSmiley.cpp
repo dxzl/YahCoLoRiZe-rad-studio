@@ -47,14 +47,14 @@ void __fastcall TSmileyForm::FormCreate(TObject *Sender)
 {
   try
   {
-    WideString SmileyDir = utils->ExtractFilePathW(utils->GetExeNameW());
+    WideString SmileyDir = utils.ExtractFilePathW(utils.GetExeNameW());
 
-    WideString SmileyFile = SmileyDir + utils->Utf8ToWide(SMILEYFILE); // Smileys.txt
+    WideString SmileyFile = SmileyDir + utils.Utf8ToWide(SMILEYFILE); // Smileys.txt
 
-    if (!utils->FileExistsW(SmileyFile))
+    if (!utils.FileExistsW(SmileyFile))
     {
       // "Cannot find... Please reinstall YahCoLoRiZe..."
-      utils->ShowMessageU(String(DS[222]) + "\n" + SmileyFile +
+      utils.ShowMessageU(String(DS[222]) + "\n" + SmileyFile +
                                         "\n\n" + String(DS[223]));
       this->Release();
       return;
@@ -73,7 +73,7 @@ void __fastcall TSmileyForm::FormCreate(TObject *Sender)
     {
       WideString wTemp = TempStrings->GetString(ii);
 
-      wTemp = utils->TrimW(wTemp);
+      wTemp = utils.TrimW(wTemp);
 
       if (!wTemp.IsEmpty() && wTemp.Pos("//") != 1)
         EmoteStrings->Add(wTemp);
@@ -85,20 +85,20 @@ void __fastcall TSmileyForm::FormCreate(TObject *Sender)
             ((EmoteStrings->Count-SMILEY_SPARES) % 3))
     {
       // "Corrupt find... Please reinstall YahCoLoRiZe..."
-      utils->ShowMessageU(String(DS[226]) + "\n" + SmileyFile +
+      utils.ShowMessageU(String(DS[226]) + "\n" + SmileyFile +
                                         "\n\n" + String(DS[223]));
       this->Release();
       return;
     }
 
     int Count = 0;
-    SmileyDir += utils->Utf8ToWide(SMILEYDIR);
+    SmileyDir += utils.Utf8ToWide(SMILEYDIR);
 
     for (int ii = 0; ii < 1000; ii++)
     {
       WideString S = SmileyDir + String(ii+1) + ".jpg";
 
-      if (!utils->FileExistsW(S))
+      if (!utils.FileExistsW(S))
         continue;
 
       TImage*  I = new TImage(this);
@@ -114,7 +114,7 @@ void __fastcall TSmileyForm::FormCreate(TObject *Sender)
       // Add the hint
       for (int jj = SMILEY_SPARES; jj < EmoteStrings->Count; jj += 3)
       {
-        int temp = utils->ToIntDefW(EmoteStrings->GetString(jj+0), -1);
+        int temp = utils.ToIntDefW(EmoteStrings->GetString(jj+0), -1);
 
         if (temp == ii+1)
         {
@@ -142,7 +142,7 @@ void __fastcall TSmileyForm::FormCreate(TObject *Sender)
 
     if (Count == 0)
     {
-      utils->ShowMessageU("No emoticon image (.jpg) files found at:\n"
+      utils.ShowMessageU("No emoticon image (.jpg) files found at:\n"
                      "\"" + SmileyDir + "\"");
       Release();
     }
@@ -164,7 +164,7 @@ void __fastcall TSmileyForm::MouseClick(TObject* Sender)
     {
       for (int ii = SMILEY_SPARES; ii < EmoteStrings->Count; ii += 3)
       {
-        int temp = utils->ToIntDefW(EmoteStrings->GetString(ii+0), -1);
+        int temp = utils.ToIntDefW(EmoteStrings->GetString(ii+0), -1);
 
         if (temp != -1 && temp == tag)
         {
@@ -178,7 +178,7 @@ void __fastcall TSmileyForm::MouseClick(TObject* Sender)
 
             // Relocate this dialog if it's on top of the new selection!
             if (this->Visible)
-              utils->RelocateDialog(this);
+              utils.RelocateDialog(this);
           }
           break;
         }

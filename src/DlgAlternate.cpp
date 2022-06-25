@@ -45,10 +45,10 @@ void __fastcall TAlternateForm::FormShow(TObject *Sender)
 
   if (bShowColors)
   {
-    AlternatePanelColorA->Color = utils->YcToTColor(colorA);
+    AlternatePanelColorA->Color = utils.YcToTColor(colorA);
     AlternatePanelColorA->Visible = true;
     LabelColorA->Visible = true;
-    AlternatePanelColorB->Color = utils->YcToTColor(colorB);
+    AlternatePanelColorB->Color = utils.YcToTColor(colorB);
     AlternatePanelColorB->Visible = true;
     LabelColorB->Visible = true;
   }
@@ -78,7 +78,7 @@ void __fastcall TAlternateForm::AlternatePanelColorAMouseDown(TObject *Sender,
 
   if (Button == mbLeft)
   {
-    int C = utils->PanelColorDialog(AlternatePanelColorA, COLORDIALOGMSG[12],
+    int C = utils.PanelColorDialog(AlternatePanelColorA, COLORDIALOGMSG[12],
                                                         clAqua, COLOR_FORM_EFG);
     if (C != IRCCANCEL)
       colorA = C;
@@ -93,7 +93,7 @@ void __fastcall TAlternateForm::AlternatePanelColorBMouseDown(TObject *Sender,
 
   if (Button == mbLeft)
   {
-    int C = utils->PanelColorDialog(AlternatePanelColorB, COLORDIALOGMSG[12],
+    int C = utils.PanelColorDialog(AlternatePanelColorB, COLORDIALOGMSG[12],
                                                       clAqua, COLOR_FORM_EFG);
     if (C != IRCCANCEL)
       colorB = C;
@@ -103,13 +103,13 @@ void __fastcall TAlternateForm::AlternatePanelColorBMouseDown(TObject *Sender,
 void __fastcall TAlternateForm::SetColorA(int val)
 // property setter
 {
-  if (utils->SetPanelColorAndCaption(AlternatePanelColorA, val)) colorA = val;
+  if (utils.SetPanelColorAndCaption(AlternatePanelColorA, val)) colorA = val;
 }
 //---------------------------------------------------------------------------
 void __fastcall TAlternateForm::SetColorB(int val)
 // property setter
 {
-  if (utils->SetPanelColorAndCaption(AlternatePanelColorB, val)) colorB = val;
+  if (utils.SetPanelColorAndCaption(AlternatePanelColorB, val)) colorB = val;
 }
 //---------------------------------------------------------------------------
 void __fastcall TAlternateForm::FormKeyDown(TObject *Sender, WORD &Key,

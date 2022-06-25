@@ -79,7 +79,7 @@ BOOL CALLBACK TPaltalk::dlgFindRooms(HWND hWnd, LPARAM lparam)
     {
       // 100 rooms max!
       if (p->roomList->Count < MAXROOMHISTORY)
-        p->roomList->AddObject(utils->WideToUtf8(WideString(wtmp)),
+        p->roomList->AddObject(utils.WideToUtf8(WideString(wtmp)),
                                                        (TObject*)hWnd);
     }
   }
@@ -288,7 +288,7 @@ bool __fastcall TPaltalk::readPaltalkIniFile(void)
   {
     try
     {
-      pIni = utils->OpenIniFile();
+      pIni = utils.OpenIniFile();
 
       if (pIni == NULL)
         return false;

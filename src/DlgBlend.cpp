@@ -36,7 +36,7 @@ void __fastcall TBlendChoiceForm::PresetPanelClick(TObject *Sender)
 
   // See if user tried to load an empty preset
   if (!DTSColor->LoadBlendPresetFromRegistry(BC, P->Tag))
-    utils->ShowMessageU(this->Handle, DS[221], MB_ICONWARNING|MB_OK);
+    utils.ShowMessageU(this->Handle, DS[221], MB_ICONWARNING|MB_OK);
   else
   {
     DTSColor->GBlendPreset = P->Tag; // Made a selection

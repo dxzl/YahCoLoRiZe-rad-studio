@@ -46,8 +46,8 @@ __fastcall TMonkeyForm::TMonkeyForm(TComponent* Owner)
       String(DEF_PRODUCT_ID) + "." + String(DEF_SUPER_REV);
 
   // Set top panel's BG color the same as the main fg/bg colors
-  RevPanel->Color = utils->YcToTColor(DTSColor->Background);
-  RevPanel->Font->Color = utils->YcToTColor(DTSColor->Foreground);
+  RevPanel->Color = utils.YcToTColor(DTSColor->Background);
+  RevPanel->Font->Color = utils.YcToTColor(DTSColor->Foreground);
 
   bReverse = false;
 

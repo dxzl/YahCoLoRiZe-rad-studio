@@ -62,10 +62,10 @@ bool __fastcall TPlayback::DoStartPlay(int Time)
     //  // Window caption
     //  if ((len = GetWindowTextLength(dts->GhwndReplyTo)) > 0)
     //  {
-    //    utils->ShowMessageU(String(len)); // Returns 14 chars "IceChatMsgPump"
+    //    utils.ShowMessageU(String(len)); // Returns 14 chars "IceChatMsgPump"
     //    char * p = new char[len+1];
     //    if (GetWindowText(dts->GhwndReplyTo, p, len+1) != NULL)
-    //      utils->ShowMessageU(String(p));
+    //      utils.ShowMessageU(String(p));
     //    delete [] p;
     //  }
     //}
@@ -75,7 +75,7 @@ bool __fastcall TPlayback::DoStartPlay(int Time)
     if (temp == NULL)
     {
       // Client not found...
-      utils->ShowMessageU(DS[111]);
+      utils.ShowMessageU(DS[111]);
       return false;
     }
 
@@ -95,12 +95,12 @@ bool __fastcall TPlayback::DoStartPlay(int Time)
       // and we lose registration.  Idea here is to read the ini file
       // and if it exists and the Class and Name for the extension
       // are not ours, tell the user how to re-set it.
-      WideString YahIniFile = utils->FindFileW("yahelite.ini", "\\yahelite");
+      WideString YahIniFile = utils.FindFileW("yahelite.ini", "\\yahelite");
 
       if (!YahIniFile.IsEmpty())
       {
         // Open and read the file
-        TIniFile* pIniFile = new TIniFile(utils->GetAnsiPathW(YahIniFile));
+        TIniFile* pIniFile = new TIniFile(utils.GetAnsiPathW(YahIniFile));
         String Class = pIniFile->ReadString("Ext", "Class", "");
         String Name = pIniFile->ReadString("Ext", "Name", "");
         delete pIniFile;
@@ -108,7 +108,7 @@ bool __fastcall TPlayback::DoStartPlay(int Time)
         if (Class.LowerCase() != LowerCase(String('T') + Application->Name) ||
               Name.LowerCase() != dts->Caption.LowerCase())
         {
-          utils->ShowMessageU(DS[112]);
+          utils.ShowMessageU(DS[112]);
           return false;
         }
       }
@@ -116,7 +116,7 @@ bool __fastcall TPlayback::DoStartPlay(int Time)
     // Warn user against sending garbage to Yahoo
 //    if (tae->View == V_OFF && dts->EffectWasAdded)
 //    {
-//      if (utils->ShowMessageU(Application->Handle, DS[113],
+//      if (utils.ShowMessageU(Application->Handle, DS[113],
 //                    MB_ICONQUESTION|MB_YESNO|MB_DEFBUTTON1) == IDYES)
 //        return(false);
 //    }
@@ -159,7 +159,7 @@ bool __fastcall TPlayback::DoStartPlay(int Time)
     if (!GPaltalk || !GPaltalk->getAllRoomsAndPms())
     {
       // Client not found...
-      utils->ShowMessageU(DS[111]);
+      utils.ShowMessageU(DS[111]);
       return false;
     }
 
@@ -177,7 +177,7 @@ bool __fastcall TPlayback::DoStartPlay(int Time)
 
         if (!PlayForm->HaveRooms)
           // Client not found...
-          utils->ShowMessageU(DS[111]);
+          utils.ShowMessageU(DS[111]);
       }
       __finally
       {
@@ -241,7 +241,7 @@ bool __fastcall TPlayback::DoStartPlay(int Time)
       }
       else // No text to play
       {
-        utils->ShowMessageU(DS[116]);
+        utils.ShowMessageU(DS[116]);
         return false;
       }
     }
@@ -278,7 +278,7 @@ bool __fastcall TPlayback::DoStartPlay(int Time)
       }
       else // No text to play
       {
-        utils->ShowMessageU(DS[116]);
+        utils.ShowMessageU(DS[116]);
         return false;
       }
     }
@@ -286,11 +286,11 @@ bool __fastcall TPlayback::DoStartPlay(int Time)
   catch(...)
   {
     // "Error preparing text for playback...", // 117
-    utils->ShowMessageU(DS[117]);
+    utils.ShowMessageU(DS[117]);
     return(false);
   }
 
-  AnsiString sPath = utils->GetAnsiPathW(FileStr);
+  AnsiString sPath = utils.GetAnsiPathW(FileStr);
 
   // Talk to DLL, tell it to start playing the specified file
   AnsiString sChan;
@@ -298,7 +298,7 @@ bool __fastcall TPlayback::DoStartPlay(int Time)
   if (dts->bSendUtf8)
     sChan = dts->PlayChan; // normally in Utf8
   else
-    sChan = utils->Utf8ToAnsi(dts->PlayChan);
+    sChan = utils.Utf8ToAnsi(dts->PlayChan);
 
   if (dts->bUseDLL)
   {
@@ -310,7 +310,7 @@ bool __fastcall TPlayback::DoStartPlay(int Time)
       if (pColorStart == NULL)
       {
         // "Colorize.dll"
-        utils->ShowMessageU("Cannot load: " + String(FN[7]) + ".\n" +
+        utils.ShowMessageU("Cannot load: " + String(FN[7]) + ".\n" +
           "Make sure the file Colorize.dll is in the\n" +
             "same directory as colorizeu.exe. Also try\n" +
             "unchecking UseDLL in Play->Options");
@@ -388,7 +388,7 @@ bool __fastcall TPlayback::DoStartPlay(int Time)
     }
     catch(...)
     {
-      utils->ShowMessageU(DS[125]);
+      utils.ShowMessageU(DS[125]);
       return false;
     }
   }
@@ -406,49 +406,49 @@ bool __fastcall TPlayback::MoveTextToGPlayBuffer(void)
 
   dts->GPlaySize = 0;
 
-  WideString sOut = utils->MoveMainTextToString();
+  WideString sOut = utils.MoveMainTextToString();
 
   // Flatten tabs
-  sOut = utils->FlattenTabs(sOut, dts->RegTabMode);
+  sOut = utils.FlattenTabs(sOut, dts->RegTabMode);
 
   // Convert \pagebreak strings into C_FF then strip them out
-  sOut = utils->PageBreaksToFormFeed(sOut);
-  sOut = utils->StripChar(sOut, C_FF);
+  sOut = utils.PageBreaksToFormFeed(sOut);
+  sOut = utils.StripChar(sOut, C_FF);
 
   if (sOut.IsEmpty())
   {
-    utils->ShowMessageU(DS[116]);
+    utils.ShowMessageU(DS[116]);
     return false;
   }
 
   // Strip trailing codes
-  sOut = utils->StripTrailingCodes(sOut);
+  sOut = utils.StripTrailingCodes(sOut);
 
   if (sOut.IsEmpty())
-    utils->ShowMessageU("Exception in utils->StripTrailingSpacesAndCodes()\n"
+    utils.ShowMessageU("Exception in utils.StripTrailingSpacesAndCodes()\n"
                                                 "from Playback.cpp");
 
   // Strip out Push/Pop
-  sOut = utils->FlattenPushPop(sOut);
+  sOut = utils.FlattenPushPop(sOut);
 
   if (sOut.IsEmpty())
-    utils->ShowMessageU("Exception in utils->StripPushPop()\nfrom Playback.cpp");
+    utils.ShowMessageU("Exception in utils.StripPushPop()\nfrom Playback.cpp");
 
   // Strip out redundant codes
-  sOut = utils->Optimize(sOut, false, NO_COLOR);
+  sOut = utils.Optimize(sOut, false, NO_COLOR);
 
   if (dts->bPadSpaces && (dts->IsCli(C_XIRCON) || !dts->bUseFile))
   {
-    sOut = utils->ReplaceSpaces(sOut);
+    sOut = utils.ReplaceSpaces(sOut);
     if (sOut.IsEmpty())
-      utils->ShowMessageU("Exception in utils->ReplaceSpaces() from\nPlayback.cpp");
+      utils.ShowMessageU("Exception in utils.ReplaceSpaces() from\nPlayback.cpp");
   }
 
-  dts->GPlayBuffer = utils->StrNewW(sOut.c_bstr());
+  dts->GPlayBuffer = utils.StrNewW(sOut.c_bstr());
 
   if (dts->GPlayBuffer == NULL)
   {
-    utils->ShowMessageU(DS[116]);
+    utils.ShowMessageU(DS[116]);
     dts->GPlaySize = 0;;
     return false;
   }
@@ -491,7 +491,7 @@ bool __fastcall TPlayback::MoveTextToYahooBuffer(wchar_t* &pBuf, int &iSize)
           int jj = 0;
 
           bool bDummy;
-          int LinesToMove = utils->GetNumberOfLinesSelected(bDummy);
+          int LinesToMove = utils.GetNumberOfLinesSelected(bDummy);
 
           if (!LinesToMove)
             return false;
@@ -502,11 +502,11 @@ bool __fastcall TPlayback::MoveTextToYahooBuffer(wchar_t* &pBuf, int &iSize)
           // corresponding to the RTF-View's selected lines
           for (ii = 0; ii < iSize; ii++)
           {
-            int LineIdx = utils->GetLine(tae);
+            int LineIdx = utils.GetLine(tae);
             if (Line >= LineIdx && Line < LineIdx+LinesToMove)
               pLineBuf[jj++] = pBuf[ii];
 
-            if (utils->FoundCRLF(pBuf, iSize, ii))
+            if (utils.FoundCRLF(pBuf, iSize, ii))
               if (++Line >= LineIdx+LinesToMove)
                 break;
           }
@@ -551,7 +551,7 @@ bool __fastcall TPlayback::MoveTextToYahooBuffer(wchar_t* &pBuf, int &iSize)
       if (tae->SelLength)
         textLen = tae->SelLength;
       else
-        textLen = utils->GetTextLength(tae);
+        textLen = utils.GetTextLength(tae);
 
       if (textLen > 0)
       {
@@ -572,7 +572,7 @@ bool __fastcall TPlayback::MoveTextToYahooBuffer(wchar_t* &pBuf, int &iSize)
   }
   catch(...)
   {
-    utils->ShowMessageU(String(DS[95]) + "MoveYahooTextToBuffer()");
+    utils.ShowMessageU(String(DS[95]) + "MoveYahooTextToBuffer()");
     return false;
   }
 }

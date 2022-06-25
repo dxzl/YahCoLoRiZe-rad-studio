@@ -103,8 +103,8 @@ void __fastcall TWingEditForm::FormCreate(TObject *Sender)
 
   // Kept in utf-8 - which we can call Utf8ToWide on to set the GDI font
   // with UTF-16 names.
-  Lwlb->Font->Name = utils->WideToUtf8(dts->cFont);
-  Rwlb->Font->Name = utils->WideToUtf8(dts->cFont);
+  Lwlb->Font->Name = utils.WideToUtf8(dts->cFont);
+  Rwlb->Font->Name = utils.WideToUtf8(dts->cFont);
 
   // Enable extended characters in the list-boxes
 // not in my header-files!
@@ -166,9 +166,9 @@ void __fastcall TWingEditForm::FormCreate(TObject *Sender)
 
   try
   {
-    utils->LoadMenu(MainMenu1, (char**)WINGEDITMAINMENU);
-    utils->LoadMenu(WingsPopupMenu, (char**)EDITPOPUPMENU1);
-    utils->LoadMenu(WingEditorPopupMenu, (char**)EDITPOPUPMENU2);
+    utils.LoadMenu(MainMenu1, (char**)WINGEDITMAINMENU);
+    utils.LoadMenu(WingsPopupMenu, (char**)EDITPOPUPMENU1);
+    utils.LoadMenu(WingEditorPopupMenu, (char**)EDITPOPUPMENU2);
   }
   catch(...)
   {
@@ -241,7 +241,7 @@ HFONT __fastcall TWingEditForm::MakeFont(TListBox* lb)
   {
     if (lb != NULL)
     {
-      WideString sFont = utils->Utf8ToWide(lb->Font->Name);
+      WideString sFont = utils.Utf8ToWide(lb->Font->Name);
       TCanvas* pCanvas = lb->Canvas;
       long lfHeight =
         -MulDiv(lb->Font->Size, GetDeviceCaps(pCanvas->Handle, LOGPIXELSY), 72);
@@ -474,7 +474,7 @@ void __fastcall TWingEditForm::ColorCode1Click(TObject *Sender)
 {
   if (Edit1->View != V_IRC && Edit1->View != V_RTF)
   {
-    utils->ShowMessageU(EDITMSG[28]); // "Click or double-click an item to edit it..."
+    utils.ShowMessageU(EDITMSG[28]); // "Click or double-click an item to edit it..."
     return;
   }
 
@@ -506,15 +506,15 @@ void __fastcall TWingEditForm::ColorCode1Click(TObject *Sender)
   if (!bHaveFg && !bHaveBg)
     return;
 
-  fg = utils->ConvertColor(fg, false);
-  bg = utils->ConvertColor(bg, false);
+  fg = utils.ConvertColor(fg, false);
+  bg = utils.ConvertColor(bg, false);
 
   WideString ColorFmt;
 
   // Write the color-codes into a string
-  utils->WriteColors(fg, bg, ColorFmt);
+  utils.WriteColors(fg, bg, ColorFmt);
 
-  utils->PushOnChange(Edit1);
+  utils.PushOnChange(Edit1);
 
   // Save carat position
   int SaveSelStart = Edit1->SelStart;
@@ -524,14 +524,14 @@ void __fastcall TWingEditForm::ColorCode1Click(TObject *Sender)
     int TempStart = Edit1->SelStart + 1;
     int TempLen = Edit1->SelLength;
 
-    EditString = utils->InsertW(EditString, ColorFmt, TempStart);
+    EditString = utils.InsertW(EditString, ColorFmt, TempStart);
 
     if (TempLen)
-      EditString = utils->InsertW(EditString, String(CTRL_K), TempStart +
+      EditString = utils.InsertW(EditString, String(CTRL_K), TempStart +
                                                 TempLen + ColorFmt.Length());
 
     // Highlight special codes
-    utils->EncodeHighlight(EditString, Edit1);
+    utils.EncodeHighlight(EditString, Edit1);
     Edit1->SelStart = TempStart - 1;
   }
   else // Edit1->View is V_RTF
@@ -542,32 +542,32 @@ void __fastcall TWingEditForm::ColorCode1Click(TObject *Sender)
       if (bHaveFg && bHaveBg)
       {
         int len = EditString.Length();
-        EditString = utils->StripColorCodes(EditString, 0, len);
+        EditString = utils.StripColorCodes(EditString, 0, len);
       }
       else if (bHaveFg)
-        EditString = utils->StripFgCodes(EditString);
+        EditString = utils.StripFgCodes(EditString);
       else // bg only
-        EditString = utils->StripBgCodes(EditString);
+        EditString = utils.StripBgCodes(EditString);
 
       // Map the start and end indices of the RTF text to the
       // raw text in EditString.
-      int iFirst = utils->GetCodeIndex(Edit1);
+      int iFirst = utils.GetCodeIndex(Edit1);
 
       if (iFirst < 0)
       {
-        utils->PopOnChange(Edit1);
+        utils.PopOnChange(Edit1);
         return;
       }
 
       // Write the colors imediately before the first printable character.
-      EditString = utils->InsertW(EditString, ColorFmt, iFirst+1);
+      EditString = utils.InsertW(EditString, ColorFmt, iFirst+1);
     }
     else // text is selected...
     {
       // Set the cumulative text state that exists at the first character
       // in EditString.
       PUSHSTRUCT BeginningState;
-      utils->SetStateFlags(EditString, STATE_MODE_FIRSTCHAR, BeginningState);
+      utils.SetStateFlags(EditString, STATE_MODE_FIRSTCHAR, BeginningState);
 
       // Write default color(s) at beginning if the wing has no default
       // color(s) and the user is trying to add a foreground or
@@ -587,21 +587,21 @@ void __fastcall TWingEditForm::ColorCode1Click(TObject *Sender)
 
       // Write the color-codes into a string
       if (bFgWrite && bBgWrite)
-        utils->WriteColors(IRCBLACK, IRCWHITE, InitColorFmt);
+        utils.WriteColors(IRCBLACK, IRCWHITE, InitColorFmt);
       else if (bFgWrite)
-        utils->WriteSingle(IRCBLACK, InitColorFmt, true);
+        utils.WriteSingle(IRCBLACK, InitColorFmt, true);
       else // bg only
-        utils->WriteSingle(IRCWHITE, InitColorFmt, false);
+        utils.WriteSingle(IRCWHITE, InitColorFmt, false);
 
       // Write the colors at the start of the string.
-      EditString = utils->InsertW(EditString, InitColorFmt, 1);
+      EditString = utils.InsertW(EditString, InitColorFmt, 1);
 
       // Map the start and end indices of the RTF selected text to the
       // text in the buffer
       int iFirst, iLast, CI;
-      if (!utils->GetCodeIndices(EditString, iFirst, iLast, CI, Edit1))
+      if (!utils.GetCodeIndices(EditString, iFirst, iLast, CI, Edit1))
       {
-        utils->PopOnChange(Edit1);
+        utils.PopOnChange(Edit1);
         return;
       }
 
@@ -609,44 +609,44 @@ void __fastcall TWingEditForm::ColorCode1Click(TObject *Sender)
       // following the last highlighted character...
       int LastRealIndex = Edit1->SelStart+Edit1->SelLength;
       PUSHSTRUCT EndState;
-      utils->SetStateFlags(EditString, LastRealIndex, EndState);
+      utils.SetStateFlags(EditString, LastRealIndex, EndState);
 
       // Insert the new color(s) in front of the first highlighted character.
-      EditString = utils->InsertW(EditString, ColorFmt, iFirst+1);
+      EditString = utils.InsertW(EditString, ColorFmt, iFirst+1);
       iFirst += ColorFmt.Length();
       iLast += ColorFmt.Length();
 
       // Strip out color codes in the highlighted range.  "Last" may return
       // shorted by the # of color-code chars removed.
-      EditString = utils->StripColorCodes(EditString, iFirst, iLast);
+      EditString = utils.StripColorCodes(EditString, iFirst, iLast);
 
       // Write the color codes pertaining to the end state.
       ColorFmt = ""; // Must clear to avoid appending to it!
-      utils->WriteColors(EndState.fg, EndState.bg, ColorFmt);
+      utils.WriteColors(EndState.fg, EndState.bg, ColorFmt);
 
       // Insert the color-string in front of the character imediately
       // following the last highlighted char.
-      EditString = utils->InsertW(EditString, ColorFmt, iLast+1);
+      EditString = utils.InsertW(EditString, ColorFmt, iLast+1);
     }
 
     // Optimize the new string
-    EditString = utils->Optimize(EditString, false, NO_COLOR);
+    EditString = utils.Optimize(EditString, false, NO_COLOR);
 
     // Convert to RTF and display it in the edit-window
-    utils->ConvertToRtf(EditString, NULL, Edit1, true);
+    utils.ConvertToRtf(EditString, NULL, Edit1, true);
   }
 
   Edit1->SelStart = SaveSelStart;
   Edit1->Modified = true;
-  OldLength = utils->GetTextLength(Edit1);
-  utils->PopOnChange(Edit1);
+  OldLength = utils.GetTextLength(Edit1);
+  utils.PopOnChange(Edit1);
 }
 //---------------------------------------------------------------------------
 void __fastcall TWingEditForm::FontTypeCode1Click(TObject *Sender)
 {
   if (Edit1->View != V_IRC && Edit1->View != V_RTF)
   {
-    utils->ShowMessageU(EDITMSG[28]); // "Click or double-click an item to edit it..."
+    utils.ShowMessageU(EDITMSG[28]); // "Click or double-click an item to edit it..."
     return;
   }
 
@@ -657,9 +657,9 @@ void __fastcall TWingEditForm::FontTypeCode1Click(TObject *Sender)
   String FontStr;
 
   // Write the font code pertaining to the end state.
-  FontStr = utils->FontTypeToString(Type);
+  FontStr = utils.FontTypeToString(Type);
 
-  utils->PushOnChange(Edit1);
+  utils.PushOnChange(Edit1);
 
   // Save carat position
   int SaveSelStart = Edit1->SelStart;
@@ -669,13 +669,13 @@ void __fastcall TWingEditForm::FontTypeCode1Click(TObject *Sender)
     int TempStart = Edit1->SelStart + 1;
     int TempLen = Edit1->SelLength;
 
-    EditString = utils->InsertW(EditString, FontStr, TempStart);
+    EditString = utils.InsertW(EditString, FontStr, TempStart);
 
     if (TempLen)
-      EditString = utils->InsertW(EditString, String(CTRL_F), TempStart + TempLen + FontStr.Length());
+      EditString = utils.InsertW(EditString, String(CTRL_F), TempStart + TempLen + FontStr.Length());
 
     // Highlight special codes
-    utils->EncodeHighlight(EditString, Edit1);
+    utils.EncodeHighlight(EditString, Edit1);
     Edit1->SelStart = TempStart - 1;
   }
   else // Edit1->View is V_RTF
@@ -685,36 +685,36 @@ void __fastcall TWingEditForm::FontTypeCode1Click(TObject *Sender)
       // If not, write the font-code at the cursor.
       if (Edit1->SelStart >= 0)
       {
-        int iTemp = utils->GetCodeIndex(Edit1->TextW, Edit1->SelStart);
+        int iTemp = utils.GetCodeIndex(Edit1->TextW, Edit1->SelStart);
 
         if (iTemp >= 0)
-          EditString = utils->InsertW(EditString, FontStr, iTemp+1);
+          EditString = utils.InsertW(EditString, FontStr, iTemp+1);
       }
       else
-        EditString = utils->InsertW(EditString, FontStr, 1);
+        EditString = utils.InsertW(EditString, FontStr, 1);
     }
     else // Text selected
     {
       // Set the cumulative text state that exists at the first character
       // in EditString.
       PUSHSTRUCT BeginningState;
-      utils->SetStateFlags(EditString, STATE_MODE_FIRSTCHAR, BeginningState);
+      utils.SetStateFlags(EditString, STATE_MODE_FIRSTCHAR, BeginningState);
 
       // Write default font-type at beginning if the wing has no default
       // font-type and the user is trying to add a font-type code
       // somewhere in the wing.
       if (BeginningState.fontType == -1)
       {
-        String InitFontFmt = utils->FontTypeToString(-1);
-        EditString = utils->InsertW(EditString, InitFontFmt, 1);
+        String InitFontFmt = utils.FontTypeToString(-1);
+        EditString = utils.InsertW(EditString, InitFontFmt, 1);
       }
 
       // Map the start and end indices of the RTF selected text to the
       // text in the buffer
       int iFirst, iLast, CI;
-      if (!utils->GetCodeIndices(EditString, iFirst, iLast, CI, Edit1))
+      if (!utils.GetCodeIndices(EditString, iFirst, iLast, CI, Edit1))
       {
-        utils->PopOnChange(Edit1);
+        utils.PopOnChange(Edit1);
         return;
       }
 
@@ -723,49 +723,49 @@ void __fastcall TWingEditForm::FontTypeCode1Click(TObject *Sender)
       int LastRealIndex = Edit1->SelStart+Edit1->SelLength;
 
       PUSHSTRUCT EndState;
-      utils->SetStateFlags(EditString, LastRealIndex, EndState);
+      utils.SetStateFlags(EditString, LastRealIndex, EndState);
 
       // Insert the new font-code in front of the first highlighted character.
-      EditString = utils->InsertW(EditString, FontStr, iFirst+1);
+      EditString = utils.InsertW(EditString, FontStr, iFirst+1);
       iFirst += FontStr.Length();
       iLast += FontStr.Length();
 
       // Strip out font codes in the highlighted range.  "Last" may return
       // shorted by the # of font-code chars removed.
-      EditString = utils->StripFont(EditString, iFirst, iLast, CTRL_F);
+      EditString = utils.StripFont(EditString, iFirst, iLast, CTRL_F);
 
       // Write the font code pertaining to the end state.
       if (EndState.fontType < 0)
       {
-        utils->PopOnChange(Edit1);
+        utils.PopOnChange(Edit1);
         return;
       }
 
       // Insert the font-string in front of the character imediately
       // following the last highlighted char.
-      String Stemp = utils->FontTypeToString(EndState.fontType);
+      String Stemp = utils.FontTypeToString(EndState.fontType);
 
-      EditString = utils->InsertW(EditString, Stemp, iLast+1);
+      EditString = utils.InsertW(EditString, Stemp, iLast+1);
     }
 
     // Optimize the new string
-    EditString = utils->Optimize(EditString, false, NO_COLOR);
+    EditString = utils.Optimize(EditString, false, NO_COLOR);
 
     // Convert to RTF and display it in the edit-window
-    utils->ConvertToRtf(EditString, NULL, Edit1, true);
+    utils.ConvertToRtf(EditString, NULL, Edit1, true);
   }
 
   Edit1->SelStart = SaveSelStart;
   Edit1->Modified = true;
-  OldLength = utils->GetTextLength(Edit1);
-  utils->PopOnChange(Edit1);
+  OldLength = utils.GetTextLength(Edit1);
+  utils.PopOnChange(Edit1);
 }
 //---------------------------------------------------------------------------
 void __fastcall TWingEditForm::FontSizeCode1Click(TObject *Sender)
 {
   if (Edit1->View != V_IRC && Edit1->View != V_RTF)
   {
-    utils->ShowMessageU(EDITMSG[28]); // "Click or double-click an item to edit it..."
+    utils.ShowMessageU(EDITMSG[28]); // "Click or double-click an item to edit it..."
     return;
   }
 
@@ -776,9 +776,9 @@ void __fastcall TWingEditForm::FontSizeCode1Click(TObject *Sender)
   String FontStr;
 
   // Write the font code pertaining to the end state.
-  FontStr = utils->FontSizeToString(Size);
+  FontStr = utils.FontSizeToString(Size);
 
-  utils->PushOnChange(Edit1);
+  utils.PushOnChange(Edit1);
 
   // Save carat position
   int SaveSelStart = Edit1->SelStart;
@@ -788,14 +788,14 @@ void __fastcall TWingEditForm::FontSizeCode1Click(TObject *Sender)
     int TempStart = Edit1->SelStart + 1;
     int TempLen = Edit1->SelLength;
 
-    EditString = utils->InsertW(EditString, FontStr, TempStart);
+    EditString = utils.InsertW(EditString, FontStr, TempStart);
 
     if (TempLen)
-      EditString = utils->InsertW(EditString, String(CTRL_S), TempStart +
+      EditString = utils.InsertW(EditString, String(CTRL_S), TempStart +
                                   TempLen + FontStr.Length());
 
     // Highlight special codes
-    utils->EncodeHighlight(EditString, Edit1);
+    utils.EncodeHighlight(EditString, Edit1);
     Edit1->SelStart = TempStart - 1;
   }
   else // Edit1->View is V_RTF
@@ -805,35 +805,35 @@ void __fastcall TWingEditForm::FontSizeCode1Click(TObject *Sender)
       // If not, write the font-code at the cursor.
       if (Edit1->SelStart >= 0)
       {
-        int iTemp = utils->GetCodeIndex(Edit1->TextW, Edit1->SelStart);
+        int iTemp = utils.GetCodeIndex(Edit1->TextW, Edit1->SelStart);
         if (iTemp >= 0)
-          EditString = utils->InsertW(EditString, FontStr, iTemp+1);
+          EditString = utils.InsertW(EditString, FontStr, iTemp+1);
       }
       else
-        EditString = utils->InsertW(EditString, FontStr, 1);
+        EditString = utils.InsertW(EditString, FontStr, 1);
     }
     else // Text selected
     {
       // Set the cumulative text state that exists at the first character
       // in EditString.
       PUSHSTRUCT BeginningState;
-      utils->SetStateFlags(EditString, STATE_MODE_FIRSTCHAR, BeginningState);
+      utils.SetStateFlags(EditString, STATE_MODE_FIRSTCHAR, BeginningState);
 
       // Write default font-size at beginning if the wing has no default
       // font-size and the user is trying to add a font-size code
       // somewhere in the wing.
       if (BeginningState.fontSize == -1)
       {
-        String InitFontFmt = utils->FontSizeToString(-1);
-        EditString = utils->InsertW(EditString, InitFontFmt, 1);
+        String InitFontFmt = utils.FontSizeToString(-1);
+        EditString = utils.InsertW(EditString, InitFontFmt, 1);
       }
 
       // Map the start and end indices of the RTF selected text to the
       // text in the buffer
       int iFirst, iLast, CI;
-      if (!utils->GetCodeIndices(EditString, iFirst, iLast, CI, Edit1))
+      if (!utils.GetCodeIndices(EditString, iFirst, iLast, CI, Edit1))
       {
-        utils->PopOnChange(Edit1);
+        utils.PopOnChange(Edit1);
         return;
       }
 
@@ -842,42 +842,42 @@ void __fastcall TWingEditForm::FontSizeCode1Click(TObject *Sender)
       int LastRealIndex = Edit1->SelStart+Edit1->SelLength;
 
       PUSHSTRUCT EndState;
-      utils->SetStateFlags(EditString, LastRealIndex, EndState);
+      utils.SetStateFlags(EditString, LastRealIndex, EndState);
 
       // Insert the new font-code in front of the first highlighted character.
-      EditString = utils->InsertW(EditString, FontStr, iFirst+1);
+      EditString = utils.InsertW(EditString, FontStr, iFirst+1);
       iFirst += FontStr.Length();
       iLast += FontStr.Length();
 
       // Strip out font codes in the highlighted range.  "Last" may return
       // shorted by the # of font-code chars removed.
-      EditString = utils->StripFont(EditString, iFirst, iLast, CTRL_S);
+      EditString = utils.StripFont(EditString, iFirst, iLast, CTRL_S);
 
       // Write the font code pertaining to the end state.
       if (EndState.fontSize < 0)
       {
-        utils->PopOnChange(Edit1);
+        utils.PopOnChange(Edit1);
         return;
       }
 
       // Insert the font-string in front of the character imediately
       // following the last highlighted char.
-      String Stemp = utils->FontSizeToString(EndState.fontSize);
+      String Stemp = utils.FontSizeToString(EndState.fontSize);
 
-      EditString = utils->InsertW(EditString, Stemp, iLast+1);
+      EditString = utils.InsertW(EditString, Stemp, iLast+1);
     }
 
     // Optimize the new string
-    EditString = utils->Optimize(EditString, false, NO_COLOR);
+    EditString = utils.Optimize(EditString, false, NO_COLOR);
 
     // Convert to RTF and display it in the edit-window
-    utils->ConvertToRtf(EditString, NULL, Edit1, true);
+    utils.ConvertToRtf(EditString, NULL, Edit1, true);
   }
 
   Edit1->SelStart = SaveSelStart;
   Edit1->Modified = true;
-  OldLength = utils->GetTextLength(Edit1);
-  utils->PopOnChange(Edit1);
+  OldLength = utils.GetTextLength(Edit1);
+  utils.PopOnChange(Edit1);
 }
 //---------------------------------------------------------------------------
 void __fastcall TWingEditForm::Push1Click(TObject *Sender)
@@ -898,13 +898,13 @@ void __fastcall TWingEditForm::Pop1Click(TObject *Sender)
 //---------------------------------------------------------------------------
 void __fastcall TWingEditForm::Clear1Click(TObject *Sender)
 {
-  utils->PushOnChange(Edit1);
+  utils.PushOnChange(Edit1);
   Edit1->Clear();
   EditString = "";
-  utils->PopOnChange(Edit1);
+  utils.PopOnChange(Edit1);
 
   // Failsafe in case of unmatched push/pops!
-  utils->InitOnChange(Edit1, EditChange);
+  utils.InitOnChange(Edit1, EditChange);
 }
 //---------------------------------------------------------------------------
 void __fastcall TWingEditForm::BoldCtrlB1Click(TObject *Sender)
@@ -931,11 +931,11 @@ void __fastcall TWingEditForm::EmbraceSelection(int i1, int i2)
 {
   if (Edit1->View != V_IRC && Edit1->View != V_RTF)
   {
-    utils->ShowMessageU(EDITMSG[28]); // "Click or double-click an item to edit it..."
+    utils.ShowMessageU(EDITMSG[28]); // "Click or double-click an item to edit it..."
     return;
   }
 
-  utils->PushOnChange(Edit1);
+  utils.PushOnChange(Edit1);
 
   // Save carat position
   int SaveSelStart = Edit1->SelStart;
@@ -951,14 +951,14 @@ void __fastcall TWingEditForm::EmbraceSelection(int i1, int i2)
     int TempStart = Edit1->SelStart + 1;
     int TempLen = Edit1->SelLength;
 
-    EditString = utils->InsertW(EditString, String(c1), TempStart);
+    EditString = utils.InsertW(EditString, String(c1), TempStart);
 
     if (TempLen)
-      EditString = utils->InsertW(EditString, String(c2), TempStart +
+      EditString = utils.InsertW(EditString, String(c2), TempStart +
                                                    TempLen + 1);
 
     // Highlight special codes
-    utils->EncodeHighlight(EditString, Edit1);
+    utils.EncodeHighlight(EditString, Edit1);
 
     Edit1->SelStart = TempStart - 1;
   }
@@ -966,33 +966,33 @@ void __fastcall TWingEditForm::EmbraceSelection(int i1, int i2)
   {
     if (!Edit1->SelLength) // Text selected?
       // If not, write the code at the start of the string.
-      EditString = utils->InsertW(EditString, String(c1), 1);
+      EditString = utils.InsertW(EditString, String(c1), 1);
     else // Text selected
     {
       // Map the start and end indices of the RTF selected text to the
       // text in EditString.
       int iFirst, iLast, CI;
-      if (!utils->GetCodeIndices(EditString, iFirst, iLast, CI, Edit1))
+      if (!utils.GetCodeIndices(EditString, iFirst, iLast, CI, Edit1))
       {
-        utils->PopOnChange(Edit1);
+        utils.PopOnChange(Edit1);
         return;
       }
 
-      EditString = utils->InsertW(EditString, String(c2), iLast+1);
-      EditString = utils->InsertW(EditString, String(c1), iFirst+1);
+      EditString = utils.InsertW(EditString, String(c2), iLast+1);
+      EditString = utils.InsertW(EditString, String(c1), iFirst+1);
     }
 
     // Optimize the new string
-    EditString = utils->Optimize(EditString, false, NO_COLOR);
+    EditString = utils.Optimize(EditString, false, NO_COLOR);
 
     // Convert to RTF and display it in the edit-window
-    utils->ConvertToRtf(EditString, NULL, Edit1, true);
+    utils.ConvertToRtf(EditString, NULL, Edit1, true);
   }
 
   Edit1->SelStart = SaveSelStart;
   Edit1->Modified = true;
-  OldLength = utils->GetTextLength(Edit1);
-  utils->PopOnChange(Edit1);
+  OldLength = utils.GetTextLength(Edit1);
+  utils.PopOnChange(Edit1);
 }
 //---------------------------------------------------------------------------
 void __fastcall TWingEditForm::WingClick(TObject *Sender)
@@ -1002,14 +1002,14 @@ void __fastcall TWingEditForm::WingClick(TObject *Sender)
 //---------------------------------------------------------------------------
 void __fastcall TWingEditForm::InsertInEditBox(TMenuItem* P)
 {
-  String sWing = utils->AnsiStripCRLF(WINGEDITMAINMENU[P->Tag+2]); // UTF-8 Wing
+  String sWing = utils.AnsiStripCRLF(WINGEDITMAINMENU[P->Tag+2]); // UTF-8 Wing
 
   if (Edit1->Visible)
   {
-    EditString = utils->Utf8ToWide(sWing);
+    EditString = utils.Utf8ToWide(sWing);
 
     // Convert to RTF and display it in the edit-window
-    utils->ConvertToRtf(EditString, NULL, Edit1, true);
+    utils.ConvertToRtf(EditString, NULL, Edit1, true);
     SetView(V_RTF);
   }
   else if (bLeftSelected)
@@ -1051,7 +1051,7 @@ void __fastcall TWingEditForm::SetBorderColor(void)
 
   EditWingPanel->Caption = "";
 
-  int C = utils->SelectCustomColor(String(DS[175]), EditWingPanel->Color, COLOR_FORM_BORDER);
+  int C = utils.SelectCustomColor(String(DS[175]), EditWingPanel->Color, COLOR_FORM_BORDER);
 
   if (C != IRCCANCEL)
   {
@@ -1063,7 +1063,7 @@ void __fastcall TWingEditForm::SetBorderColor(void)
 void __fastcall TWingEditForm::ChangeBorderColors(int Color)
 {
   borderBgColor = Color;
-  utils->SetPanelColorAndCaption(EditWingPanel, borderBgColor);
+  utils.SetPanelColorAndCaption(EditWingPanel, borderBgColor);
 
   TopBottomEditString = ChangeBackgroundColor(TopBottomEditString); // Top/Bottom border
   LeftEditString = ChangeBackgroundColor(LeftEditString); // Left border
@@ -1085,14 +1085,14 @@ WideString __fastcall TWingEditForm::ChangeBackgroundColor(WideString Text)
       int fg = NO_COLOR;
       int bg = NO_COLOR;
 
-      int len = utils->CountColorSequence(Text.c_bstr(), jj-1, Text.Length(), fg, bg) + 1;
+      int len = utils.CountColorSequence(Text.c_bstr(), jj-1, Text.Length(), fg, bg) + 1;
 
       if (bg != NO_COLOR)
       {
         WideString C;
 
-        int bbg = utils->ConvertColor(borderBgColor, false);
-        utils->WriteColors(fg, bbg, C);
+        int bbg = utils.ConvertColor(borderBgColor, false);
+        utils.WriteColors(fg, bbg, C);
 
         Text = Text.SubString(1, jj-1) + C +
                               Text.SubString(jj+len, Text.Length()-len);
@@ -1106,13 +1106,13 @@ WideString __fastcall TWingEditForm::ChangeBackgroundColor(WideString Text)
 //---------------------------------------------------------------------------
 bool __fastcall TWingEditForm::LoadBorderRichEditBoxes(WideString tb, WideString lb, WideString rb)
 {
-  int retVal = utils->ConvertToRtf(utils->StripCRLF(tb), NULL, TopBottomEdit, -1);
+  int retVal = utils.ConvertToRtf(utils.StripCRLF(tb), NULL, TopBottomEdit, -1);
 
   if (retVal == 0)
-    retVal = utils->ConvertToRtf(utils->StripCRLF(lb), NULL, LeftSideEdit, -1);
+    retVal = utils.ConvertToRtf(utils.StripCRLF(lb), NULL, LeftSideEdit, -1);
 
   if (retVal == 0)
-    retVal = utils->ConvertToRtf(utils->StripCRLF(rb), NULL, RightSideEdit, -1);
+    retVal = utils.ConvertToRtf(utils.StripCRLF(rb), NULL, RightSideEdit, -1);
 
   if (retVal)
   {
@@ -1132,13 +1132,13 @@ bool __fastcall TWingEditForm::LoadWingEditBoxes(void)
 
     if (dts->LeftWings->Count != dts->RightWings->Count)
     {
-      utils->ShowMessageU(EDITMSG[27]); // "Wing-list is corrupt... repaired it"
+      utils.ShowMessageU(EDITMSG[27]); // "Wing-list is corrupt... repaired it"
       dts->RightWings = dts->LeftWings;
     }
 
     for (int ii = 0 ; ii < dts->TotalWings ; ii++)
-      AddItems(utils->WideToUtf8(dts->LeftWings->GetString(ii)),
-         utils->WideToUtf8(dts->RightWings->GetString(ii)),
+      AddItems(utils.WideToUtf8(dts->LeftWings->GetString(ii)),
+         utils.WideToUtf8(dts->RightWings->GetString(ii)),
                (bool)dts->LeftWings->GetTag(ii));
   }
   catch(...){return false;}
@@ -1158,14 +1158,14 @@ void __fastcall TWingEditForm::SaveWingEditBoxes(void)
 
   if (dts->TotalWings != Rwlb->Items->Count)
   {
-    utils->ShowMessageU(EDITMSG[27]); // "Wing-list is corrupt... repaired it"
+    utils.ShowMessageU(EDITMSG[27]); // "Wing-list is corrupt... repaired it"
     Rwlb->Items = Lwlb->Items;
   }
 
   for (int ii = 0; ii < dts->TotalWings; ii++)
   {
-    dts->LeftWings->Add(utils->Utf8ToWide(Lwlb->Items->Strings[ii]), (void*)Lwlb->Checked[ii]);
-    dts->RightWings->Add(utils->Utf8ToWide(Rwlb->Items->Strings[ii]));
+    dts->LeftWings->Add(utils.Utf8ToWide(Lwlb->Items->Strings[ii]), (void*)Lwlb->Checked[ii]);
+    dts->RightWings->Add(utils.Utf8ToWide(Rwlb->Items->Strings[ii]));
   }
 
   dts->TopBorder = TopBottomEditString;
@@ -1178,11 +1178,11 @@ void __fastcall TWingEditForm::ImportFromMainDesignWindow1Click(TObject *Sender)
   // Send IRC text-line to wing
   if (tae->LineCount != 1)
   {
-    utils->ShowMessageU(EDITMSG[20]); // Import instructions
+    utils.ShowMessageU(EDITMSG[20]); // Import instructions
     return;
   }
 
-  int TextLen = utils->GetTextLength(tae);
+  int TextLen = utils.GetTextLength(tae);
 
   if (TextLen < 1 || TextLen > 200)
   {
@@ -1193,7 +1193,7 @@ void __fastcall TWingEditForm::ImportFromMainDesignWindow1Click(TObject *Sender)
   WideString S;
 
   // Put text into a buffer
-  if (utils->IsRtfIrcOrgView())
+  if (utils.IsRtfIrcOrgView())
   {
     bool bHaveFontSize = false;
     bool bHaveFontType = false;
@@ -1201,7 +1201,7 @@ void __fastcall TWingEditForm::ImportFromMainDesignWindow1Click(TObject *Sender)
     int FontType = 0;
 
     // Get first line
-    if (utils->IsIrcView())
+    if (utils.IsIrcView())
       S = dts->SL_IRC->GetString(0); // 1st line
     else
       S = dts->SL_ORG->GetString(0); // 1st line
@@ -1210,7 +1210,7 @@ void __fastcall TWingEditForm::ImportFromMainDesignWindow1Click(TObject *Sender)
     {
       if (S[ii+1] == CTRL_F)
       {
-        int val = utils->CountFontSequence(S.c_bstr(), ii, S.Length());
+        int val = utils.CountFontSequence(S.c_bstr(), ii, S.Length());
 
         if (val >= 0)
         {
@@ -1226,7 +1226,7 @@ void __fastcall TWingEditForm::ImportFromMainDesignWindow1Click(TObject *Sender)
       }
       else if (S[ii+1] == CTRL_S)
       {
-        int val = utils->CountFontSequence(S.c_bstr(), ii, S.Length());
+        int val = utils.CountFontSequence(S.c_bstr(), ii, S.Length());
 
         if (val >= 0)
         {
@@ -1244,32 +1244,32 @@ void __fastcall TWingEditForm::ImportFromMainDesignWindow1Click(TObject *Sender)
 
     // Last detected font code is NOT a return to the default-font (0)?
     if (bHaveFontType && FontType > 0)
-      S += utils->FontTypeToString(FontType);
+      S += utils.FontTypeToString(FontType);
 
     if (bHaveFontSize && FontSize > 0)
-      S += utils->FontSizeToString(FontSize);
+      S += utils.FontSizeToString(FontSize);
   }
   else
     S = tae->GetStringW(0); // Get the main edit control's first line
 
   if (Edit1->Visible)
   {
-    EditString = utils->StripCRLF(S);
+    EditString = utils.StripCRLF(S);
 
     // Convert to RTF and display it in the edit-window
-    utils->ConvertToRtf(EditString, NULL, Edit1, true);
+    utils.ConvertToRtf(EditString, NULL, Edit1, true);
     SetView(V_RTF);
   }
   else
   {
     if (Lwlb->ItemIndex >= 0 && bLeftSelected)
     {
-      ReplaceItem(Lwlb, utils->WideToUtf8(S), RI_TRUE);
+      ReplaceItem(Lwlb, utils.WideToUtf8(S), RI_TRUE);
       Rwlb->TopIndex = Lwlb->TopIndex;
     }
     else if (Rwlb->ItemIndex >= 0 && !bLeftSelected)
     {
-      ReplaceItem(Rwlb, utils->WideToUtf8(S), RI_TRUE);
+      ReplaceItem(Rwlb, utils.WideToUtf8(S), RI_TRUE);
       Lwlb->TopIndex = Rwlb->TopIndex;
     }
     else
@@ -1325,7 +1325,7 @@ void __fastcall TWingEditForm::SetView(int NewView)
   // Set Edit1 OnChange handler only for RTF view...
   if (NewView == V_RTF || NewView == V_IRC)
   {
-    OldLength = utils->StripCRLF(Edit1->TextW).Length();
+    OldLength = utils.StripCRLF(Edit1->TextW).Length();
 
     // Used to prevent the Edit1 OnChange event from
     // Firing when we are processing or loading text
@@ -1333,7 +1333,7 @@ void __fastcall TWingEditForm::SetView(int NewView)
     //
     // (NOTE: THe TopBottom, Left/Right border edit boxes do not
     // utilize an OnChange event!)
-    utils->InitOnChange(Edit1, EditChange);
+    utils.InitOnChange(Edit1, EditChange);
   }
   else
     Edit1->OnChange = NULL;
@@ -1454,18 +1454,18 @@ void __fastcall TWingEditForm::HideEdit(void)
 // Overloaded
 void __fastcall TWingEditForm::ShowEdit(String Text, int Type)
 {
-  ShowEdit(utils->Utf8ToWide(Text), Type);
+  ShowEdit(utils.Utf8ToWide(Text), Type);
 }
 
 void __fastcall TWingEditForm::ShowEdit(WideString Text, int Type)
 {
   Edit1->ShowHint = true;
 
-  EditString = utils->StripCRLF(Text);
+  EditString = utils.StripCRLF(Text);
   SavedEditString = EditString;
 
   // avoid colors becoming Afg/ABg...
-  utils->ConvertToRtf(EditString, NULL, Edit1, true);
+  utils.ConvertToRtf(EditString, NULL, Edit1, true);
 
   // Set hint message to require only a single-click...
 
@@ -1500,13 +1500,13 @@ void __fastcall TWingEditForm::Quit1Click(TObject *Sender)
 void __fastcall TWingEditForm::Button2Click(TObject *Sender)
 {
   // Launch Character Map
-  ShellExecute(Handle, L"open", utils->Utf8ToWide(EDITMSG[30]).c_bstr() , NULL, NULL, SW_SHOWNORMAL);
+  ShellExecute(Handle, L"open", utils.Utf8ToWide(EDITMSG[30]).c_bstr() , NULL, NULL, SW_SHOWNORMAL);
 }
 //---------------------------------------------------------------------------
 void __fastcall TWingEditForm::Button3Click(TObject *Sender)
 {
   // Launch Font-Editor
-  ShellExecute(Handle, L"open", utils->Utf8ToWide(EDITMSG[31]).c_bstr(), NULL, NULL, SW_SHOWNORMAL);
+  ShellExecute(Handle, L"open", utils.Utf8ToWide(EDITMSG[31]).c_bstr(), NULL, NULL, SW_SHOWNORMAL);
 }
 //---------------------------------------------------------------------------
 void __fastcall TWingEditForm::FormClick(TObject *Sender)
@@ -1517,9 +1517,9 @@ void __fastcall TWingEditForm::FormClick(TObject *Sender)
 void __fastcall TWingEditForm::Copy1Click(TObject *Sender)
 {
   if (Rwlb->ItemIndex >= 0 && !bLeftSelected)
-    utils->CopyTextToClipboard(GetItem(Rwlb));
+    utils.CopyTextToClipboard(GetItem(Rwlb));
   else if (Lwlb->ItemIndex >= 0 && bLeftSelected)
-    utils->CopyTextToClipboard(GetItem(Lwlb));
+    utils.CopyTextToClipboard(GetItem(Lwlb));
 
   if (Clipboard()->AsText.Length())
     Paste1->Enabled = true;
@@ -1538,10 +1538,10 @@ void __fastcall TWingEditForm::Copy1Click(TObject *Sender)
 //  // Switch to RTF view...
 //  if (Edit1->View == VS_CODES && Button == mbLeft)
 //    {
-//    EditString = utils->StripCRLF(EditString);
+//    EditString = utils.StripCRLF(EditString);
 //
 //    // avoid colors becoming Afg/ABg...
-//    utils->ConvertToRtf(EditString, Edit1, true);
+//    utils.ConvertToRtf(EditString, Edit1, true);
 //    SetEdit1->View(V_RTF);
 //    }
 //}
@@ -1720,30 +1720,30 @@ int __fastcall TWingEditForm::SaveEdit(void)
     // ET_ADDWING 6
 
     // Optimize
-    EditString = utils->Optimize(EditString, false, NO_COLOR);
+    EditString = utils.Optimize(EditString, false, NO_COLOR);
 
-    EditString = utils->StripCRLF(EditString);
+    EditString = utils.StripCRLF(EditString);
 
     if (SourceEditID == ET_EDITTOPBOTTOM)
     {
       TopBottomEditString = EditString;
-      utils->ConvertToRtf(TopBottomEditString, NULL, TopBottomEdit, -1);
+      utils.ConvertToRtf(TopBottomEditString, NULL, TopBottomEdit, -1);
     }
     else if (SourceEditID == ET_EDITLEFT)
     {
       LeftEditString = EditString;
-      utils->ConvertToRtf(LeftEditString, NULL, LeftSideEdit, -1);
+      utils.ConvertToRtf(LeftEditString, NULL, LeftSideEdit, -1);
     }
     else if (SourceEditID == ET_EDITRIGHT)
     {
       RightEditString = EditString;
-      utils->ConvertToRtf(RightEditString, NULL, RightSideEdit, -1);
+      utils.ConvertToRtf(RightEditString, NULL, RightSideEdit, -1);
     }
     else if (SourceEditID == ET_ADDWING)
     {
       try
       {
-        AddItems(utils->WideToUtf8(EditString));
+        AddItems(utils.WideToUtf8(EditString));
         retVal = 0;
       }
       catch(...){retVal = 101;}
@@ -1754,7 +1754,7 @@ int __fastcall TWingEditForm::SaveEdit(void)
       {
         try
         {
-          ReplaceItem(Lwlb, utils->WideToUtf8(EditString));
+          ReplaceItem(Lwlb, utils.WideToUtf8(EditString));
           Rwlb->TopIndex = Lwlb->TopIndex;
           retVal = 0;
         }
@@ -1767,7 +1767,7 @@ int __fastcall TWingEditForm::SaveEdit(void)
       {
         try
         {
-          ReplaceItem(Rwlb, utils->WideToUtf8(EditString));
+          ReplaceItem(Rwlb, utils.WideToUtf8(EditString));
           Lwlb->TopIndex = Rwlb->TopIndex;
           retVal = 0;
         }
@@ -1784,7 +1784,7 @@ int __fastcall TWingEditForm::SaveEdit(void)
 // we do a custom OwnerDraw to display them)
 void __fastcall TWingEditForm::Paste1Click(TObject *Sender)
 {
-  String sText = utils->WideToUtf8(utils->GetClipboardText());
+  String sText = utils.WideToUtf8(utils.GetClipboardText());
 
   if (sText.IsEmpty())
     return;
@@ -1931,7 +1931,7 @@ WideString __fastcall TWingEditForm::GetItem(void* p)
     int idx = lb->ItemIndex;
 
     if (idx >= 0 && idx < lb->Items->Count)
-      sTemp = utils->Utf8ToWide(lb->Items->Strings[idx]);
+      sTemp = utils.Utf8ToWide(lb->Items->Strings[idx]);
   }
   catch(...) { }
 
@@ -1984,22 +1984,22 @@ PASTESTRUCT __fastcall TWingEditForm::EditCutCopy(bool bCut, bool bCopy)
   if (Edit1->SelLength == 0)
   {
     // "You must select text to perform this operation!", //25
-    utils->ShowMessageU(EDITMSG[25]);
+    utils.ShowMessageU(EDITMSG[25]);
     return ps;
   }
 
   if (Edit1->View == V_RTF)
     // Erases clipboard then copies Html, Rtf and Utf-16 text formats to it
-    ps = utils->CutCopyRTF(bCut, bCopy, Edit1, EditString);
+    ps = utils.CutCopyRTF(bCut, bCopy, Edit1, EditString);
   else
     // Erases clipboard then copies Utf-16 text format to it
-    ps = utils->CutCopyIRC(bCut, bCopy, Edit1, EditString);
+    ps = utils.CutCopyIRC(bCut, bCopy, Edit1, EditString);
 
   if (ps.error == 0)
   {
     if (bCut)
     {
-      utils->SetOldLineVars(Edit1);
+      utils.SetOldLineVars(Edit1);
 
       // No more text
       if (Edit1->LineCount == 0 || EditString.Length() == 0)
@@ -2021,7 +2021,7 @@ PASTESTRUCT __fastcall TWingEditForm::EditPaste(void)
 {
   PASTESTRUCT ps;
 
-  try { ps = EditPaste(utils->GetClipboardText()); }
+  try { ps = EditPaste(utils.GetClipboardText()); }
   catch(...) { ps.error = -1; } // error
   return ps;
 }
@@ -2032,7 +2032,7 @@ PASTESTRUCT __fastcall TWingEditForm::EditPaste(WideString S)
   PASTESTRUCT ps;
 
   // Just want one line!
-  S = utils->StripCRLF(S);
+  S = utils.StripCRLF(S);
 
   if (S.Length() == 0)
   {
@@ -2043,7 +2043,7 @@ PASTESTRUCT __fastcall TWingEditForm::EditPaste(WideString S)
   if (Edit1->View != V_RTF && Edit1->View != V_IRC)
   {
     // "Operation not allowed in this View!", //24
-    utils->ShowMessageU(EDITMSG[24]);
+    utils.ShowMessageU(EDITMSG[24]);
     ps.error = -3;
     return ps;
   }
@@ -2051,12 +2051,12 @@ PASTESTRUCT __fastcall TWingEditForm::EditPaste(WideString S)
   // If the user is pasting raw-codes only into an empty control
   // we want to be in V_IRC, not V_RTF! (EditFind should never be in V_RTF!)
   if (Edit1->View == V_RTF && Edit1->LineCount == 0 &&
-                                                utils->GetRealLength(S) == 0)
+                                                utils.GetRealLength(S) == 0)
     SetView(V_IRC);
 
   // Strip codes if it's a Find and the main view is V_RTF
   if (tae->View == V_RTF && Edit1->Name == "EditFind")
-    S = utils->StripAllCodes(S);
+    S = utils.StripAllCodes(S);
 
   // Save original position and carat
   TYcPosition* p = new TYcPosition(Edit1);
@@ -2078,31 +2078,31 @@ PASTESTRUCT __fastcall TWingEditForm::EditPaste(WideString S)
     // what we cut won't affect where the carat is placed following
     // a paste (below)!
 
-    utils->PushOnChange(Edit1);
+    utils.PushOnChange(Edit1);
     Edit1->SelTextW = "";
     Edit1->Modified = true;
 
     // Reset for OnChange Event...
-    utils->SetOldLineVars(Edit1);
+    utils.SetOldLineVars(Edit1);
 
-    utils->PopOnChange(Edit1);
+    utils.PopOnChange(Edit1);
   }
 
   if (Edit1->View == V_RTF)
   {
     try
     {
-      utils->PushOnChange(Edit1);
+      utils.PushOnChange(Edit1);
 
       // Resolve color and style states between new and old text (returns
       // EditString by reference!)
-      if (utils->ResolveStateForPaste(p->Position.p, EditString, S) >= 0)
+      if (utils.ResolveStateForPaste(p->Position.p, EditString, S) >= 0)
       {
-        ps.delta = utils->GetRealLength(S);
-        ps.lines = utils->CountCRs(S);
+        ps.delta = utils.GetRealLength(S);
+        ps.lines = utils.CountCRs(S);
 
         // Convert to RTF and display it in the edit-window
-        utils->ConvertToRtf(EditString, NULL, Edit1, true);
+        utils.ConvertToRtf(EditString, NULL, Edit1, true);
         SetView(V_RTF);
 
         // Restore Edit1 original position and carat
@@ -2115,7 +2115,7 @@ PASTESTRUCT __fastcall TWingEditForm::EditPaste(WideString S)
 
           // ...stop the pesky "phantom" colored space at the end of
           // RTF text
-          if (Edit1->SelStart == utils->GetTextLength(Edit1))
+          if (Edit1->SelStart == utils.GetTextLength(Edit1))
           {
             Edit1->SelLength = 1;
 //            Edit1->SelAttributes->BackColor = clWindow;
@@ -2123,7 +2123,7 @@ PASTESTRUCT __fastcall TWingEditForm::EditPaste(WideString S)
           }
         }
 
-        utils->SetOldLineVars(Edit1);
+        utils.SetOldLineVars(Edit1);
         Edit1->Modified = true;
       }
       else
@@ -2131,7 +2131,7 @@ PASTESTRUCT __fastcall TWingEditForm::EditPaste(WideString S)
         ps.error = -4;
       }
 
-      utils->PopOnChange(Edit1);
+      utils.PopOnChange(Edit1);
     }
     catch(...)
     {
@@ -2141,21 +2141,21 @@ PASTESTRUCT __fastcall TWingEditForm::EditPaste(WideString S)
   }
   else // Edit1->View is V_IRC...
   {
-    utils->PushOnChange(Edit1);
+    utils.PushOnChange(Edit1);
 
     // One-to-one code match for IRC View!
-    ps.lines = utils->CountCRs(S); // Count cr/lfs
+    ps.lines = utils.CountCRs(S); // Count cr/lfs
     ps.delta = S.Length(); // Length includes 2 for each cr/lf!
 
     if (Edit1->View == V_IRC)
     {
-      EditString = utils->InsertW(EditString, S,
-                          Edit1->SelStart + utils->GetLine(Edit1) + 1);
+      EditString = utils.InsertW(EditString, S,
+                          Edit1->SelStart + utils.GetLine(Edit1) + 1);
 
       // NOTE: Don't call the optimizer! We may be replacing a simple code
       // that will be optimized out!!!
 
-      utils->EncodeHighlight(EditString, Edit1);
+      utils.EncodeHighlight(EditString, Edit1);
     }
     else
       Edit1->SelTextW = S;
@@ -2168,9 +2168,9 @@ PASTESTRUCT __fastcall TWingEditForm::EditPaste(WideString S)
       Edit1->SelStart = SaveSelStart + (ps.delta-ps.lines);
 
     // Reset for OnChange Event...
-    utils->SetOldLineVars(Edit1);
+    utils.SetOldLineVars(Edit1);
     Edit1->Modified = true;
-    utils->PopOnChange(Edit1);
+    utils.PopOnChange(Edit1);
   }
 
   delete p;
@@ -2186,14 +2186,14 @@ void __fastcall TWingEditForm::MenuEditSelectAllClick(TObject *Sender)
   if (Edit1->View != V_RTF || Edit1->View == V_IRC)
   {
     // "Operation not allowed in this View!", //24
-    utils->ShowMessageU(EDITMSG[24]);
+    utils.ShowMessageU(EDITMSG[24]);
     return;
   }
 
   if (Edit1->LineCount > 0)
   {
     Edit1->SelStart = 0;
-    Edit1->SelLength = utils->GetTextLength(Edit1);
+    Edit1->SelLength = utils.GetTextLength(Edit1);
   }
 }
 //---------------------------------------------------------------------------
@@ -2209,10 +2209,10 @@ void __fastcall TWingEditForm::MenuViewRtfClick(TObject *Sender)
   if (Edit1->SelStart >= Edit1->TextLength)
     iFirst = -1; // set cursor to end
   else
-    iFirst = utils->GetRealIndex(EditString, Edit1->SelStart+Edit1->Line);
+    iFirst = utils.GetRealIndex(EditString, Edit1->SelStart+Edit1->Line);
 
   // avoid colors becoming Afg/ABg...
-  utils->ConvertToRtf(EditString, NULL, Edit1, true);
+  utils.ConvertToRtf(EditString, NULL, Edit1, true);
   SetView(V_RTF);
 
   Edit1->SelStart = iFirst;
@@ -2226,13 +2226,13 @@ void __fastcall TWingEditForm::MenuViewIrcClick(TObject *Sender)
   Insert1->Enabled = true;
 
   // Optimize
-  EditString = utils->Optimize(EditString, false, NO_COLOR);
+  EditString = utils.Optimize(EditString, false, NO_COLOR);
 
   // Set Cursor in plain-text to the same point as cursor in RTF text
-  int iFirst = utils->GetCodeIndex(EditString, Edit1->SelStart);
+  int iFirst = utils.GetCodeIndex(EditString, Edit1->SelStart);
 
   // Highlight special codes
-  utils->EncodeHighlight(EditString, Edit1);
+  utils.EncodeHighlight(EditString, Edit1);
 
   SetView(V_IRC);
 
@@ -2328,7 +2328,7 @@ void __fastcall TWingEditForm::Edit1KeyPress(TObject *Sender, Char &Key)
 {
   if (Key == C_TAB)
   {
-    PASTESTRUCT ps = EditPaste(utils->GetTabStringW(dts->RegTabs));
+    PASTESTRUCT ps = EditPaste(utils.GetTabStringW(dts->RegTabs));
 
     if (ps.error == 0)
       Edit1->SelStart += ps.delta-ps.lines;
@@ -2407,7 +2407,7 @@ void __fastcall TWingEditForm::ImportFromTextFile1Click(TObject *Sender)
     bOpenFileDialogOpen = true;
 
     // Run the open-file dialog in FormOFDlg.cpp
-    WideString wFile = utils->GetOpenFileName(wFilter, 2, dts->DeskDir, String(DS[163]));
+    WideString wFile = utils.GetOpenFileName(wFilter, 2, dts->DeskDir, String(DS[163]));
 
     bOpenFileDialogOpen = false;
 
@@ -2424,7 +2424,7 @@ void __fastcall TWingEditForm::ImportFromTextFile1Click(TObject *Sender)
     // Then are 2 spare strings...
     if (ImportList->Count < 6  || ImportList->Strings[0] != String(WING_EXPORT_ID))
     {
-      utils->ShowMessageU("Invalid file. The first string in the file must be:\n"
+      utils.ShowMessageU("Invalid file. The first string in the file must be:\n"
               "\"" + String(WING_EXPORT_ID) + "\"");
       delete ImportList;
       return;
@@ -2432,9 +2432,9 @@ void __fastcall TWingEditForm::ImportFromTextFile1Click(TObject *Sender)
 
     HideEdit();
 
-    TopBottomEditString = dts->TopBorder = utils->Utf8ToWide(ImportList->Strings[1]);
-    LeftEditString = dts->LeftSideBorder = utils->Utf8ToWide(ImportList->Strings[2]);
-    RightEditString = dts->RightSideBorder = utils->Utf8ToWide(ImportList->Strings[3]);
+    TopBottomEditString = dts->TopBorder = utils.Utf8ToWide(ImportList->Strings[1]);
+    LeftEditString = dts->LeftSideBorder = utils.Utf8ToWide(ImportList->Strings[2]);
+    RightEditString = dts->RightSideBorder = utils.Utf8ToWide(ImportList->Strings[3]);
 
     // Strings 4 and 5 are spares!!!!!!!!!!
 
@@ -2478,7 +2478,7 @@ void __fastcall TWingEditForm::ImportFromTextFile1Click(TObject *Sender)
     }
   catch(...)
   {
-    utils->ShowMessageU(String(EDITMSG[21]));
+    utils.ShowMessageU(String(EDITMSG[21]));
   }
 }
 //---------------------------------------------------------------------------
@@ -2498,7 +2498,7 @@ void __fastcall TWingEditForm::ExportToTextFile1Click(TObject *Sender)
     // need this if this form closes so that we can delete the dialog...
     bSaveFileDialogOpen = true;
 
-    WideString wFile = utils->GetSaveFileName(wFilter, L"Wings.txt",
+    WideString wFile = utils.GetSaveFileName(wFilter, L"Wings.txt",
                                    dts->DeskDir, String(EDITMSG[22]));
 
     bSaveFileDialogOpen = false;
@@ -2506,8 +2506,8 @@ void __fastcall TWingEditForm::ExportToTextFile1Click(TObject *Sender)
     if (wFile.IsEmpty())
       return; // Cancel
 
-    if (utils->FileExistsW(wFile))
-      if (utils->ShowMessageU(dts->Handle, DS[160],
+    if (utils.FileExistsW(wFile))
+      if (utils.ShowMessageU(dts->Handle, DS[160],
                       MB_ICONQUESTION|MB_YESNO|MB_DEFBUTTON1) == IDNO)
         return; // Cancel
 
@@ -2520,9 +2520,9 @@ void __fastcall TWingEditForm::ExportToTextFile1Click(TObject *Sender)
     ExportList->Add(String(WING_EXPORT_ID));
 
     // Export the borders
-    ExportList->Add(utils->WideToUtf8(TopBottomEditString));
-    ExportList->Add(utils->WideToUtf8(LeftEditString));
-    ExportList->Add(utils->WideToUtf8(RightEditString));
+    ExportList->Add(utils.WideToUtf8(TopBottomEditString));
+    ExportList->Add(utils.WideToUtf8(LeftEditString));
+    ExportList->Add(utils.WideToUtf8(RightEditString));
 
     // Strings 4 and 5 are spares!!!!!!!!!!
     ExportList->Add("spare 1");
@@ -2550,11 +2550,11 @@ void __fastcall TWingEditForm::ExportToTextFile1Click(TObject *Sender)
         ExportList->Add("<empty>");
     }
 
-    utils->WriteStringToFileW(wFile, ExportList->Text);
+    utils.WriteStringToFileW(wFile, ExportList->Text);
 
     delete ExportList;
   }
-  catch(...) { utils->ShowMessageU(String(EDITMSG[23])); }
+  catch(...) { utils.ShowMessageU(String(EDITMSG[23])); }
 }
 //---------------------------------------------------------------------------
 void __fastcall TWingEditForm::ListBoxExit(TObject *Sender)
@@ -2566,7 +2566,7 @@ void __fastcall TWingEditForm::ListBoxExit(TObject *Sender)
 //---------------------------------------------------------------------------
 void __fastcall TWingEditForm::Help1Click(TObject *Sender)
 {
-  utils->ShowMessageU(EDITMSG[26]);
+  utils.ShowMessageU(EDITMSG[26]);
 }
 //---------------------------------------------------------------------------
 int __fastcall TWingEditForm::GetBorderBgColor(void)
@@ -2585,7 +2585,7 @@ void __fastcall TWingEditForm::Optimize1Click(TObject *Sender)
   if (Edit1->Visible)
   {
     // Optimize the new string
-    EditString = utils->Optimize(EditString, false, NO_COLOR);
+    EditString = utils.Optimize(EditString, false, NO_COLOR);
 
     if (Edit1->View == V_IRC)
       MenuViewIrcClick(NULL);
@@ -2605,7 +2605,7 @@ void __fastcall TWingEditForm::RwlbDrawItem(TWinControl *Control, int Index,
   String sIn = Rwlb->Items->Strings[Index]; // this is in utf-8!
 
   if (!sIn.IsEmpty())
-    wOut = utils->Utf8ToWide(sIn);
+    wOut = utils.Utf8ToWide(sIn);
 
   Convert(wOut, Rect, Rwlb->Canvas);
 
@@ -2626,7 +2626,7 @@ void __fastcall TWingEditForm::LwlbDrawItem(TWinControl *Control,
   String sIn = Lwlb->Items->Strings[Index]; // this is in utf-8!
 
   if (!sIn.IsEmpty())
-    wOut = utils->Utf8ToWide(sIn);
+    wOut = utils.Utf8ToWide(sIn);
 
   Convert(wOut, Rect, Lwlb->Canvas);
 
@@ -2728,7 +2728,7 @@ bool __fastcall TWingEditForm::Convert(WideString wIn, const TRect &rect, TCanva
 
     int len = wIn.Length();
 
-    wchar_t* buf = utils->StrNewW(wIn.c_bstr(), len);
+    wchar_t* buf = utils.StrNewW(wIn.c_bstr(), len);
 
     int outLen;
 
@@ -2804,7 +2804,7 @@ bool __fastcall TWingEditForm::Convert(WideString wIn, const TRect &rect, TCanva
       }
       else if (c == CTRL_F)
       {
-        int ft = utils->CountFontSequence(buf, ii, len);
+        int ft = utils.CountFontSequence(buf, ii, len);
 
         if (ft >= 0)
         {
@@ -2821,9 +2821,9 @@ bool __fastcall TWingEditForm::Convert(WideString wIn, const TRect &rect, TCanva
 // The List-Box control's class is created with the Ansi call... but we do an
 // OwnerDraw and use TextOutW to display at least some of the available unicode
 // chars... but TCanvas is still ANSI - we really need Unicode versions of these
-// Windows controls and call utils->GetLocalFontStringW... a sticky-wicket,
+// Windows controls and call utils.GetLocalFontStringW... a sticky-wicket,
 // as they say.
-          String sTemp = utils->GetLocalFontStringA(ps->fontType);
+          String sTemp = utils.GetLocalFontStringA(ps->fontType);
 
           if (!sTemp.IsEmpty())
             p->Font->Name = sTemp;
@@ -2831,7 +2831,7 @@ bool __fastcall TWingEditForm::Convert(WideString wIn, const TRect &rect, TCanva
       }
       else if (c == CTRL_S)
       {
-        int fs = utils->CountFontSequence(buf, ii, len);
+        int fs = utils.CountFontSequence(buf, ii, len);
 
         if (fs >= 0)
         {
@@ -2850,17 +2850,17 @@ bool __fastcall TWingEditForm::Convert(WideString wIn, const TRect &rect, TCanva
         int fg = NO_COLOR;
         int bg = NO_COLOR;
 
-        ii += utils->CountColorSequence(buf, ii, len, fg, bg);
+        ii += utils.CountColorSequence(buf, ii, len, fg, bg);
 
         if (fg != NO_COLOR && fg != IRCNOCOLOR)
         {
-          p->Font->Color = utils->YcToTColor(fg);
+          p->Font->Color = utils.YcToTColor(fg);
           ps->fg = fg;
         }
 
         if (bg != NO_COLOR && bg != IRCNOCOLOR)
         {
-          p->Brush->Color = utils->YcToTColor(bg);
+          p->Brush->Color = utils.YcToTColor(bg);
           ps->bg = bg;
         }
       }
@@ -2977,7 +2977,7 @@ void __fastcall TWingEditForm::EditChange(TObject *Sender)
   // (Get the deltas in length and line-count and point
   // to the right string-list!) (NOTE: the oc.p stringlist
   // pointer is set below!)
-  ONCHANGEW oc = utils->GetInfoOC(re, NULL);
+  ONCHANGEW oc = utils.GetInfoOC(re, NULL);
 
   if (oc.deltaLength == 0)
   {
@@ -3030,7 +3030,7 @@ void __fastcall TWingEditForm::EditChange(TObject *Sender)
           // color in-effect for new chars typed after a red
           // char. We return it to black.
 
-          wchar_t Cnew = utils->GetHighlightLetter(oc.c[0]); // substitute char
+          wchar_t Cnew = utils.GetHighlightLetter(oc.c[0]); // substitute char
 
           re->SelStart = oc.selStart-oc.deltaLength;
 
@@ -3102,9 +3102,9 @@ bool __fastcall TWingEditForm::ProcessOC(TYcEdit* re, ONCHANGEW oc)
         {
           // Add char(s) to string-list...
           if (oc.c[0] == C_CR) // added a CR/LF?
-            EditString = utils->InsertW(EditString, WideString(CRLF), temp+1);
+            EditString = utils.InsertW(EditString, WideString(CRLF), temp+1);
           else
-            EditString = utils->InsertW(EditString, WideString(oc.c), temp+1);
+            EditString = utils.InsertW(EditString, WideString(oc.c), temp+1);
         }
         catch(...)
         {
@@ -3123,7 +3123,7 @@ bool __fastcall TWingEditForm::ProcessOC(TYcEdit* re, ONCHANGEW oc)
           int iFirst, iLast, CI;
           // This points First to the IRC char at the insert-point...
           // CI will point to any codes before First.
-          if (!utils->GetCodeIndices(EditString, iFirst, iLast, CI,
+          if (!utils.GetCodeIndices(EditString, iFirst, iLast, CI,
                                                oc.selStart-1, oc.deltaLength))
           {
             // Comes here when the edit control is empty...
@@ -3140,7 +3140,7 @@ bool __fastcall TWingEditForm::ProcessOC(TYcEdit* re, ONCHANGEW oc)
             if (oc.c[0] == C_CR) // added a CR/LF?
             {
               // Don't Copy Afg/Abg if NO_COLOR, don't skip spaces...(ok?)
-              int RetIdx = utils->GetState(EditString, LeadingState,
+              int RetIdx = utils.GetState(EditString, LeadingState,
                                oc.selStart-oc.line+1, true, false, false);
 
               if (RetIdx < 0)
@@ -3150,8 +3150,8 @@ bool __fastcall TWingEditForm::ProcessOC(TYcEdit* re, ONCHANGEW oc)
 
               if (iFirst <= EditString.Length())
               {
-                S = utils->InsertW(S, CRLF, 1);
-                EditString = utils->InsertW(EditString, S, iFirst+1);
+                S = utils.InsertW(S, CRLF, 1);
+                EditString = utils.InsertW(EditString, S, iFirst+1);
               }
             }
             else
@@ -3177,18 +3177,18 @@ bool __fastcall TWingEditForm::ProcessOC(TYcEdit* re, ONCHANGEW oc)
                 if (iTemp-2 > 0 && EditString[iTemp-CRLFLEN] == C_CR)
                 {
                   // Copy Afg/Abg if NO_COLOR, don't skip spaces...(ok?)
-                  int RetIdx = utils->GetState(EditString, LeadingState,
+                  int RetIdx = utils.GetState(EditString, LeadingState,
                                      oc.selStart-oc.line, true, true, false);
 
                   if (RetIdx < 0)
                     LeadingState = "";
 
-                  S = utils->InsertW(S, LeadingState,1);
+                  S = utils.InsertW(S, LeadingState,1);
                 }
                 else if (iTemp-1 > 0 && EditString[iTemp-1] == C_CR)
                   iTemp--;
 
-                EditString = utils->InsertW(EditString, S, iTemp);
+                EditString = utils.InsertW(EditString, S, iTemp);
               }
             }
           }
@@ -3220,17 +3220,17 @@ bool __fastcall TWingEditForm::ProcessOC(TYcEdit* re, ONCHANGEW oc)
           {
             if (oc.view == V_RTF)
             {
-              int iTemp = utils->GetCodeIndex(EditString, oc.selStart);
+              int iTemp = utils.GetCodeIndex(EditString, oc.selStart);
 
               if (iTemp >= 0)
-                EditString = utils->DeleteW(EditString, iTemp+1, CRLFLEN);
+                EditString = utils.DeleteW(EditString, iTemp+1, CRLFLEN);
 #if DEBUG_ON
               else
                 dts->CWrite("\r\nError 9 TWingEditForm::ProcessOC()\r\n");
 #endif
             }
             else
-              EditString = utils->DeleteW(EditString,
+              EditString = utils.DeleteW(EditString,
                                             oc.selStart+oc.line+1, CRLFLEN);
           }
           else
@@ -3247,13 +3247,13 @@ bool __fastcall TWingEditForm::ProcessOC(TYcEdit* re, ONCHANGEW oc)
             int iTemp;
 
             if (oc.view == V_RTF)
-              iTemp = utils->GetCodeIndex(EditString, oc.selStart);
+              iTemp = utils.GetCodeIndex(EditString, oc.selStart);
             else // V_IRC, V_ORG or V_OFF
               iTemp = oc.selStart+oc.line;
 
             if (iTemp >= 0)
               EditString =
-                    utils->DeleteW(EditString, iTemp+1, -oc.deltaLength);
+                    utils.DeleteW(EditString, iTemp+1, -oc.deltaLength);
 #if DEBUG_ON
             else
               dts->CWrite("\r\nError 10 ProcessOC()\r\n");

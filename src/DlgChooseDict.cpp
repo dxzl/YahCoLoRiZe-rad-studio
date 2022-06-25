@@ -29,12 +29,12 @@ __fastcall TChooseDictForm::TChooseDictForm(TComponent* Owner)
   OkButton->Caption = SPELLINGMSG[21];
 
   // Dictionary(s) will be in the install directory Dict sub-directory...
-  WideString DictPath = utils->ExtractFilePathW(utils->GetExeNameW()) +
-                                               utils->Utf8ToWide(DICTDIR);
+  WideString DictPath = utils.ExtractFilePathW(utils.GetExeNameW()) +
+                                               utils.Utf8ToWide(DICTDIR);
 
-  //WideString DictPath = utils->GetSpecialFolder(CSIDL_APPDATA) +
-  //        "\\" + utils->Utf8ToWide(OUR_COMPANY) + "\\" +
-  //        utils->Utf8ToWide(OUR_NAME) + "\\" + utils->Utf8ToWide(DICTDIR);
+  //WideString DictPath = utils.GetSpecialFolder(CSIDL_APPDATA) +
+  //        "\\" + utils.Utf8ToWide(OUR_COMPANY) + "\\" +
+  //        utils.Utf8ToWide(OUR_NAME) + "\\" + utils.Utf8ToWide(DICTDIR);
 
   struct _wffblk sr;
 
@@ -57,21 +57,21 @@ __fastcall TChooseDictForm::TChooseDictForm(TComponent* Owner)
     return;
   }
 
-  wDict = utils->Utf8ToWide(DictListBox->Items->Strings[DictListBox->ItemIndex]);
+  wDict = utils.Utf8ToWide(DictListBox->Items->Strings[DictListBox->ItemIndex]);
 }
 //---------------------------------------------------------------------------
 void __fastcall TChooseDictForm::CheckFile(WideString wDictPath, WideString wFile)
 {
   // Get just the file-name without the extension...
-  int pos = wFile.Pos(utils->ExtractFileExtW(wFile));
+  int pos = wFile.Pos(utils.ExtractFileExtW(wFile));
   if (pos >= 0)
     wFile = wFile.SubString(1, pos-1);
 
-  if (utils->FileExistsW(wDictPath + wFile + ".aff"))
+  if (utils.FileExistsW(wDictPath + wFile + ".aff"))
   {
-    DictListBox->Items->Add(utils->WideToUtf8(wFile)); // put utf-8 in the ansi control for now...
+    DictListBox->Items->Add(utils.WideToUtf8(wFile)); // put utf-8 in the ansi control for now...
 
-    if (utils->LowerCaseW(wFile) == utils->LowerCaseW(dts->GDictionary))
+    if (utils.LowerCaseW(wFile) == utils.LowerCaseW(dts->GDictionary))
       DictListBox->ItemIndex = DictListBox->Items->Count-1;
   }
 }
@@ -90,7 +90,7 @@ void __fastcall TChooseDictForm::DictListBoxClick(TObject *Sender)
 {
   if (DictListBox->ItemIndex >= 0 &&
          DictListBox->ItemIndex < DictListBox->Items->Count)
-    wDict = utils->Utf8ToWide(DictListBox->Items->Strings[DictListBox->ItemIndex]);
+    wDict = utils.Utf8ToWide(DictListBox->Items->Strings[DictListBox->ItemIndex]);
 }
 //---------------------------------------------------------------------------
 
@@ -105,7 +105,7 @@ void __fastcall TChooseDictForm::DictListBoxDrawItem(TWinControl *Control,
   WideString sOut;
 
   if (!sIn.IsEmpty())
-    sOut = utils->Utf8ToWide(sIn);
+    sOut = utils.Utf8ToWide(sIn);
 
   ::TextOutW(DictListBox->Canvas->Handle, Rect.Left, Rect.Top,
                                                 sOut.c_bstr(), sOut.Length());

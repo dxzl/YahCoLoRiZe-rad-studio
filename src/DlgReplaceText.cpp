@@ -58,8 +58,8 @@ __fastcall TReplaceTextForm::TReplaceTextForm(TComponent* Owner)
   EditFind->Tag = ID_FIND;
   EditReplace->Tag = ID_REPLACE;
 
-  utils->SetOldLineVars(EditFind, true);
-  utils->SetOldLineVars(EditReplace, true);
+  utils.SetOldLineVars(EditFind, true);
+  utils.SetOldLineVars(EditReplace, true);
 }
 //---------------------------------------------------------------------------
 void __fastcall TReplaceTextForm::FormCreate(TObject *Sender)
@@ -89,10 +89,10 @@ void __fastcall TReplaceTextForm::FormCreate(TObject *Sender)
 
   if (tae->SelLength && !bUseSelected)
   {
-    sTemp = utils->MoveMainTextToString();
+    sTemp = utils.MoveMainTextToString();
 
     if (tae->View != V_ORG && tae->View != V_IRC)
-      sTemp = utils->StripAllCodes(sTemp);
+      sTemp = utils.StripAllCodes(sTemp);
   }
   else
     sTemp = dts->SaveFindText;
@@ -108,8 +108,8 @@ void __fastcall TReplaceTextForm::FormCreate(TObject *Sender)
 
   // Encode OutTxt (which is now in IRC raw-codes format) and put the
   // highlighted text in EditFind
-  utils->EncodeHighlight(EditString[ID_FIND], EditFind);
-  utils->EncodeHighlight(EditString[ID_REPLACE], EditReplace);
+  utils.EncodeHighlight(EditString[ID_FIND], EditFind);
+  utils.EncodeHighlight(EditString[ID_REPLACE], EditReplace);
 }
 //---------------------------------------------------------------------------
 void __fastcall TReplaceTextForm::FormShow(TObject *Sender)
@@ -136,7 +136,7 @@ void __fastcall TReplaceTextForm::FormShow(TObject *Sender)
   // Do this in Show() to allow the EnableReplace property to be set!
   if (bEnableReplace)
   {
-    if (utils->GetRealLength(ReplaceCodesStr) == 0 || !utils->TextContainsFormatCodes(ReplaceCodesStr))
+    if (utils.GetRealLength(ReplaceCodesStr) == 0 || !utils.TextContainsFormatCodes(ReplaceCodesStr))
       SetView(EditReplace, V_IRC);
     else SetView(EditReplace, V_RTF);
   }
@@ -161,8 +161,8 @@ void __fastcall TReplaceTextForm::InitCaptions(void)
   ButtonToggleView->Hint = REPLACEMSG[31];
 
   // Init Menus
-  utils->LoadMenu(ReplaceDlgMainMenu, (char**)REPLACEDLGMAINMENU);
-  utils->LoadMenu(ReplaceDlgPopupMenu, (char**)REPLACEDLGPOPUPMENU);
+  utils.LoadMenu(ReplaceDlgMainMenu, (char**)REPLACEDLGMAINMENU);
+  utils.LoadMenu(ReplaceDlgPopupMenu, (char**)REPLACEDLGPOPUPMENU);
 }
 //---------------------------------------------------------------------------
 void __fastcall TReplaceTextForm::InitControls(void)
@@ -214,7 +214,7 @@ void __fastcall TReplaceTextForm::ViewRtf(TYcEdit* re)
 
   if (idx != ID_FIND && idx != ID_REPLACE) return;
 
-  utils->PushOnChange(re);
+  utils.PushOnChange(re);
 
   MainMenuInsert->Enabled = true;
 
@@ -224,15 +224,15 @@ void __fastcall TReplaceTextForm::ViewRtf(TYcEdit* re)
   if (re->SelStart >= re->TextLength)
     First = -1; // set cursor to end
   else
-    First = utils->GetRealIndex(EditString[idx], re->SelStart + re->Line);
+    First = utils.GetRealIndex(EditString[idx], re->SelStart + re->Line);
 
   // avoid colors becoming Afg/ABg...
-  utils->ConvertToRtf(EditString[idx], NULL, re, true);
+  utils.ConvertToRtf(EditString[idx], NULL, re, true);
   re->SelStart = First;
 
   SetView(re, V_RTF);
 
-  utils->PopOnChange(re);
+  utils.PopOnChange(re);
 }
 //---------------------------------------------------------------------------
 void __fastcall TReplaceTextForm::ViewIrc(TYcEdit* re)
@@ -245,24 +245,24 @@ void __fastcall TReplaceTextForm::ViewIrc(TYcEdit* re)
   if (idx != ID_FIND && idx != ID_REPLACE)
     return;
 
-  utils->PushOnChange(re);
+  utils.PushOnChange(re);
 
   MainMenuInsert->Enabled = true;
 
   // Set EditReplace control to show IRC Codes
   int SaveSelStart = re->SelStart;
   int SaveSelLength = re->SelLength;
-  int SaveLine = utils->GetLine(re);
+  int SaveLine = utils.GetLine(re);
 
-  int OrigSelCRs = utils->CountCRs(re->SelTextW);
+  int OrigSelCRs = utils.CountCRs(re->SelTextW);
 
   // Set Cursor in plain-text to the same point as cursor in RTF text
   int iFirst, iLast, CI;
-  utils->GetCodeIndices(EditString[idx], iFirst, iLast, CI,
+  utils.GetCodeIndices(EditString[idx], iFirst, iLast, CI,
                                               SaveSelStart, SaveSelLength);
 
   // Highlight special codes and load into edit-control
-  utils->EncodeHighlight(EditString[idx], re);
+  utils.EncodeHighlight(EditString[idx], re);
 
   // Set Cursor in IRC text to the same point as cursor in RTF text...
   int temp = SaveLine;
@@ -279,7 +279,7 @@ void __fastcall TReplaceTextForm::ViewIrc(TYcEdit* re)
   if (SaveSelLength)
     SaveSelLength = (iLast-CI)-OrigSelCRs;
 
-  int NewTextLen = utils->GetTextLength(re);
+  int NewTextLen = utils.GetTextLength(re);
 
   // Limit-checking...
   if (SaveSelStart >= NewTextLen)
@@ -292,7 +292,7 @@ void __fastcall TReplaceTextForm::ViewIrc(TYcEdit* re)
 
   // Set to beginning? Try to set to the line from the previous view
   if (!SaveSelStart)
-    utils->SetLine(re, SaveLine);
+    utils.SetLine(re, SaveLine);
   else
   {
     re->SelStart = SaveSelStart;
@@ -301,7 +301,7 @@ void __fastcall TReplaceTextForm::ViewIrc(TYcEdit* re)
 
   SetView(re, V_IRC);
 
-  utils->PopOnChange(re);
+  utils.PopOnChange(re);
 }
 //---------------------------------------------------------------------------
 WideString __fastcall TReplaceTextForm::GetFindStrippedStr(void)
@@ -311,26 +311,26 @@ WideString __fastcall TReplaceTextForm::GetFindStrippedStr(void)
 {
   // Do this to allow pasting of multiple lines of copied text
   // into EditFind - have to trim out the LF chars!
-  String Stripped = utils->StripAllCodes(FindCodesStr);
-  return utils->StripChar(Stripped, C_LF);
+  String Stripped = utils.StripAllCodes(FindCodesStr);
+  return utils.StripChar(Stripped, C_LF);
 }
 //---------------------------------------------------------------------------
 WideString __fastcall TReplaceTextForm::GetReplaceStrippedStr(void)
 {
   // Do this to allow pasting of multiple lines of copied text
   // into EditFind - have to trim out the LF chars!
-  WideString Stripped = utils->StripAllCodes(ReplaceCodesStr);
-  return utils->StripChar(Stripped, C_LF);
+  WideString Stripped = utils.StripAllCodes(ReplaceCodesStr);
+  return utils.StripChar(Stripped, C_LF);
 }
 //---------------------------------------------------------------------------
 int __fastcall TReplaceTextForm::GetFindStrippedLen(void)
 {
-  return utils->GetRealLength(FindCodesStr);
+  return utils.GetRealLength(FindCodesStr);
 }
 //---------------------------------------------------------------------------
 int __fastcall TReplaceTextForm::GetReplaceStrippedLen(void)
 {
-  return utils->GetRealLength(ReplaceCodesStr);
+  return utils.GetRealLength(ReplaceCodesStr);
 }
 //---------------------------------------------------------------------------
 void __fastcall TReplaceTextForm::ButtonReplaceClick(TObject *Sender)
@@ -369,7 +369,7 @@ void __fastcall TReplaceTextForm::FrReset(bool bSetFindFirst)
 
   if (bSetFindFirst) bFindFirst = true;
 
-  if (tae->SelLength && utils->ContainsChar(tae->SelTextW, C_CR))
+  if (tae->SelLength && utils.ContainsChar(tae->SelTextW, C_CR))
   {
     BeginningOfText = tae->SelStart;
     EndingOfText = BeginningOfText + tae->SelLength;
@@ -429,18 +429,18 @@ void __fastcall TReplaceTextForm::FrFind(bool bForward)
   if (RetVal == 0)
   {
     if (bWrapAround)
-      utils->ShowMessageU(REPLACEMSG[20]); // Search complete!
+      utils.ShowMessageU(REPLACEMSG[20]); // Search complete!
     else
-      utils->ShowMessageU(REPLACEMSG[19]); // Text not found!
+      utils.ShowMessageU(REPLACEMSG[19]); // Text not found!
   }
   else if (RetVal == 2)
-    utils->ShowMessageU(REPLACEMSG[20]); // Search complete!
+    utils.ShowMessageU(REPLACEMSG[20]); // Search complete!
   else if (RetVal == -1)
-    utils->ShowMessageU(REPLACEMSG[21]); // Error in search!
+    utils.ShowMessageU(REPLACEMSG[21]); // Error in search!
   else // in wordwrap you repeat-find the only word... so print message
   {
     if (PrevSelStart == tae->SelStart)
-      utils->ShowMessageU(REPLACEMSG[20]); // Search complete!
+      utils.ShowMessageU(REPLACEMSG[20]); // Search complete!
 
     PrevSelStart = tae->SelStart;
   }
@@ -562,7 +562,7 @@ int __fastcall TReplaceTextForm::FindNext(bool bForward)
     // 2) The search-string has codes and we are in V_RTF in the main edit,
     // we need to switch to V_IRC...
     // (Don't attempt to then switch back... big mess and unnecessary!)
-    if (utils->TextContainsFormatCodes(FindCodesStr))
+    if (utils.TextContainsFormatCodes(FindCodesStr))
     {
       if (tae->View == V_RTF)
         dts->LoadView(V_IRC);
@@ -600,7 +600,7 @@ int __fastcall TReplaceTextForm::FindNext(bool bForward)
 
       // Relocate this dialog if it's on top of the new selection!
       if (this->Visible)
-        utils->RelocateDialog(this);
+        utils.RelocateDialog(this);
 
       RetVal = 1; // Found
     }
@@ -647,7 +647,7 @@ bool __fastcall TReplaceTextForm::FindOne(WideString FindStr, TStringsW* sl)
 // so use SelStart and SelLength to locate it. The search begins at
 // CurrentFindPos. It searches backward if st2Backward is set in Flags.
 {
-  utils->PushOnChange(tae);
+  utils.PushOnChange(tae);
 
   // Save original position and carat
   TYcPosition* p = new TYcPosition(tae);
@@ -668,7 +668,7 @@ bool __fastcall TReplaceTextForm::FindOne(WideString FindStr, TStringsW* sl)
     tae->TextW = sl->Text;
 
   // Search in a TaeRichEdit requires cr line-termination, not cr/lf!
-  FindStr = utils->StripChar(FindStr, C_LF);
+  FindStr = utils.StripChar(FindStr, C_LF);
 
   // Find the first match.
   int FoundPos; // returned start position
@@ -676,7 +676,7 @@ bool __fastcall TReplaceTextForm::FindOne(WideString FindStr, TStringsW* sl)
                                 Flags, FoundPos, SearchLength);
 
   if (bUseSL) // Highlight the raw codes
-    utils->EncodeHighlight(tae);
+    utils.EncodeHighlight(tae);
 
   // Restore original position and carat
   p->Position = p->SavePos;
@@ -688,7 +688,7 @@ bool __fastcall TReplaceTextForm::FindOne(WideString FindStr, TStringsW* sl)
     tae->SelLength = SearchLength;
   }
 
-  utils->PopOnChange(tae);
+  utils.PopOnChange(tae);
 
   return bRet;
 }
@@ -706,7 +706,7 @@ void __fastcall TReplaceTextForm::ReplaceText(bool bReplaceAll)
 
     // Tell the user what we did.
     // "Finished searching text.\r\n" X " replacements made."
-    utils->ShowMessageU(REPLACEMSG[24] + String(Count) + REPLACEMSG[25]);
+    utils.ShowMessageU(REPLACEMSG[24] + String(Count) + REPLACEMSG[25]);
 
     // Set focus back to the main edit-control so the carat can blink
     // (if the replace-text is "nothing" you can't tell where we are...)
@@ -840,7 +840,7 @@ int __fastcall TReplaceTextForm::ReplaceAll(TStringsW* sl)
 // V_HTML and V_RTF_SOURCE (or any text with no "raw-codes" memory-stream
 // association).
 {
-  utils->PushOnChange(tae);
+  utils.PushOnChange(tae);
 
   int Count = 0;
 
@@ -862,7 +862,7 @@ int __fastcall TReplaceTextForm::ReplaceAll(TStringsW* sl)
     int deltaLen = rsl-fsl;
 
     // Search in a TaeRichEdit requires cr line-termination, not cr/lf!
-    fss = utils->StripChar(fss, C_LF);
+    fss = utils.StripChar(fss, C_LF);
 
     bool bRet = tae->FindTextExW(fss, BeginningOfText, Flags, FoundPos, Length);
 
@@ -885,7 +885,7 @@ int __fastcall TReplaceTextForm::ReplaceAll(TStringsW* sl)
 
       // Add an undo including the text we will remove and the length of
       // the text we will put in it's place
-      ONCHANGEW oc = utils->GetInfoOC(tae, NULL);
+      ONCHANGEW oc = utils.GetInfoOC(tae, NULL);
       TOCUndo->Add(UNDO_REPLACE, FoundPos, rsl, oc, tae->SelTextW);
 
       // Perform replace
@@ -935,7 +935,7 @@ int __fastcall TReplaceTextForm::ReplaceAll(TStringsW* sl)
     int FoundPos; // returned start position
 
     // Search in a TaeRichEdit requires cr line-termination, not cr/lf!
-    FindStr = utils->StripChar(FindStr, C_LF);
+    FindStr = utils.StripChar(FindStr, C_LF);
 
     // Calling this function returns FoundPos and its Length as references!
     bool bRet = tae->FindTextExW(FindStr, BeginningOfText, Flags, FoundPos, Length);
@@ -961,7 +961,7 @@ int __fastcall TReplaceTextForm::ReplaceAll(TStringsW* sl)
       {
         // Add an undo including the text we will remove and the length of
         // the text we will put in it's place
-        ONCHANGEW oc = utils->GetInfoOC(tae, NULL);
+        ONCHANGEW oc = utils.GetInfoOC(tae, NULL);
         TOCUndo->Add(UNDO_REPLACE, FoundPos, ReplaceCodesStr.Length(), oc, tae->SelTextW);
 
         tae->SelTextW = ReplaceCodesStr;
@@ -996,13 +996,13 @@ int __fastcall TReplaceTextForm::ReplaceAll(TStringsW* sl)
 
     if (tae->View == V_RTF)
       // Convert StringList to RTF and display it in the edit-window
-      utils->ConvertToRtf(sl, NULL, tae, true);
+      utils.ConvertToRtf(sl, NULL, tae, true);
     else
     {
       // Write modified text back to the memory stream
       sl->Text = tae->TextW;
       // Highlight the raw codes
-      utils->EncodeHighlight(tae);
+      utils.EncodeHighlight(tae);
     }
 
     tae->SelStart = SaveSelStart;
@@ -1011,7 +1011,7 @@ int __fastcall TReplaceTextForm::ReplaceAll(TStringsW* sl)
   if (Count)
     tae->Modified = true;
 
-  utils->PopOnChange(tae);
+  utils.PopOnChange(tae);
 
   return Count;
 }
@@ -1071,7 +1071,7 @@ void __fastcall TReplaceTextForm::FormKeyDown(TObject *Sender, WORD &Key,
     if (focusId == ID_NONE)
     {
       // "Click the find or replace box to edit it..."
-      utils->ShowMessageU(REPLACEMSG[28]);
+      utils.ShowMessageU(REPLACEMSG[28]);
       return;
     }
 
@@ -1141,7 +1141,7 @@ void __fastcall TReplaceTextForm::EditKeyPress(TObject *Sender, char &Key)
   }
   else if (Key == C_TAB) // Replace tabs with spaces on-the-fly!
   {
-    PASTESTRUCT ps = EditPaste(utils->GetTabStringW(dts->RegTabs));
+    PASTESTRUCT ps = EditPaste(utils.GetTabStringW(dts->RegTabs));
 
     if (ps.error == 0)
       re->SelStart += ps.delta-ps.lines;
@@ -1232,7 +1232,7 @@ void __fastcall TReplaceTextForm::MenuEditPastePlainClick(TObject *Sender)
 // Strips color-codes
 // same handler for both main and popup menus!
 {
-  EditPaste(utils->StripAllCodes(utils->GetClipboardText()));
+  EditPaste(utils.StripAllCodes(utils.GetClipboardText()));
 }
 //---------------------------------------------------------------------------
 void __fastcall TReplaceTextForm::MenuEditSelectAllClick(TObject *Sender)
@@ -1250,7 +1250,7 @@ void __fastcall TReplaceTextForm::ButtonToggleViewClick(TObject *Sender)
   else if (ReplaceStrippedLen > 0)
     ChangeView(V_RTF);
   else
-    utils->ShowMessageU(REPLACEMSG[26]); // Replace text has only format codes!
+    utils.ShowMessageU(REPLACEMSG[26]); // Replace text has only format codes!
 }
 //---------------------------------------------------------------------------
 void __fastcall TReplaceTextForm::MenuEditOptimizeClick(TObject *Sender)
@@ -1258,12 +1258,12 @@ void __fastcall TReplaceTextForm::MenuEditOptimizeClick(TObject *Sender)
 {
   TYcEdit* re; int idx;
   GetFocusedCtrl(re, idx);
-  utils->PushOnChange(re);
-  EditString[idx] = utils->Optimize(EditString[idx], false);
+  utils.PushOnChange(re);
+  EditString[idx] = utils.Optimize(EditString[idx], false);
   re->SelStart = 0;
   re->Modified = true;
   ChangeView(re->View);
-  utils->PopOnChange(re);
+  utils.PopOnChange(re);
 }
 //---------------------------------------------------------------------------
 void __fastcall TReplaceTextForm::ReplaceDlgPopupMenuPopup(TObject *Sender)
@@ -1281,14 +1281,14 @@ void __fastcall TReplaceTextForm::HClear(TYcEdit* re)
   int idx = re->Tag;
   if (idx != ID_FIND && idx != ID_REPLACE) return;
 
-  utils->PushOnChange(re);
+  utils.PushOnChange(re);
   re->Clear();
   EditString[idx] = "";
   
   if (BothEditBoxesAreSingleLine()) SetFormDesign(false); // Set form to single-line mode
 
   // Failsafe in case of unmatched push/pops!
-  utils->InitOnChange(re, EditChange);
+  utils.InitOnChange(re, EditChange);
 }
 //---------------------------------------------------------------------------
 void __fastcall TReplaceTextForm::HUndo(TYcEdit* re)
@@ -1298,15 +1298,15 @@ void __fastcall TReplaceTextForm::HUndo(TYcEdit* re)
 //---------------------------------------------------------------------------
 void __fastcall TReplaceTextForm::HSelectAll(TYcEdit* re)
 {
-  utils->PushOnChange(re);
+  utils.PushOnChange(re);
   re->SelStart = 0;
-  re->SelLength = utils->GetTextLength(re);
-  utils->PopOnChange(re);
+  re->SelLength = utils.GetTextLength(re);
+  utils.PopOnChange(re);
 }
 //---------------------------------------------------------------------------
 void __fastcall TReplaceTextForm::HMenuPopup(TYcEdit* re)
 {
-  WideString Temp = utils->GetClipboardText();
+  WideString Temp = utils.GetClipboardText();
 
   if (!Temp.Length())
   {
@@ -1317,9 +1317,9 @@ void __fastcall TReplaceTextForm::HMenuPopup(TYcEdit* re)
   }
   else // have clipboard text
   {
-    if (utils->TextContainsFormatCodes(Temp))
+    if (utils.TextContainsFormatCodes(Temp))
     {
-      bool bCodesOnly = utils->GetRealLength(Temp) == 0 ? true : false;
+      bool bCodesOnly = utils.GetRealLength(Temp) == 0 ? true : false;
 
       if (bCodesOnly)
       {
@@ -1367,7 +1367,7 @@ void __fastcall TReplaceTextForm::ColorCode1Click(TObject *Sender)
   if (focusId == ID_NONE)
   {
     // "Click the find or replace box to edit it..."
-    utils->ShowMessageU(REPLACEMSG[28]);
+    utils.ShowMessageU(REPLACEMSG[28]);
     return;
   }
 
@@ -1400,24 +1400,24 @@ void __fastcall TReplaceTextForm::ColorCode1Click(TObject *Sender)
   if (!bHaveFg && !bHaveBg)
     return;
 
-  fg = utils->ConvertColor(fg, false);
-  bg = utils->ConvertColor(bg, false);
+  fg = utils.ConvertColor(fg, false);
+  bg = utils.ConvertColor(bg, false);
 
   WideString ColorFmt;
 
   // Write the color-codes into a string
-  utils->WriteColors(fg, bg, ColorFmt);
+  utils.WriteColors(fg, bg, ColorFmt);
 
   TYcEdit* re; int idx;
   GetFocusedCtrl(re, idx);
 
-  utils->PushOnChange(re);
+  utils.PushOnChange(re);
 
   // Save carat position
   int SaveSelStart = re->SelStart;
 
   // Inserting a code into a box with no printable chars? switch to codes view!
-  if (re->View != V_IRC && utils->GetRealLength(re->TextW) == 0)
+  if (re->View != V_IRC && utils.GetRealLength(re->TextW) == 0)
     ViewIrc(re);
 
   if (re->View == V_RTF)
@@ -1428,30 +1428,30 @@ void __fastcall TReplaceTextForm::ColorCode1Click(TObject *Sender)
       if (bHaveFg && bHaveBg)
       {
         int len = EditString[idx].Length();
-        EditString[idx] = utils->StripColorCodes(EditString[idx], 0, len);
+        EditString[idx] = utils.StripColorCodes(EditString[idx], 0, len);
       }
-      else if (bHaveFg) EditString[idx] = utils->StripFgCodes(EditString[idx]);
-      else EditString[idx] = utils->StripBgCodes(EditString[idx]); // bg only
+      else if (bHaveFg) EditString[idx] = utils.StripFgCodes(EditString[idx]);
+      else EditString[idx] = utils.StripBgCodes(EditString[idx]); // bg only
 
       // Map the start and end indices of the RTF text to the
       // raw text in EditFindIRCString.
-      int iFirst = utils->GetCodeIndex(re);
+      int iFirst = utils.GetCodeIndex(re);
 
       if (iFirst < 0)
       {
-        utils->PopOnChange(re);
+        utils.PopOnChange(re);
         return;
       }
 
       // Write the colors imediately before the first printable character.
-      EditString[idx] = utils->InsertW(EditString[idx], ColorFmt, iFirst+1);
+      EditString[idx] = utils.InsertW(EditString[idx], ColorFmt, iFirst+1);
     }
     else // text is selected...
     {
       // Set the cumulative text state that exists at the first character
       // in EditFindIRCString.
       PUSHSTRUCT BeginningState;
-      utils->SetStateFlags(EditString[idx], STATE_MODE_FIRSTCHAR, BeginningState);
+      utils.SetStateFlags(EditString[idx], STATE_MODE_FIRSTCHAR, BeginningState);
 
       // Write default color(s) at beginning if the wing has no default
       // color(s) and the user is trying to add a foreground or
@@ -1470,19 +1470,19 @@ void __fastcall TReplaceTextForm::ColorCode1Click(TObject *Sender)
       bool bBgWrite = (bHaveBg && (BeginningState.bg == NO_COLOR));
 
       // Write the color-codes into a string
-      if (bFgWrite && bBgWrite) utils->WriteColors(IRCBLACK, IRCWHITE, InitColorFmt);
-      else if (bFgWrite) utils->WriteSingle(IRCBLACK, InitColorFmt, true);
-      else utils->WriteSingle(IRCWHITE, InitColorFmt, false); // bg only
+      if (bFgWrite && bBgWrite) utils.WriteColors(IRCBLACK, IRCWHITE, InitColorFmt);
+      else if (bFgWrite) utils.WriteSingle(IRCBLACK, InitColorFmt, true);
+      else utils.WriteSingle(IRCWHITE, InitColorFmt, false); // bg only
 
       // Write the colors at the start of the string.
-      EditString[idx] = utils->InsertW(EditString[idx], InitColorFmt, 1);
+      EditString[idx] = utils.InsertW(EditString[idx], InitColorFmt, 1);
 
       // Map the start and end indices of the RTF selected text to the
       // text in the buffer
       int iFirst, iLast, CI;
-      if (!utils->GetCodeIndices(EditString[idx], iFirst, iLast, CI, re))
+      if (!utils.GetCodeIndices(EditString[idx], iFirst, iLast, CI, re))
       {
-        utils->PopOnChange(re);
+        utils.PopOnChange(re);
         return;
       }
 
@@ -1491,25 +1491,25 @@ void __fastcall TReplaceTextForm::ColorCode1Click(TObject *Sender)
       int LastRealIndex = re->SelStart+re->SelLength;
 
       PUSHSTRUCT EndState;
-      utils->SetStateFlags(EditString[idx], LastRealIndex, EndState);
+      utils.SetStateFlags(EditString[idx], LastRealIndex, EndState);
 
       int len = ColorFmt.Length();
 
       // Insert the new color(s) in front of the first highlighted character.
-      EditString[idx] = utils->InsertW(EditString[idx], ColorFmt, iFirst+1);
+      EditString[idx] = utils.InsertW(EditString[idx], ColorFmt, iFirst+1);
       iFirst += len;
       iLast += len;
 
       // Strip out color codes in the highlighted range.  "Last" may return
       // shorted by the # of color-code chars removed.
-      EditString[idx] = utils->StripColorCodes(EditString[idx], iFirst, iLast);
+      EditString[idx] = utils.StripColorCodes(EditString[idx], iFirst, iLast);
 
       // Insert ColorFmt after every CRLF in the selected range...
       for (int ii = iFirst+1; ii <= iLast; ii++)
       {
         if (EditString[idx][ii] == C_LF)
         {
-          EditString[idx] = utils->InsertW(EditString[idx], ColorFmt, ii+1);
+          EditString[idx] = utils.InsertW(EditString[idx], ColorFmt, ii+1);
           ii += len;
           iLast += len;
         }
@@ -1517,23 +1517,23 @@ void __fastcall TReplaceTextForm::ColorCode1Click(TObject *Sender)
 
       // Write the color codes pertaining to the end state.
       ColorFmt = ""; // Must clear to avoid appending to it!
-      utils->WriteColors(EndState.fg, EndState.bg, ColorFmt);
+      utils.WriteColors(EndState.fg, EndState.bg, ColorFmt);
 
       // Insert the color-string in front of the character imediately
       // following the last highlighted char.
-      EditString[idx] = utils->InsertW(EditString[idx], ColorFmt, iLast+1);
+      EditString[idx] = utils.InsertW(EditString[idx], ColorFmt, iLast+1);
     }
 
     // Convert to RTF and display it in the edit-window
-    utils->ConvertToRtf(EditString[idx], NULL, re, true);
+    utils.ConvertToRtf(EditString[idx], NULL, re, true);
   }
   else // re->View is V_IRC
     IrcInsert(re, ColorFmt, String(CTRL_K));
 
   re->SelStart = SaveSelStart;
   re->Modified = true;
-  utils->SetOldLineVars(re);
-  utils->PopOnChange(re);
+  utils.SetOldLineVars(re);
+  utils.PopOnChange(re);
 }
 //---------------------------------------------------------------------------
 void __fastcall TReplaceTextForm::FontTypeCode1Click(TObject *Sender)
@@ -1541,7 +1541,7 @@ void __fastcall TReplaceTextForm::FontTypeCode1Click(TObject *Sender)
   if (focusId == ID_NONE)
   {
     // "Click the find or replace box to edit it..."
-    utils->ShowMessageU(REPLACEMSG[28]);
+    utils.ShowMessageU(REPLACEMSG[28]);
     return;
   }
 
@@ -1550,18 +1550,18 @@ void __fastcall TReplaceTextForm::FontTypeCode1Click(TObject *Sender)
   if (!dts->SelectFontType(String(DS[213]), Type)) return; // No font-code?
 
   // Write the font code pertaining to the end state.
-  WideString FontStr = utils->FontTypeToString(Type);
+  WideString FontStr = utils.FontTypeToString(Type);
 
   TYcEdit* re; int idx;
   GetFocusedCtrl(re, idx);
 
-  utils->PushOnChange(re);
+  utils.PushOnChange(re);
 
   // Save carat position
   int SaveSelStart = re->SelStart;
 
   // Inserting a code into a box with no printable chars? switch to codes view!
-  if (re->View != V_IRC && utils->GetRealLength(re->TextW) == 0)
+  if (re->View != V_IRC && utils.GetRealLength(re->TextW) == 0)
     ViewIrc(re);
 
   if (re->View == V_IRC)
@@ -1573,36 +1573,36 @@ void __fastcall TReplaceTextForm::FontTypeCode1Click(TObject *Sender)
       // If not, write the font-code at the cursor.
       if (re->SelStart >= 0)
       {
-        int iTemp = utils->GetCodeIndex(re->TextW, re->SelStart);
+        int iTemp = utils.GetCodeIndex(re->TextW, re->SelStart);
 
         if (iTemp >= 0)
-          EditString[idx] = utils->InsertW(EditString[idx], FontStr, iTemp+1);
+          EditString[idx] = utils.InsertW(EditString[idx], FontStr, iTemp+1);
       }
       else
-        EditString[idx] = utils->InsertW(EditString[idx], FontStr, 1);
+        EditString[idx] = utils.InsertW(EditString[idx], FontStr, 1);
     }
     else // Text selected
     {
       // Set the cumulative text state that exists at the first character
       // in EditString[idx].
       PUSHSTRUCT BeginningState;
-      utils->SetStateFlags(EditString[idx], STATE_MODE_FIRSTCHAR, BeginningState);
+      utils.SetStateFlags(EditString[idx], STATE_MODE_FIRSTCHAR, BeginningState);
 
       // Write default font-type at beginning if the wing has no default
       // font-type and the user is trying to add a font-type code
       // somewhere in the wing.
       if (BeginningState.fontType == -1)
       {
-        WideString InitFontFmt = utils->FontTypeToString(-1);
-        EditString[idx] = utils->InsertW(EditString[idx], InitFontFmt, 1);
+        WideString InitFontFmt = utils.FontTypeToString(-1);
+        EditString[idx] = utils.InsertW(EditString[idx], InitFontFmt, 1);
       }
 
       // Map the start and end indices of the RTF selected text to the
       // text in the buffer
       int iFirst, iLast, CI;
-      if (!utils->GetCodeIndices(EditString[idx], iFirst, iLast, CI, re))
+      if (!utils.GetCodeIndices(EditString[idx], iFirst, iLast, CI, re))
       {
-        utils->PopOnChange(re);
+        utils.PopOnChange(re);
         return;
       }
 
@@ -1610,25 +1610,25 @@ void __fastcall TReplaceTextForm::FontTypeCode1Click(TObject *Sender)
       // following the last highlighted character...
       int LastRealIndex = re->SelStart+re->SelLength;
       PUSHSTRUCT EndState;
-      utils->SetStateFlags(EditString[idx], LastRealIndex, EndState);
+      utils.SetStateFlags(EditString[idx], LastRealIndex, EndState);
 
       int len = FontStr.Length();
 
       // Insert the new font-code in front of the first highlighted character.
-      EditString[idx] = utils->InsertW(EditString[idx], FontStr, iFirst+1);
+      EditString[idx] = utils.InsertW(EditString[idx], FontStr, iFirst+1);
       iFirst += len;
       iLast += len;
 
       // Strip out font codes in the highlighted range.  "Last" may return
       // shorted by the # of font-code chars removed.
-      EditString[idx] = utils->StripFont(EditString[idx], iFirst, iLast, CTRL_F);
+      EditString[idx] = utils.StripFont(EditString[idx], iFirst, iLast, CTRL_F);
 
       // Insert FontStr after every CRLF in the selected range...
       for (int ii = iFirst+1; ii <= iLast; ii++)
       {
         if (EditString[idx][ii] == C_LF)
         {
-          EditString[idx] = utils->InsertW(EditString[idx], FontStr, ii+1);
+          EditString[idx] = utils.InsertW(EditString[idx], FontStr, ii+1);
           ii += len;
           iLast += len;
         }
@@ -1637,24 +1637,24 @@ void __fastcall TReplaceTextForm::FontTypeCode1Click(TObject *Sender)
       // Write the font code pertaining to the end state.
       if (EndState.fontType < 0)
       {
-        utils->PopOnChange(re);
+        utils.PopOnChange(re);
         return;
       }
 
       // Insert the font-string in front of the character imediately
       // following the last highlighted char.
-      WideString Stemp = utils->FontTypeToString(EndState.fontType);
-      EditString[idx] = utils->InsertW(EditString[idx], Stemp, iLast+1);
+      WideString Stemp = utils.FontTypeToString(EndState.fontType);
+      EditString[idx] = utils.InsertW(EditString[idx], Stemp, iLast+1);
     }
 
     // Convert to RTF and display it in the edit-window
-    utils->ConvertToRtf(EditString[idx], NULL, re, true);
+    utils.ConvertToRtf(EditString[idx], NULL, re, true);
   }
 
   re->SelStart = SaveSelStart;
   re->Modified = true;
-  utils->SetOldLineVars(re);
-  utils->PopOnChange(re);
+  utils.SetOldLineVars(re);
+  utils.PopOnChange(re);
 }
 //---------------------------------------------------------------------------
 void __fastcall TReplaceTextForm::FontSizeCode1Click(TObject *Sender)
@@ -1662,7 +1662,7 @@ void __fastcall TReplaceTextForm::FontSizeCode1Click(TObject *Sender)
   if (focusId == ID_NONE)
   {
     // "Click the find or replace box to edit it..."
-    utils->ShowMessageU(REPLACEMSG[28]);
+    utils.ShowMessageU(REPLACEMSG[28]);
     return;
   }
 
@@ -1671,18 +1671,18 @@ void __fastcall TReplaceTextForm::FontSizeCode1Click(TObject *Sender)
   if (!dts->SelectFontSize(String(DS[214]), Size)) return; // no font-code
 
   // Write the font code pertaining to the end state.
-  WideString FontStr = utils->FontSizeToString(Size);
+  WideString FontStr = utils.FontSizeToString(Size);
 
   TYcEdit* re; int idx;
   GetFocusedCtrl(re, idx);
 
-  utils->PushOnChange(re);
+  utils.PushOnChange(re);
 
   // Save carat position
   int SaveSelStart = re->SelStart;
 
   // Inserting a code into a box with no printable chars? switch to codes view!
-  if (re->View != V_IRC && utils->GetRealLength(re->TextW) == 0)
+  if (re->View != V_IRC && utils.GetRealLength(re->TextW) == 0)
     ViewIrc(re);
 
   if (re->View == V_IRC)
@@ -1694,36 +1694,36 @@ void __fastcall TReplaceTextForm::FontSizeCode1Click(TObject *Sender)
       // If not, write the font-code at the cursor.
       if (re->SelStart >= 0)
       {
-        int iTemp = utils->GetCodeIndex(re->TextW, re->SelStart);
+        int iTemp = utils.GetCodeIndex(re->TextW, re->SelStart);
 
         if (iTemp >= 0)
-          EditString[idx] = utils->InsertW(EditString[idx], FontStr, iTemp+1);
+          EditString[idx] = utils.InsertW(EditString[idx], FontStr, iTemp+1);
       }
       else
-        EditString[idx] = utils->InsertW(EditString[idx], FontStr, 1);
+        EditString[idx] = utils.InsertW(EditString[idx], FontStr, 1);
     }
     else // Text selected
     {
       // Set the cumulative text state that exists at the first character
       // in EditString[idx].
       PUSHSTRUCT BeginningState;
-      utils->SetStateFlags(EditString[idx], STATE_MODE_FIRSTCHAR, BeginningState);
+      utils.SetStateFlags(EditString[idx], STATE_MODE_FIRSTCHAR, BeginningState);
 
       // Write default font-size at beginning if the wing has no default
       // font-size and the user is trying to add a font-size code
       // somewhere in the wing.
       if (BeginningState.fontSize == -1)
       {
-        WideString InitFontFmt = utils->FontSizeToString(-1);
-        EditString[idx] = utils->InsertW(EditString[idx], InitFontFmt, 1);
+        WideString InitFontFmt = utils.FontSizeToString(-1);
+        EditString[idx] = utils.InsertW(EditString[idx], InitFontFmt, 1);
       }
 
       // Map the start and end indices of the RTF selected text to the
       // text in the buffer
       int iFirst, iLast, CI;
-      if (!utils->GetCodeIndices(EditString[idx], iFirst, iLast, CI, re))
+      if (!utils.GetCodeIndices(EditString[idx], iFirst, iLast, CI, re))
       {
-        utils->PopOnChange(re);
+        utils.PopOnChange(re);
         return;
       }
 
@@ -1731,25 +1731,25 @@ void __fastcall TReplaceTextForm::FontSizeCode1Click(TObject *Sender)
       // following the last highlighted character...
       int LastRealIndex = re->SelStart+re->SelLength;
       PUSHSTRUCT EndState;
-      utils->SetStateFlags(EditString[idx], LastRealIndex, EndState);
+      utils.SetStateFlags(EditString[idx], LastRealIndex, EndState);
 
       int len = FontStr.Length();
 
       // Insert the new font-code in front of the first highlighted character.
-      EditString[idx] = utils->InsertW(EditString[idx], FontStr, iFirst+1);
+      EditString[idx] = utils.InsertW(EditString[idx], FontStr, iFirst+1);
       iFirst += len;
       iLast += len;
 
       // Strip out font codes in the highlighted range.  "Last" may return
       // shorted by the # of font-code chars removed.
-      EditString[idx] = utils->StripFont(EditString[idx], iFirst, iLast, CTRL_S);
+      EditString[idx] = utils.StripFont(EditString[idx], iFirst, iLast, CTRL_S);
 
       // Insert FontStr after every CRLF in the selected range...
       for (int ii = iFirst+1; ii <= iLast; ii++)
       {
         if (EditString[idx][ii] == C_LF)
         {
-          EditString[idx] = utils->InsertW(EditString[idx], FontStr, ii+1);
+          EditString[idx] = utils.InsertW(EditString[idx], FontStr, ii+1);
           ii += len;
           iLast += len;
         }
@@ -1758,24 +1758,24 @@ void __fastcall TReplaceTextForm::FontSizeCode1Click(TObject *Sender)
       // Write the font code pertaining to the end state.
       if (EndState.fontSize < 0)
       {
-        utils->PopOnChange(re);
+        utils.PopOnChange(re);
         return;
       }
 
       // Insert the font-string in front of the character imediately
       // following the last highlighted char.
-      WideString Stemp = utils->FontSizeToString(EndState.fontSize);
-      EditString[idx] = utils->InsertW(EditString[idx], Stemp, iLast+1);
+      WideString Stemp = utils.FontSizeToString(EndState.fontSize);
+      EditString[idx] = utils.InsertW(EditString[idx], Stemp, iLast+1);
     }
 
     // Convert to RTF and display it in the edit-window
-    utils->ConvertToRtf(EditString[idx], NULL, re, true);
+    utils.ConvertToRtf(EditString[idx], NULL, re, true);
   }
 
   re->SelStart = SaveSelStart;
   re->Modified = true;
-  utils->SetOldLineVars(re);
-  utils->PopOnChange(re);
+  utils.SetOldLineVars(re);
+  utils.PopOnChange(re);
 }
 //---------------------------------------------------------------------------
 void __fastcall TReplaceTextForm::BoldCtrlB1Click(TObject *Sender)
@@ -1831,7 +1831,7 @@ void __fastcall TReplaceTextForm::EmbraceSelection(int i1, int i2)
   if (focusId == ID_NONE)
   {
     // "Click the find or replace box to edit it..."
-    utils->ShowMessageU(REPLACEMSG[28]);
+    utils.ShowMessageU(REPLACEMSG[28]);
     return;
   }
 
@@ -1845,13 +1845,13 @@ void __fastcall TReplaceTextForm::EmbraceSelection(int i1, int i2)
   TYcEdit* re; int idx;
   GetFocusedCtrl(re, idx);
 
-  utils->PushOnChange(re);
+  utils.PushOnChange(re);
 
   // Save carat position
   int SaveSelStart = re->SelStart;
 
   // Inserting a code into a box with no printable chars? switch to codes view!
-  if (re->View != V_IRC && utils->GetRealLength(re->TextW) == 0)
+  if (re->View != V_IRC && utils.GetRealLength(re->TextW) == 0)
     ViewIrc(re);
 
   if (re->View == V_IRC)
@@ -1872,18 +1872,18 @@ void __fastcall TReplaceTextForm::EmbraceSelection(int i1, int i2)
     // Add effect codes across a multi-line selection...
     if (!InsertEffectChars(re, WideString(c1), WideString(c2)))
     {
-      utils->PopOnChange(re);
+      utils.PopOnChange(re);
       return;
     }
 
     // Convert to RTF and display it in the edit-window
-    utils->ConvertToRtf(EditString[idx], NULL, re, true);
+    utils.ConvertToRtf(EditString[idx], NULL, re, true);
   }
 
   re->SelStart = SaveSelStart;
   re->Modified = true;
-  utils->SetOldLineVars(re);
-  utils->PopOnChange(re);
+  utils.SetOldLineVars(re);
+  utils.PopOnChange(re);
 }
 //---------------------------------------------------------------------------
 void __fastcall TReplaceTextForm::IrcInsert(TYcEdit* re,
@@ -1898,10 +1898,10 @@ void __fastcall TReplaceTextForm::IrcInsert(TYcEdit* re,
   InsertEffectChars(re, S1, S2);
 
   // Save SelStart, EncodeHighlight clears the control...
-  int SaveSelStart = re->SelStart + utils->GetLine(re);
+  int SaveSelStart = re->SelStart + utils.GetLine(re);
 
   // Highlight special codes
-  utils->EncodeHighlight(EditString[idx], re);
+  utils.EncodeHighlight(EditString[idx], re);
 
   re->SelStart = SaveSelStart; // restore
 }
@@ -1924,13 +1924,13 @@ bool __fastcall TReplaceTextForm::InsertEffectChars(TYcEdit* re,
       // Map the start and end indices of the RTF selected text to the
       // text in EditString[idx].
       int CI;
-      if (!utils->GetCodeIndices(EditString[idx], iFirst, iLast, CI, re))
+      if (!utils.GetCodeIndices(EditString[idx], iFirst, iLast, CI, re))
         return false;
     }
     else
     {
-      iFirst = re->SelStart + utils->GetLine(re);
-      iLast = iFirst + TempLen + utils->CountCRs(re->SelTextW);
+      iFirst = re->SelStart + utils.GetLine(re);
+      iLast = iFirst + TempLen + utils.CountCRs(re->SelTextW);
     }
 
     int len1 = S1.Length();
@@ -1946,32 +1946,32 @@ bool __fastcall TReplaceTextForm::InsertEffectChars(TYcEdit* re,
       {
         if (ii == iFirst+1)
         {
-          EditString[idx] = utils->InsertW(EditString[idx], S1, ii);
+          EditString[idx] = utils.InsertW(EditString[idx], S1, ii);
           ii += len1;
           iLast += len1;
         }
         else if (EditString[idx][ii] == C_LF)
         {
-          EditString[idx] = utils->InsertW(EditString[idx], S1, ii+1);
+          EditString[idx] = utils.InsertW(EditString[idx], S1, ii+1);
           ii += len1;
           iLast += len1;
         }
         else if (ii == iLast)
         {
-          EditString[idx] = utils->InsertW(EditString[idx], S2, ii+1);
+          EditString[idx] = utils.InsertW(EditString[idx], S2, ii+1);
           ii += len2;
           iLast += len2;
         }
         else if (EditString[idx][ii] == C_CR)
         {
-          EditString[idx] = utils->InsertW(EditString[idx], S2, ii);
+          EditString[idx] = utils.InsertW(EditString[idx], S2, ii);
           ii += len2;
           iLast += len2;
         }
       }
     }
     else
-      EditString[idx] = utils->InsertW(EditString[idx], S1, iFirst+1);
+      EditString[idx] = utils.InsertW(EditString[idx], S1, iFirst+1);
 
     return true;
   }
@@ -1996,7 +1996,7 @@ void __fastcall TReplaceTextForm::SetView(TYcEdit* re, int NewView)
     //
     // (NOTE: THe TopBottom, Left/Right border edit boxes do not
     // utilize an OnChange event!)
-    utils->InitOnChange(re, EditChange);
+    utils.InitOnChange(re, EditChange);
   }
   else
     re->OnChange = NULL;
@@ -2058,7 +2058,7 @@ PASTESTRUCT __fastcall TReplaceTextForm::EditCutCopy(bool bCut, bool bCopy)
   if (focusId == ID_NONE)
   {
     // "Click the find or replace box to edit it..."
-    utils->ShowMessageU(REPLACEMSG[28]);
+    utils.ShowMessageU(REPLACEMSG[28]);
     return ps;
   }
 
@@ -2076,16 +2076,16 @@ PASTESTRUCT __fastcall TReplaceTextForm::EditCutCopy(bool bCut, bool bCopy)
 
   if (re->View == V_RTF)
     // Erases clipboard then copies Html, Rtf and Utf-16 text formats to it
-    ps = utils->CutCopyRTF(bCut, bCopy, re, EditString[idx]);
+    ps = utils.CutCopyRTF(bCut, bCopy, re, EditString[idx]);
   else
     // Erases clipboard then copies Utf-16 text format to it
-    ps = utils->CutCopyIRC(bCut, bCopy, re, EditString[idx]);
+    ps = utils.CutCopyIRC(bCut, bCopy, re, EditString[idx]);
 
   if (ps.error == 0)
   {
     if (bCut)
     {
-      utils->SetOldLineVars(re);
+      utils.SetOldLineVars(re);
 
       // No more text
       if (re->LineCount == 0 || EditString[idx].Length() == 0)
@@ -2113,7 +2113,7 @@ PASTESTRUCT __fastcall TReplaceTextForm::EditPaste(void)
 
   try
   {
-    WideString sOut = utils->GetClipboardText();
+    WideString sOut = utils.GetClipboardText();
 
     if (sOut.Length())
       ps = this->EditPaste(sOut);
@@ -2137,7 +2137,7 @@ PASTESTRUCT __fastcall TReplaceTextForm::EditPaste(WideString S)
   if (focusId == ID_NONE)
   {
     // "Click the find or replace box to edit it..."
-    utils->ShowMessageU(REPLACEMSG[28]);
+    utils.ShowMessageU(REPLACEMSG[28]);
     ps.error = -2;
     return ps;
   }
@@ -2148,19 +2148,19 @@ PASTESTRUCT __fastcall TReplaceTextForm::EditPaste(WideString S)
   if (re->View != V_RTF && re->View != V_IRC)
   {
     // "Operation not allowed in this View!", //24
-    utils->ShowMessageU(EDITMSG[24]);
+    utils.ShowMessageU(EDITMSG[24]);
     ps.error = -3;
     return ps;
   }
 
   // If the user is pasting raw-codes only into an empty control
   // we want to be in V_IRC, not V_RTF! (EditFind should never be in V_RTF!)
-  if (re->View == V_RTF && re->LineCount == 0 && utils->GetRealLength(S) == 0)
+  if (re->View == V_RTF && re->LineCount == 0 && utils.GetRealLength(S) == 0)
     SetView(re, V_IRC);
 
   // Strip codes if it's a Find and the main view is V_RTF
   if (tae->View == V_RTF && re->Name == "EditFind")
-    S = utils->StripAllCodes(S);
+    S = utils.StripAllCodes(S);
 
   // Save original position and carat
   TYcPosition* p = new TYcPosition(tae);
@@ -2182,31 +2182,31 @@ PASTESTRUCT __fastcall TReplaceTextForm::EditPaste(WideString S)
     // what we cut won't affect where the caret is placed following
     // a paste (below)!
 
-    utils->PushOnChange(re);
+    utils.PushOnChange(re);
     re->SelTextW = "";
     re->Modified = true;
 
     // Reset for OnChange Event...
-    utils->SetOldLineVars(re);
+    utils.SetOldLineVars(re);
 
-    utils->PopOnChange(re);
+    utils.PopOnChange(re);
   }
 
   if (re->View == V_RTF)
   {
     try
     {
-      utils->PushOnChange(re);
+      utils.PushOnChange(re);
 
       // Resolve color and style states between new and old text (returns
       // EditString by reference!)
-      if (utils->ResolveStateForPaste(p->Position.p, EditString[idx], S) >= 0)
+      if (utils.ResolveStateForPaste(p->Position.p, EditString[idx], S) >= 0)
       {
-        ps.delta = utils->GetRealLength(S);
-        ps.lines = utils->CountCRs(S);
+        ps.delta = utils.GetRealLength(S);
+        ps.lines = utils.CountCRs(S);
 
         // Convert to RTF and display it in the edit-window
-        utils->ConvertToRtf(EditString[idx], NULL, re, true);
+        utils.ConvertToRtf(EditString[idx], NULL, re, true);
         SetView(re, V_RTF);
 
         // Set form to multi-line mode?
@@ -2223,7 +2223,7 @@ PASTESTRUCT __fastcall TReplaceTextForm::EditPaste(WideString S)
 
           // ...stop the pesky "phantom" colored space at the end of
           // RTF text
-          if (re->SelStart == utils->GetTextLength(re))
+          if (re->SelStart == utils.GetTextLength(re))
           {
             re->SelLength = 1;
 //            re->SelAttributes->BackColor = clWindow;
@@ -2231,10 +2231,10 @@ PASTESTRUCT __fastcall TReplaceTextForm::EditPaste(WideString S)
           }
         }
 
-        utils->SetOldLineVars(re);
+        utils.SetOldLineVars(re);
         re->Modified = true;
       }
-      utils->PopOnChange(re);
+      utils.PopOnChange(re);
     }
     catch(...)
     {
@@ -2244,21 +2244,21 @@ PASTESTRUCT __fastcall TReplaceTextForm::EditPaste(WideString S)
   }
   else // re->View is V_IRC...
   {
-    utils->PushOnChange(re);
+    utils.PushOnChange(re);
 
     // One-to-one code match for IRC View!
-    ps.lines = utils->CountCRs(S); // Count cr/lfs
+    ps.lines = utils.CountCRs(S); // Count cr/lfs
     ps.delta = S.Length(); // Length includes 2 for each cr/lf!
 
     if (re->View == V_IRC)
     {
-      EditString[idx] = utils->InsertW(EditString[idx], S,
-                                      re->SelStart + utils->GetLine(re) + 1);
+      EditString[idx] = utils.InsertW(EditString[idx], S,
+                                      re->SelStart + utils.GetLine(re) + 1);
 
       // NOTE: Don't call the optimizer! We may be replacing a simple code
       // that will be optimized out!!!
 
-      utils->EncodeHighlight(EditString[idx], re);
+      utils.EncodeHighlight(EditString[idx], re);
     }
     else
       re->SelTextW = S;
@@ -2275,9 +2275,9 @@ PASTESTRUCT __fastcall TReplaceTextForm::EditPaste(WideString S)
       re->SelStart = SaveSelStart + (ps.delta-ps.lines);
 
     // Reset for OnChange Event...
-    utils->SetOldLineVars(re);
+    utils.SetOldLineVars(re);
     re->Modified = true;
-    utils->PopOnChange(re);
+    utils.PopOnChange(re);
   }
 
   delete p;
@@ -2328,7 +2328,7 @@ void __fastcall TReplaceTextForm::EditChange(TObject *Sender)
   // (Get the deltas in length and line-count and point
   // to the right string-list!) (NOTE: the oc.p stringlist
   // pointer is set below!)
-  ONCHANGEW oc = utils->GetInfoOC(re, NULL);
+  ONCHANGEW oc = utils.GetInfoOC(re, NULL);
 
   if (oc.deltaLength == 0)
   {
@@ -2382,7 +2382,7 @@ void __fastcall TReplaceTextForm::EditChange(TObject *Sender)
           // color in-effect for new chars typed after a red
           // char. We return it to black.
 
-          wchar_t Cnew = utils->GetHighlightLetter(oc.c[0]); // substitute char
+          wchar_t Cnew = utils.GetHighlightLetter(oc.c[0]); // substitute char
 
           re->SelStart = oc.selStart-oc.deltaLength;;
 
@@ -2460,14 +2460,14 @@ bool __fastcall TReplaceTextForm::ProcessOC(TYcEdit* re, ONCHANGEW oc)
           // Add char(s) to string-list...
           if (oc.c[0] == C_CR) // added a CR/LF?
           {
-            EditString[idx] = utils->InsertW(EditString[idx], CRLF, temp+1);
+            EditString[idx] = utils.InsertW(EditString[idx], CRLF, temp+1);
 
             // Set form to multi-line mode?
             if (!BothEditBoxesAreSingleLine())
               SetFormDesign(true);
           }
           else
-            EditString[idx] = utils->InsertW(EditString[idx],
+            EditString[idx] = utils.InsertW(EditString[idx],
                                                 WideString(oc.c[0]), temp+1);
         }
         catch(...)
@@ -2487,7 +2487,7 @@ bool __fastcall TReplaceTextForm::ProcessOC(TYcEdit* re, ONCHANGEW oc)
           int iFirst, iLast, CI;
           // This points First to the IRC char at the insert-point...
           // CI will point to any codes before First.
-          if (!utils->GetCodeIndices(EditString[idx], iFirst, iLast, CI,
+          if (!utils.GetCodeIndices(EditString[idx], iFirst, iLast, CI,
                                             oc.selStart-1, oc.deltaLength))
           {
             // Comes here when the edit control is empty...
@@ -2508,7 +2508,7 @@ bool __fastcall TReplaceTextForm::ProcessOC(TYcEdit* re, ONCHANGEW oc)
             if (oc.c[0] == C_CR) // added a CR/LF?
             {
               // Don't Copy Afg/Abg if NO_COLOR, don't skip spaces...(ok?)
-              int RetIdx = utils->GetState(EditString[idx], LeadingState,
+              int RetIdx = utils.GetState(EditString[idx], LeadingState,
                            oc.selStart-oc.line+1, true, false, false);
 
               if (RetIdx < 0)
@@ -2520,7 +2520,7 @@ bool __fastcall TReplaceTextForm::ProcessOC(TYcEdit* re, ONCHANGEW oc)
               {
                 S = S.Insert(CRLF, 1);
 
-                EditString[idx] = utils->InsertW(EditString[idx], S, iFirst+1);
+                EditString[idx] = utils.InsertW(EditString[idx], S, iFirst+1);
 
                 // Set form to multi-line mode?
                 if (!BothEditBoxesAreSingleLine())
@@ -2550,18 +2550,18 @@ bool __fastcall TReplaceTextForm::ProcessOC(TYcEdit* re, ONCHANGEW oc)
                 if (iTemp-2 > 0 && EditString[idx][iTemp-2] == C_CR)
                 {
                   // Copy Afg/Abg if NO_COLOR, don't skip spaces...(ok?)
-                  int RetIdx = utils->GetState(EditString[idx], LeadingState,
+                  int RetIdx = utils.GetState(EditString[idx], LeadingState,
                                     oc.selStart-oc.line, true, true, false);
 
                   if (RetIdx < 0)
                     LeadingState = "";
 
-                  S = utils->InsertW(S, LeadingState, 1);
+                  S = utils.InsertW(S, LeadingState, 1);
                 }
                 else if (iTemp-1 > 0 && EditString[idx][iTemp-1] == C_CR)
                   iTemp--;
 
-                EditString[idx] = utils->InsertW(EditString[idx], S, iTemp);
+                EditString[idx] = utils.InsertW(EditString[idx], S, iTemp);
               }
             }
           }
@@ -2599,10 +2599,10 @@ bool __fastcall TReplaceTextForm::ProcessOC(TYcEdit* re, ONCHANGEW oc)
           {
             if (oc.view == V_RTF)
             {
-              int iTemp = utils->GetCodeIndex(EditString[idx], oc.selStart);
+              int iTemp = utils.GetCodeIndex(EditString[idx], oc.selStart);
 
               if (iTemp >= 0)
-                EditString[idx] = utils->DeleteW(EditString[idx], iTemp+1, 2);
+                EditString[idx] = utils.DeleteW(EditString[idx], iTemp+1, 2);
 #if DEBUG_ON
               else
                 dts->CWrite("\r\nError 9 TReplaceTextForm::ProcessOC()\r\n");
@@ -2610,7 +2610,7 @@ bool __fastcall TReplaceTextForm::ProcessOC(TYcEdit* re, ONCHANGEW oc)
             }
             else
               EditString[idx] =
-                  utils->DeleteW(EditString[idx], oc.selStart+oc.line+1, 2);
+                  utils.DeleteW(EditString[idx], oc.selStart+oc.line+1, 2);
 
             // Set form to single-line mode?
             if (BothEditBoxesAreSingleLine())
@@ -2630,13 +2630,13 @@ bool __fastcall TReplaceTextForm::ProcessOC(TYcEdit* re, ONCHANGEW oc)
             int iTemp;
 
             if (oc.view == V_RTF)
-              iTemp = utils->GetCodeIndex(EditString[idx], oc.selStart);
+              iTemp = utils.GetCodeIndex(EditString[idx], oc.selStart);
             else // V_IRC, V_ORG or V_OFF
               iTemp = oc.selStart+oc.line;
 
             if (iTemp >= 0)
               EditString[idx] =
-                    utils->DeleteW(EditString[idx], iTemp+1, -oc.deltaLength);
+                    utils.DeleteW(EditString[idx], iTemp+1, -oc.deltaLength);
 #if DEBUG_ON
             else
               dts->CWrite("\r\nError 10 ProcessOC()\r\n");
@@ -2777,19 +2777,19 @@ void __fastcall TReplaceTextForm::SetMenuInsertItemsState(bool bEnable)
 //---------------------------------------------------------------------------
 void __fastcall TReplaceTextForm::MainMenuHelpClick(TObject *Sender)
 {
-  utils->ShowMessageU(REPLACEMSG[29]);
+  utils.ShowMessageU(REPLACEMSG[29]);
 }
 //---------------------------------------------------------------------------
 bool __fastcall TReplaceTextForm::BothEditBoxesAreSingleLine(void)
 {
-  return utils->CountCRs(EditString[ID_FIND]) == 0 &&
-      utils->CountCRs(EditString[ID_REPLACE]) == 0 ? true : false;
+  return utils.CountCRs(EditString[ID_FIND]) == 0 &&
+      utils.CountCRs(EditString[ID_REPLACE]) == 0 ? true : false;
 }
 //---------------------------------------------------------------------------
 void __fastcall TReplaceTextForm::SetFormDesign(bool bMultiLine)
 {
-  utils->PushOnChange(EditFind);
-  utils->PushOnChange(EditReplace);
+  utils.PushOnChange(EditFind);
+  utils.PushOnChange(EditReplace);
 
   int SaveFindSelStart = EditFind->SelStart;
   int SaveReplaceSelStart = EditReplace->SelStart;
@@ -2854,8 +2854,8 @@ void __fastcall TReplaceTextForm::SetFormDesign(bool bMultiLine)
   EditFind->SelStart = SaveFindSelStart;
   EditReplace->SelStart = SaveReplaceSelStart;
 
-  utils->PopOnChange(EditFind);
-  utils->PopOnChange(EditReplace);
+  utils.PopOnChange(EditFind);
+  utils.PopOnChange(EditReplace);
 }
 //---------------------------------------------------------------------------
 

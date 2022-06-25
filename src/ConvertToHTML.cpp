@@ -217,11 +217,11 @@ int __fastcall TConvertToHTML::Convert(WideString S, bool bCreateDialog)
                                     "HTM files (*.htm)|*.htm|"
                                     "HTML files (*.html)|*.html");
 
-            FFile = utils->GetSaveFileName(wFilter, L"NewPage.htm", dts->DeskDir,
+            FFile = utils.GetSaveFileName(wFilter, L"NewPage.htm", dts->DeskDir,
                                                             AnsiString(DS[39]));
           }
           else
-            FFile = utils->GetTempFileW(FN[25]); // "colorize.htm"
+            FFile = utils.GetTempFileW(FN[25]); // "colorize.htm"
 
           if (FFile.IsEmpty())
             return 1; // Report that user cancelled (empty file-name)
@@ -327,7 +327,7 @@ int __fastcall TConvertToHTML::Convert(WideString S, bool bCreateDialog)
       // Microsoft HTML to preserve the \r\n sequences. Without it you can
       // paste from YC into MS Mail ok but then when you copy the pasted text
       // from MS Mail back to YC, there are no line breaks!)
-      sUtf8 += "<pre style=\"font-family: \'" + utils->WideToUtf8(dts->cFont) +
+      sUtf8 += "<pre style=\"font-family: \'" + utils.WideToUtf8(dts->cFont) +
               "\', monospace; font-size: " + AnsiString(dts->cSize) + "pt;";
 
       // if dts->WebPageLineHeight == 0 the value is 'normal' (no need to add that)
@@ -360,7 +360,7 @@ int __fastcall TConvertToHTML::Convert(WideString S, bool bCreateDialog)
 
       for (int ii = 0; ii < len; ii++)
       {
-        if (utils->FoundCRLF(S, ii))
+        if (utils.FoundCRLF(S, ii))
         {
           // User abort???
           Application->ProcessMessages();
@@ -408,7 +408,7 @@ int __fastcall TConvertToHTML::Convert(WideString S, bool bCreateDialog)
         dts->SL_HTM->Text = sUtf8;
 
       if (!clip)
-        utils->WriteStringToFileW(FFile, sUtf8); // Write to file
+        utils.WriteStringToFileW(FFile, sUtf8); // Write to file
       else
       {
         // End of HTML marker
@@ -424,7 +424,7 @@ int __fastcall TConvertToHTML::Convert(WideString S, bool bCreateDialog)
 
         // Copy CF_UNICODETEXT to clipboard...
         if (saveplain)
-          utils->CopyTextToClipboard(S);
+          utils.CopyTextToClipboard(S);
 
         // Copy CF_HTML to clipboard...
         if (savehtml)
@@ -448,12 +448,12 @@ AnsiString __fastcall TConvertToHTML::ConvertLineToHTML(WideString sIn)
   {
 // (problem is - that this was blocking page-breaks!)
     // Look for "effectively" empty strings...
-//    int ESize = utils->GetRealLength(sIn);
+//    int ESize = utils.GetRealLength(sIn);
 //    if (ESize == 0)
 //      return "";
 
     // convert \pagebreak into C_FF for processing
-    sIn = utils->PageBreaksToFormFeed(sIn);
+    sIn = utils.PageBreaksToFormFeed(sIn);
 
     int size = sIn.Length();
 
@@ -501,7 +501,7 @@ AnsiString __fastcall TConvertToHTML::ConvertLineToHTML(WideString sIn)
 
       if (c == C_TAB) // tab
       {
-        wOut += utils->GetTabStringW(dts->RegTabs);
+        wOut += utils.GetTabStringW(dts->RegTabs);
         continue;
       }
 
@@ -531,7 +531,7 @@ AnsiString __fastcall TConvertToHTML::ConvertLineToHTML(WideString sIn)
 
       if (c == CTRL_F)
       {
-        int ft = utils->CountFontSequence(sIn.c_bstr(), jj-1, size);
+        int ft = utils.CountFontSequence(sIn.c_bstr(), jj-1, size);
 
         if (ft >= 0)
         {
@@ -543,7 +543,7 @@ AnsiString __fastcall TConvertToHTML::ConvertLineToHTML(WideString sIn)
           else
             idx = ft;
 
-          AnsiString sTemp = utils->GetLocalFontString(idx); // get as utf-8
+          AnsiString sTemp = utils.GetLocalFontString(idx); // get as utf-8
 
           if (!sTemp.IsEmpty())
             WriteSpan("<span style=\"font-family: \'" + sTemp + "\';\">");
@@ -556,7 +556,7 @@ AnsiString __fastcall TConvertToHTML::ConvertLineToHTML(WideString sIn)
 
       if (c == CTRL_S)
       {
-        int fs = utils->CountFontSequence(sIn.c_bstr(), jj-1, size);
+        int fs = utils.CountFontSequence(sIn.c_bstr(), jj-1, size);
 
         if (fs >= 0)
         {
@@ -581,7 +581,7 @@ AnsiString __fastcall TConvertToHTML::ConvertLineToHTML(WideString sIn)
       {
         int fg = NO_COLOR, bg = NO_COLOR;
 
-        jj += utils->CountColorSequence(sIn.c_bstr(), jj-1, size, fg, bg);
+        jj += utils.CountColorSequence(sIn.c_bstr(), jj-1, size, fg, bg);
 
         bool bFgNoColor = (fg == NO_COLOR || fg == IRCNOCOLOR);
         bool bBgNoColor = (bg == NO_COLOR || bg == IRCNOCOLOR);
@@ -720,7 +720,7 @@ AnsiString __fastcall TConvertToHTML::ConvertLineToHTML(WideString sIn)
     while (Spans--)
       wOut += "</span>";
 
-    return utils->WideToUtf8(wOut); // Return this line converted to HTML
+    return utils.WideToUtf8(wOut); // Return this line converted to HTML
   }
   catch(...)
   {
@@ -782,7 +782,7 @@ AnsiString __fastcall TConvertToHTML::FormatColor(int c)
   if (c == IRCTRANSPARENT)
     return "transparent; position: absolute; z-index: inherit;";
 
-  BlendColor bc = utils->YcToBlendColor(c);
+  BlendColor bc = utils.YcToBlendColor(c);
   return "rgb(" + AnsiString(bc.red) + ", " + AnsiString(bc.green) + ", " +
                                                AnsiString(bc.blue) + ");";
 }
@@ -849,18 +849,18 @@ AnsiString __fastcall TConvertToHTML::FormatHeader(AnsiString HTMLText)
 
   AnsiString S = String(FRAGMENTHEADER);
 
-  AnsiString Temp = utils->GoFormat("%8.8u" , this->GHTMLStart);
+  AnsiString Temp = utils.GoFormat("%8.8u" , this->GHTMLStart);
   S = StringReplace(S, "33333333", Temp, rf);
 
   // add length of "<!--StartFragment-->"
-  Temp = utils->GoFormat("%8.8u", this->GFragStart);
+  Temp = utils.GoFormat("%8.8u", this->GFragStart);
   S = StringReplace(S, "11111111", Temp, rf);
 
-  Temp = utils->GoFormat("%8.8u" , this->GHTMLEnd);
+  Temp = utils.GoFormat("%8.8u" , this->GHTMLEnd);
   S = StringReplace(S, "44444444", Temp, rf);
 
   // subtract the length of "<!--StartFragment-->" and "<!--EndFragment-->"
-  Temp = utils->GoFormat("%8.8u" , this->GFragEnd);
+  Temp = utils.GoFormat("%8.8u" , this->GFragEnd);
   S = StringReplace(S, "22222222", Temp, rf);
 
   S += HTMLText;

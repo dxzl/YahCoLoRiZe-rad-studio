@@ -174,12 +174,12 @@ void __fastcall TWebExportForm::FormShow(TObject *Sender)
   LineHeightUpDown->Position = (unsigned short)lineHeight;
   ComputeLineHeightLabel(LineHeightUpDown->Position);
 
-  ColorPanel->Color = utils->YcToTColor(bgColor);
+  ColorPanel->Color = utils.YcToTColor(bgColor);
 
-  EditW_SetText(m_hImageUrlEdit, utils->Utf8ToWide(bgImageUrl).c_bstr());
-  EditW_SetText(m_hTitleEdit, utils->Utf8ToWide(webPageTitle).c_bstr());
-  EditW_SetText(m_hAuthorEdit, utils->Utf8ToWide(webPageAuthor).c_bstr());
-  EditW_SetText(m_hHomeLinkEdit, utils->Utf8ToWide(homeButtonUrl).c_bstr());
+  EditW_SetText(m_hImageUrlEdit, utils.Utf8ToWide(bgImageUrl).c_bstr());
+  EditW_SetText(m_hTitleEdit, utils.Utf8ToWide(webPageTitle).c_bstr());
+  EditW_SetText(m_hAuthorEdit, utils.Utf8ToWide(webPageAuthor).c_bstr());
+  EditW_SetText(m_hHomeLinkEdit, utils.Utf8ToWide(homeButtonUrl).c_bstr());
 
   NBSPCheckBox->Checked = BNonBreakingSpaces;
   BgImageCheckBox->Checked = BBgImage;
@@ -205,12 +205,12 @@ void __fastcall TWebExportForm::FormClose(TObject *Sender,
   topMargin = TopMarginSlider->Position;
   whiteSpaceStyle = WhiteSpaceRadioGroup->ItemIndex;;
   bgImageStyle = BgImageRadioGroup->ItemIndex;
-  bgColor = utils->TColorToYc(ColorPanel->Color);
+  bgColor = utils.TColorToYc(ColorPanel->Color);
 
-  bgImageUrl = utils->WideToUtf8(EditBoxW_GetString(m_hImageUrlEdit));
-  webPageTitle = utils->WideToUtf8(EditBoxW_GetString(m_hTitleEdit));
-  webPageAuthor = utils->WideToUtf8(EditBoxW_GetString(m_hAuthorEdit));
-  homeButtonUrl = utils->WideToUtf8(EditBoxW_GetString(m_hHomeLinkEdit));
+  bgImageUrl = utils.WideToUtf8(EditBoxW_GetString(m_hImageUrlEdit));
+  webPageTitle = utils.WideToUtf8(EditBoxW_GetString(m_hTitleEdit));
+  webPageAuthor = utils.WideToUtf8(EditBoxW_GetString(m_hAuthorEdit));
+  homeButtonUrl = utils.WideToUtf8(EditBoxW_GetString(m_hHomeLinkEdit));
 
   BNonBreakingSpaces = NBSPCheckBox->Checked;
   BBgImage = BgImageCheckBox->Checked;
@@ -378,7 +378,7 @@ void __fastcall TWebExportForm::ColorPanelMouseDown(TObject *Sender,
   // Right button invokes a popup menu: DTS-Color->ColorCopyPasteMenu
   if (Button == mbLeft)
   {
-    int C = utils->PanelColorDialog(ColorPanel, COLORDIALOGMSG[11],
+    int C = utils.PanelColorDialog(ColorPanel, COLORDIALOGMSG[11],
                                                     clAqua, COLOR_FORM_HTML);
 
     if (C != IRCCANCEL)
@@ -389,7 +389,7 @@ void __fastcall TWebExportForm::ColorPanelMouseDown(TObject *Sender,
 void __fastcall TWebExportForm::SetBgColor(int val)
 // property setter
 {
-  if (utils->SetPanelColorAndCaption(ColorPanel, val))
+  if (utils.SetPanelColorAndCaption(ColorPanel, val))
     this->bgColor = val;
 }
 //---------------------------------------------------------------------------

@@ -589,7 +589,7 @@ void __fastcall TPlayForm::LoadRoomList(void)
         if (dts->PlayChan != sCurrentRoomUtf8)
           // "Play channel was remotely changed to " // 9
           // "setting it back to " // 10
-          utils->ShowMessageU(String(PLAYMSG[9]) + "\"" + dts->PlayChan +
+          utils.ShowMessageU(String(PLAYMSG[9]) + "\"" + dts->PlayChan +
              "\",\n" + String(PLAYMSG[10]) + "\"" + sCurrentRoomUtf8 + "\".");
 
         dts->PlayChan = sCurrentRoomUtf8;
@@ -630,7 +630,7 @@ void __fastcall TPlayForm::LoadRoomList(void)
     if (dts->GRoomIndex > ComboBoxW_GetCount(m_hCombo))
     {
       dts->GRoomIndex = 0;
-      utils->ShowMessageU("GRoomIndex out of bounds, repairing...");
+      utils.ShowMessageU("GRoomIndex out of bounds, repairing...");
     }
 
     ComboBoxW_SetCurSel(m_hCombo, dts->GRoomIndex);
@@ -714,7 +714,7 @@ void __fastcall TPlayForm::SaveSettings(void)
         if (GPaltalk != NULL && !GPaltalk->getPaltalkService(dts->PlayChan))
           dts->PlayChan = "";
         else
-          dts->PlayChan = utils->WideToUtf8(sRoom);
+          dts->PlayChan = utils.WideToUtf8(sRoom);
       }
       else
         dts->PlayChan = "";
@@ -774,8 +774,8 @@ bool __fastcall TPlayForm::AddRoom(void)
 
   if (bRet)
   {
-    utils->ShowMessageU(String(PLAYMSG[12]) +
-                utils->WideToUtf8(sRoom) + String(PLAYMSG[13]));
+    utils.ShowMessageU(String(PLAYMSG[12]) +
+                utils.WideToUtf8(sRoom) + String(PLAYMSG[13]));
 
     ::SetFocus(m_hCombo);
   }
@@ -897,7 +897,7 @@ void __fastcall TPlayForm::BurstIntChange(TObject *Sender)
 //---------------------------------------------------------------------------
 void __fastcall TPlayForm::ResetButtonClick(TObject *Sender)
 {
-  dts->Default_Playfile = utils->GetTempFileW(utils->Utf8ToWide(FN[6]));
+  dts->Default_Playfile = utils.GetTempFileW(utils.Utf8ToWide(FN[6]));
 //  PlayPath->Text = dts->Default_Playfile;
   EditW_SetText(m_hPathEdit, dts->Default_Playfile.c_bstr());
 //  PlayPath->SetFocus();
@@ -997,14 +997,14 @@ void __fastcall TPlayForm::DeleteButtonClick(TObject *Sender)
     ComboBoxU_AddString(m_hCombo, STATUSCHAN); // Add status
     ComboBoxW_SetCurSel(m_hCombo, 0);
     ComboBoxW_SetText(m_hCombo, CurrentRoomW.c_bstr());
-    utils->ShowMessageU(PLAYMSG[11]); // Rooms deleted
+    utils.ShowMessageU(PLAYMSG[11]); // Rooms deleted
   }
   else
   {
     // Delete one room
     DelRoom(ComboBoxW_GetString(m_hCombo)); // Delete room...
 //    if (DelRoom(ComboBoxW_GetString(m_hCombo))) // Delete room...
-//      utils->ShowMessageU(String(PLAYMSG[18]) + sRoomUtf8 + String(PLAYMSG[19]));
+//      utils.ShowMessageU(String(PLAYMSG[18]) + sRoomUtf8 + String(PLAYMSG[19]));
   }
 
   ::SetFocus(m_hCombo);
@@ -1016,9 +1016,9 @@ bool __fastcall TPlayForm::DelRoom(WideString sRoom)
     return false; // rooms are fixed for Paltalk
 
   // Room is "status"?
-  if (sRoom == utils->Utf8ToWide(STATUSCHAN))
+  if (sRoom == utils.Utf8ToWide(STATUSCHAN))
   {
-    utils->ShowMessageU(PLAYMSG[20]); // Can't delete status!
+    utils.ShowMessageU(PLAYMSG[20]); // Can't delete status!
     return false;
   }
 
@@ -1320,7 +1320,7 @@ LRESULT CALLBACK TPlayForm::ComboEditCallbackProc(HWND hwnd, UINT uMsg,
 //---------------------------------------------------------------------------
 String __fastcall TPlayForm::ComboBoxU_GetString(HWND hwndCtl)
 {
-  return utils->WideToUtf8(ComboBoxW_GetString(hwndCtl));
+  return utils.WideToUtf8(ComboBoxW_GetString(hwndCtl));
 }
 //---------------------------------------------------------------------------
 WideString __fastcall TPlayForm::ComboBoxW_GetString(HWND hwndCtl)
@@ -1357,7 +1357,7 @@ WideString __fastcall TPlayForm::EditBoxW_GetString(HWND hwndCtl)
 //---------------------------------------------------------------------------
 String __fastcall TPlayForm::ComboBoxU_GetString(HWND hwndCtl, int index)
 {
-  return utils->WideToUtf8(ComboBoxW_GetString(hwndCtl, index));
+  return utils.WideToUtf8(ComboBoxW_GetString(hwndCtl, index));
 }
 //---------------------------------------------------------------------------
 WideString __fastcall TPlayForm::ComboBoxW_GetString(HWND hwndCtl, int index)
@@ -1372,12 +1372,12 @@ WideString __fastcall TPlayForm::ComboBoxW_GetString(HWND hwndCtl, int index)
 //---------------------------------------------------------------------------
 void __fastcall TPlayForm::ComboBoxU_AddString(HWND hwndCtl, String sUtf8)
 {
-  ComboBoxW_AddString(hwndCtl, utils->Utf8ToWide(sUtf8).c_bstr());
+  ComboBoxW_AddString(hwndCtl, utils.Utf8ToWide(sUtf8).c_bstr());
 }
 //---------------------------------------------------------------------------
 void __fastcall TPlayForm::ComboBoxU_SetText(HWND hwndCtl, String sUtf8)
 {
-  ComboBoxW_SetText(hwndCtl, utils->Utf8ToWide(sUtf8).c_bstr());
+  ComboBoxW_SetText(hwndCtl, utils.Utf8ToWide(sUtf8).c_bstr());
 }
 //----------------------------------------------------------------------------
 void __fastcall TPlayForm::HexToUnicode(void)

@@ -102,7 +102,7 @@ int __fastcall TBlendEngine::Init(int RealLength)
   // Init Last to this preset's color
   BCLast = BC;
 
-  int Value = -utils->BlendColorToRgb(BC);
+  int Value = -utils.BlendColorToRgb(BC);
 
   return Value;
 }
@@ -171,7 +171,7 @@ int __fastcall TBlendEngine::Blend(int idx)
 
   if (ColorChangeAboveThreshold(BC))
   {
-    Value = -utils->BlendColorToRgb(BC);
+    Value = -utils.BlendColorToRgb(BC);
 
     // Present becomes Last...
     BCLast = BC;

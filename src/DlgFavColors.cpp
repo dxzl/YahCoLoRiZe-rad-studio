@@ -46,17 +46,17 @@ void __fastcall TFavColorsForm::FormCreate(TObject *Sender)
   pSCF = new TFgBgColorsForm(this);
   ListBox->Font->Name = dts->cFont;
   ListBox->Font->Size = dts->cSize;
-  this->Caption = utils->Utf8ToAnsi(FAVCOLORSDLG[0]);
-  Label1->Caption = utils->Utf8ToAnsi(FAVCOLORSDLG[1]);
-  ButtonAddCurrent->Caption = utils->Utf8ToAnsi(FAVCOLORSDLG[3]);
-  ButtonAddNew->Caption = utils->Utf8ToAnsi(FAVCOLORSDLG[4]);
-  ButtonDel->Caption = utils->Utf8ToAnsi(FAVCOLORSDLG[5]);
-  ButtonOk->Caption = utils->Utf8ToAnsi(FAVCOLORSDLG[6]);
-  ButtonCancel->Caption = utils->Utf8ToAnsi(FAVCOLORSDLG[7]);
+  this->Caption = utils.Utf8ToAnsi(FAVCOLORSDLG[0]);
+  Label1->Caption = utils.Utf8ToAnsi(FAVCOLORSDLG[1]);
+  ButtonAddCurrent->Caption = utils.Utf8ToAnsi(FAVCOLORSDLG[3]);
+  ButtonAddNew->Caption = utils.Utf8ToAnsi(FAVCOLORSDLG[4]);
+  ButtonDel->Caption = utils.Utf8ToAnsi(FAVCOLORSDLG[5]);
+  ButtonOk->Caption = utils.Utf8ToAnsi(FAVCOLORSDLG[6]);
+  ButtonCancel->Caption = utils.Utf8ToAnsi(FAVCOLORSDLG[7]);
 
   try
   {
-    utils->LoadMenu(MainMenu, (char**)FAVCOLORSMAINMENU);
+    utils.LoadMenu(MainMenu, (char**)FAVCOLORSMAINMENU);
   }
   catch(...)
   {
@@ -117,8 +117,8 @@ void __fastcall TFavColorsForm::ListBoxDrawItem(TWinControl *Control,
   int fg = -p->x;
   int bg = -p->y;
 
-  ListBox->Canvas->Font->Color = utils->YcToTColor(fg);
-  ListBox->Canvas->Brush->Color = utils->YcToTColor(bg);
+  ListBox->Canvas->Font->Color = utils.YcToTColor(fg);
+  ListBox->Canvas->Brush->Color = utils.YcToTColor(bg);
   ListBox->Canvas->FillRect(Rect);
 
   WideString wOut;
@@ -126,7 +126,7 @@ void __fastcall TFavColorsForm::ListBoxDrawItem(TWinControl *Control,
   String sIn = ListBox->Items->Strings[Index]; // this is in utf-8!
 
   if (!sIn.IsEmpty())
-    wOut = utils->Utf8ToWide(sIn);
+    wOut = utils.Utf8ToWide(sIn);
 
   // Write out remaining chars...
   int outLen = wOut.Length();
@@ -204,8 +204,8 @@ void __fastcall TFavColorsForm::FormClose(TObject *Sender,
 //---------------------------------------------------------------------------
 void __fastcall TFavColorsForm::ButtonAddCurrentClick(TObject *Sender)
 {
-  int fg = -utils->YcToRgb(dts->Afg);
-  int bg = -utils->YcToRgb(dts->Abg);
+  int fg = -utils.YcToRgb(dts->Afg);
+  int bg = -utils.YcToRgb(dts->Abg);
 
   ListBox->Items->AddObject(FAVCOLORSDLG[2], (TObject*)new TPoint(fg, bg));
   ListBox->ItemIndex = ListBox->Items->Count-1;
@@ -219,8 +219,8 @@ void __fastcall TFavColorsForm::ButtonAddNewClick(TObject *Sender)
   if (pSCF->ModalResult == mrCancel)
     return;
 
-  int fg = -utils->YcToRgb(pSCF->FgColor);
-  int bg = -utils->YcToRgb(pSCF->BgColor);
+  int fg = -utils.YcToRgb(pSCF->FgColor);
+  int bg = -utils.YcToRgb(pSCF->BgColor);
 
   ListBox->Items->AddObject(FAVCOLORSDLG[2], (TObject*)new TPoint(fg, bg));
   ListBox->ItemIndex = ListBox->Items->Count-1;
@@ -256,8 +256,8 @@ bool __fastcall TFavColorsForm::ReadIniFile(void)
     try
     {
 
-//      pIni = utils->OpenIniFile(L"C:\\Users\\Scott\\Documents\\Borland\\Projects\\YahCoLoRiZe\\Colorize.ini");
-      pIni = utils->OpenIniFile();
+//      pIni = utils.OpenIniFile(L"C:\\Users\\Scott\\Documents\\Borland\\Projects\\YahCoLoRiZe\\Colorize.ini");
+      pIni = utils.OpenIniFile();
 
       if (pIni == NULL)
         return false;
@@ -369,8 +369,8 @@ bool __fastcall TFavColorsForm::WriteColorsToIni(void)
   {
     try
     {
-//      pIni = utils->OpenIniFile(L"C:\\Users\\Scott\\Documents\\Borland\\Projects\\YahCoLoRiZe\\Colorize.ini");
-      pIni = utils->OpenIniFile();
+//      pIni = utils.OpenIniFile(L"C:\\Users\\Scott\\Documents\\Borland\\Projects\\YahCoLoRiZe\\Colorize.ini");
+      pIni = utils.OpenIniFile();
 
       if (pIni == NULL)
         return false;
@@ -423,15 +423,15 @@ void __fastcall TFavColorsForm::Export(void)
                                    "Text files (*.txt)|*.txt");
 
     // "FavColors.txt", // 27
-    WideString wFile = utils->GetSaveFileName(wFilter, FN[27],
+    WideString wFile = utils.GetSaveFileName(wFilter, FN[27],
                                             dts->DeskDir, String(DS[159]));
 
     if (!wFile.Length())
       return;
 
-    if (utils->FileExistsW(wFile))
+    if (utils.FileExistsW(wFile))
     {
-      if (utils->ShowMessageU(Handle, DS[160],
+      if (utils.ShowMessageU(Handle, DS[160],
                       MB_ICONQUESTION|MB_YESNO|MB_DEFBUTTON1) == IDNO)
         return; // Cancel
     }
@@ -441,7 +441,7 @@ void __fastcall TFavColorsForm::Export(void)
 
     if (!f)
     {
-      utils->ShowMessageU(String(DS[161]));
+      utils.ShowMessageU(String(DS[161]));
       return;
     }
 
@@ -467,7 +467,7 @@ void __fastcall TFavColorsForm::Export(void)
   }
   catch(...)
   {
-      utils->ShowMessageU(String(DS[162]));
+      utils.ShowMessageU(String(DS[162]));
   }
 }
 //---------------------------------------------------------------------------
@@ -483,7 +483,7 @@ void __fastcall TFavColorsForm::Import(void)
                     "Text files (*.txt)|*.txt");
 
     // Run the open-file dialog in FormOFDlg.cpp
-    WideString wFile = utils->GetOpenFileName(wFilter, 2, dts->DeskDir,
+    WideString wFile = utils.GetOpenFileName(wFilter, 2, dts->DeskDir,
                                                             String(DS[163]));
 
     // Load and convert file as per the file-type (either plain or rich text)
@@ -494,7 +494,7 @@ void __fastcall TFavColorsForm::Import(void)
 
     if (!in)
     {
-      utils->ShowMessageU(String(DS[164]));
+      utils.ShowMessageU(String(DS[164]));
       return;
     }
 
@@ -502,7 +502,7 @@ void __fastcall TFavColorsForm::Import(void)
 
     if (!p)
     {
-      utils->ShowMessageU(String(DS[165]));
+      utils.ShowMessageU(String(DS[165]));
       return;
     }
 
@@ -512,7 +512,7 @@ void __fastcall TFavColorsForm::Import(void)
 
       if (fscanf(in, "%9s\n", s) != 1 || strcmp(s, "FAVCOLOR:") != 0)
       {
-        utils->ShowMessageU(String(DS[164]));
+        utils.ShowMessageU(String(DS[164]));
         return;
       }
 
@@ -553,7 +553,7 @@ void __fastcall TFavColorsForm::Import(void)
   }
   catch(...)
   {
-      utils->ShowMessageU(String(DS[165]));
+      utils.ShowMessageU(String(DS[165]));
   }
 }
 //---------------------------------------------------------------------------

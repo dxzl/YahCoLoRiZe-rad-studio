@@ -43,7 +43,7 @@ void __fastcall TSFDlgForm::FormCreate(TObject *Sender)
 
   m_sfn.lStructSize       = sizeof(OPENFILENAMEW);
   m_sfn.hwndOwner         = this->Handle; // set NULL or you can't drag/drop!
-  m_sfn.hInstance         = (HINSTANCE)GetWindowLong(h, GWL_HINSTANCE);
+  m_sfn.hInstance         = (HINSTANCE__*)GetWindowLong(h, GWL_HINSTANCE);
   m_sfn.lpstrFile         = p_szFileName;   // Set to member variable address
   m_sfn.nMaxFile          = SF_BUFSIZE;
   m_sfn.lpstrFileTitle    = p_szTitleName;   // Set to member variable address
@@ -59,8 +59,6 @@ void __fastcall TSFDlgForm::FormCreate(TObject *Sender)
 //---------------------------------------------------------------------------
 void __fastcall TSFDlgForm::FormDestroy(TObject *Sender)
 {
-// this never is called!!!!!!!!!!!!!
-
   try { if (p_filterBuf != NULL) delete [] p_filterBuf; } catch(...) {}
   try { if (p_szTitleName != NULL) delete [] p_szTitleName; } catch(...) {}
   try { if (p_szFileName != NULL) delete [] p_szFileName; } catch(...) {}
@@ -72,32 +70,24 @@ void __fastcall TSFDlgForm::FormDestroy(TObject *Sender)
   OleUninitialize();
 }
 //---------------------------------------------------------------------------
-bool __fastcall TSFDlgForm::ExecuteU(String uDefFile, String uInitialDir,
-                                                         String uDlgTitle)
-// Strings are passed in as UTF-8 and are converted to WideString
-{
-  return ExecuteW(SFUtil->Utf8ToWide(uDefFile),
-             SFUtil->Utf8ToWide(uInitialDir), uDlgTitle);
-}
-//---------------------------------------------------------------------------
-bool __fastcall TSFDlgForm::ExecuteW(WideString wDefFile,
-                                    WideString wInitialDir, String uDlgTitle)
-// Strings are passed in as UTF-8 and are converted to WideString
+bool __fastcall TSFDlgForm::Execute(String uDefFile,
+                                    String uInitialDir, String uDlgTitle)
+// Strings are passed in as UTF-8 and are converted to String
 {
   p_szFileName[0] = p_szTitleName[0] = C_NULL;
 
-  FDefFile = wDefFile;
-  FDefExt = SFUtil->ExtractFileExtW(FDefFile);
+  FDefFile = uDefFile;
+  FDefExt = ExtractFileExt(FDefFile);
 
-  FInitialDir = wInitialDir;
-  FDlgTitle = SFUtil->Utf8ToWide(uDlgTitle);
+  FInitialDir = uInitialDir;
+  FDlgTitle = uDlgTitle;
 
   m_sfn.lpstrFilter = this->SetFilter(); // sets m_filterCount property var!
 
   // Try to locate the 1-based filter-index of the extension on our sDefFile
   // in the null-separated list of filters in the lpstrFilter filters-string
   FFilterIndex = FindFilter((wchar_t*)m_sfn.lpstrFilter,
-        WideString((WideString("*") + this->FDefExt)).c_bstr(),
+        String((String("*") + this->FDefExt)).w_str(),
                                                 FFilterCount);
 
   // set to the first filter if the extension passed in is not there
@@ -105,7 +95,7 @@ bool __fastcall TSFDlgForm::ExecuteW(WideString wDefFile,
   if (FFilterIndex <= 0 && FFilterCount > 0)
     FFilterIndex = 1;
 
-  FCurrentFilter = WideString(GetFilter((wchar_t*)m_sfn.lpstrFilter,
+  FCurrentFilter = String(GetFilter((wchar_t*)m_sfn.lpstrFilter,
                                         FFilterIndex, FFilterCount));
   m_sfn.nFilterIndex = FFilterIndex;
   //--------------------------------------------
@@ -116,18 +106,16 @@ bool __fastcall TSFDlgForm::ExecuteW(WideString wDefFile,
 
   // Copy the file and extension to the buffer
   if (!FDefFile.IsEmpty())
-    wcscpy(fileBuf, FDefFile.c_bstr());
+    wcscpy(fileBuf, FDefFile.w_str());
 
   // Set the rest of the OPENFILENAMEW struct members...
   m_sfn.lpstrFile = fileBuf;
-  m_sfn.lpstrTitle = FDlgTitle.c_bstr();
-  m_sfn.lpstrInitialDir = FInitialDir.c_bstr();
+  m_sfn.lpstrTitle = FDlgTitle.w_str();
+  m_sfn.lpstrInitialDir = FInitialDir.w_str();
 
   m_sfn.Flags = OFN_NOTESTFILECREATE|OFN_HIDEREADONLY|OFN_EXPLORER|
       OFN_PATHMUSTEXIST|OFN_ENABLEHOOK|OFN_ENABLESIZING|OFN_PATHMUSTEXIST;
-  // OFN_NODEREFERENCELINKS, Directs the dialog box to return the path and file
-  // name of the selected shortcut (.LNK) file. (BAD - don't want this!)
-  //OFN_FILEMUSTEXIST | OFN_OVERWRITEPROMPT;
+  //OFN_FILEMUSTEXIST | OFN_OVERWRITEPROMPT | OFN_NODEREFERENCELINKS;
 
   // If the user specifies a file name and clicks the OK button and the function is successful,
   // the return value is nonzero. The buffer pointed to by the lpstrFile member of the OPENFILENAME
@@ -136,7 +124,7 @@ bool __fastcall TSFDlgForm::ExecuteW(WideString wDefFile,
 }
 //---------------------------------------------------------------------------
 WideChar* __fastcall TSFDlgForm::SetFilter(void)
-// Scans the FFilters WideString (property "Filters") to replace vertical bar '|'
+// Scans the FFilters String (property "Filters") to replace vertical bar '|'
 // separators with '\0' and also count the number of filters for the FilterCount
 // property. this->p_filterBuf[] will have the output that the file-open dialog
 // can use.
@@ -292,7 +280,7 @@ int __fastcall TSFDlgForm::FindFilter(wchar_t* pFilterBuf, wchar_t* pFilterToFin
 // to the first file name, and the nFileExtension member is not used. For Explorer-style dialog boxes, the directory
 // and file name strings are NULL separated, with an extra NULL character after the last file name.
 /*
-WideString __fastcall TSFDlgForm::GetNextFileName(void)
+String __fastcall TSFDlgForm::GetNextFileName(void)
 {
   static WideChar szResult[MAX_PATH];
   static WideChar szDirectory[MAX_PATH];
@@ -344,7 +332,7 @@ WideString __fastcall TSFDlgForm::GetNextFileName(void)
         if((szResult[k] = szFileName[u]) == WideChar(C_NULL))
         {
           bFirstTime = FALSE;
-          return WideString(szResult);
+          return String(szResult);
         }
       }
     }
@@ -358,24 +346,19 @@ WideString __fastcall TSFDlgForm::GetNextFileName(void)
 //  return m_ofn.Flags & OFN_ALLOWMULTISELECT;
 //}
 //---------------------------------------------------------------------------
-// Property getter
-String __fastcall TSFDlgForm::GetFileNameUtf8(void)
-{
-  return SFUtil->WideToUtf8(this->FileName);
-}
 //---------------------------------------------------------------------------
 // Property getter
-String __fastcall TSFDlgForm::GetTitleUtf8(void)
+String __fastcall TSFDlgForm::GetTitle(void)
 {
-  return SFUtil->WideToUtf8(WideString(p_szTitleName));
+  return String(p_szTitleName);
 }
 //---------------------------------------------------------------------------
-WideString __fastcall TSFDlgForm::GetTextFromCommonDialog(HWND hDlg, UINT msg)
+String __fastcall TSFDlgForm::GetTextFromCommonDialog(HWND hDlg, UINT msg)
 {
   try
   {
     WideChar* buf = NULL;
-    WideString str;
+    String str;
 
     try
     {
@@ -392,7 +375,7 @@ WideString __fastcall TSFDlgForm::GetTextFromCommonDialog(HWND hDlg, UINT msg)
 
       SendMessageW(hDlg, msg, SF_BUFSIZE, (LPARAM)buf);
 
-      str = WideString(buf);
+      str = String(buf);
     }
     __finally
     {
@@ -487,7 +470,7 @@ UINT CALLBACK TSFDlgForm::SFNHookProc(HWND hDlg, UINT msg, WPARAM wParam, LPARAM
 #endif
           HWND hParent = GetParent(hDlg);
 
-          WideString newFolder =
+          String newFolder =
                   pThis->GetTextFromCommonDialog(hParent, CDM_GETFOLDERPATH);
 
           if (!newFolder.IsEmpty() && pThis->FCurrentFolder != newFolder)
@@ -495,8 +478,7 @@ UINT CALLBACK TSFDlgForm::SFNHookProc(HWND hDlg, UINT msg, WPARAM wParam, LPARAM
             pThis->FCurrentFolder = newFolder;
 
             // Set TSFDlgForm's window-title to the current folder
-            WideString wTemp = pThis->FDlgTitle + ": " + newFolder;
-            SetWindowTextW(hParent, wTemp.c_bstr());
+            SetWindowTextW(hParent, String(pThis->FDlgTitle + ": " + newFolder).w_str());
           }
         }
         return TRUE;
@@ -505,7 +487,7 @@ UINT CALLBACK TSFDlgForm::SFNHookProc(HWND hDlg, UINT msg, WPARAM wParam, LPARAM
         {
           if (pOFN->lpstrFile != NULL)
           {
-            pThis->FFileName = WideString((wchar_t*)pOFN->lpstrFile);
+            pThis->FFileName = String((wchar_t*)pOFN->lpstrFile);
 #if DEBUG_ON
             SFDbg->CWrite("\r\nCDN_FILEOK in FormSFDlg(): " + pThis->FFileName + "\r\n");
 #endif
@@ -531,7 +513,7 @@ UINT CALLBACK TSFDlgForm::SFNHookProc(HWND hDlg, UINT msg, WPARAM wParam, LPARAM
           if (pFilter[0] == C_NULL)
             break;
 
-          pThis->FCurrentFilter = WideString(pFilter); // still has the . on it
+          pThis->FCurrentFilter = String(pFilter); // still has the . on it
           pThis->FFilterIndex = idx;
 
 #if DEBUG_ON
@@ -541,7 +523,7 @@ UINT CALLBACK TSFDlgForm::SFNHookProc(HWND hDlg, UINT msg, WPARAM wParam, LPARAM
 
           // Get the file-box text and put a new filter on it...
 
-          HWND hFileNameCombo = GetDlgItem(GetParent(hDlg), ID_FileNameCombo);
+          HWND hFileNameCombo = GetDlgItem(GetParent(hDlg), ID_MyFileName);
 
           if (hFileNameCombo == NULL)
             break;
@@ -549,14 +531,14 @@ UINT CALLBACK TSFDlgForm::SFNHookProc(HWND hDlg, UINT msg, WPARAM wParam, LPARAM
           // Get the file-name box text-length
           int len = GetWindowTextLengthW(hFileNameCombo);
 
-          WideString sText;
+          String sText;
 
           if (len > 0)
           {
             // Get the text in the file-name box
             wchar_t* buf = new wchar_t[len+1];
             GetWindowTextW(hFileNameCombo, buf, len+1);
-            sText = WideString(buf);
+            sText = String(buf);
             delete [] buf;
           }
 
@@ -577,13 +559,13 @@ UINT CALLBACK TSFDlgForm::SFNHookProc(HWND hDlg, UINT msg, WPARAM wParam, LPARAM
               sText = sText.SubString(1, len-1); // strip off old extension
           }
 
-          if (pThis->CurrentFilter == WideString(".*"))
+          if (pThis->CurrentFilter == String(".*"))
             sText += pThis->DefExt;
           else
             sText += pThis->CurrentFilter;
 
           // write the old text (or default file-name) with the new filter to the file-name box
-          SetWindowTextW(hFileNameCombo, sText.c_bstr());
+          SetWindowText(hFileNameCombo, sText.w_str());
 
 #if DEBUG_ON
           SFDbg->CWrite("\r\nCDN_TYPECHANGE text: " + sText + "\r\n");
@@ -612,32 +594,6 @@ UINT CALLBACK TSFDlgForm::SFNHookProc(HWND hDlg, UINT msg, WPARAM wParam, LPARAM
     }
   } // end switch msg
   return FALSE; // Calls default if you return 0
-}
-//---------------------------------------------------------------------------
-WideString __fastcall TSFDlgForm::ExtractFileExtW(WideString sIn)
-// Return ".txt" including the period, or empty-string...
-{
-  int len = sIn.Length();
-  int idx = len;
-  wchar_t c;
-
-  for(;;)
-  {
-    if (idx == 0)
-      break;
-
-    c = sIn[idx];
-
-    if (c == '.')
-      break;
-
-    idx--;
-  }
-
-  if (idx != 0)
-    return sIn.SubString(idx, len-idx+1);
-
-  return "";
 }
 //---------------------------------------------------------------------------
 void __fastcall TSFDlgForm::FormActivate(TObject *Sender)

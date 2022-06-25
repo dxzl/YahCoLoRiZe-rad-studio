@@ -62,7 +62,7 @@ void __fastcall TProcessEffect::Execute(bool bShowStatus)
   wchar_t* pBuf = NULL;
 
   // error, no V_IRC, V_ORG or V_RTF views!
-  if (!utils->IsRtfIrcOrgView())
+  if (!utils.IsRtfIrcOrgView())
   {
     Error(-3, pSaveBuf, pBuf); // Error
     return;
@@ -92,7 +92,7 @@ void __fastcall TProcessEffect::Execute(bool bShowStatus)
       if (bShowStatus)
         dts->CpShow(STATUS[1]);
 
-      if (utils->IsOrgView())
+      if (utils.IsOrgView())
       {
         // Move the MS_ORG Stream to a buffer
         iSaveSize = dts->SL_ORG->TotalLength;
@@ -107,20 +107,20 @@ void __fastcall TProcessEffect::Execute(bool bShowStatus)
 
       pSaveBuf[iSaveSize] = C_NULL;
 
-      if (utils->IsRtfView())
+      if (utils.IsRtfView())
       {
         // Map the start and end indices of the RTF selected text to the
         // text in the buffer. iFirst points to the First IRC-buffer
         // index corresponding to the Selected Region in TaeEdit, iLast
         // points to the last+1.  CI is the same as iFirst but it points
         // to the start of any preceeding formatting codes... "Code Index"
-        if (!utils->GetCodeIndices(pSaveBuf, iSaveSize, iFirst, iLast, CI, tae))
+        if (!utils.GetCodeIndices(pSaveBuf, iSaveSize, iFirst, iLast, CI, tae))
         {
           Error(-4, pSaveBuf, pBuf); // Error
           return;
         }
 
-        // utils->ShowMessageU("CI:" + String(CI) + "\n" +
+        // utils.ShowMessageU("CI:" + String(CI) + "\n" +
         //                   "iFirst:" + String(iFirst) + "\n" +
         //                                  "iLast:" + String(iLast));
 
@@ -142,34 +142,34 @@ void __fastcall TProcessEffect::Execute(bool bShowStatus)
                                                       pSaveBuf[idx] != C_CR)
           {
             wchar_t c;
-            iLast += utils->SkipCodes(pSaveBuf, iSaveSize, iLast, c);
+            iLast += utils.SkipCodes(pSaveBuf, iSaveSize, iLast, c);
           }
         }
 
         // Move the the mapped text/codes to a processing buffer...
-        pBuf = utils->MoveTextToBuffer(pSaveBuf, iFirst, iLast, iSize);
+        pBuf = utils.MoveTextToBuffer(pSaveBuf, iFirst, iLast, iSize);
 #if DEBUG_ON
         dts->CWrite("\r\niFirst:" + String(iFirst) + ", iLast:" +
               String(iLast) + ", iSize:" + String(iSize) + "\r\n");
 #endif
       }
-      else if (utils->IsIrcOrgView())
+      else if (utils.IsIrcOrgView())
       {
-        if (!utils->GetSelectedZoneIndices(tae, iFirst, iLast))
+        if (!utils.GetSelectedZoneIndices(tae, iFirst, iLast))
         {
           Error(-7, pSaveBuf, pBuf); // Error
           return;
         }
 
         // Move the the mapped text/codes to a processing buffer...
-        pBuf = utils->MoveTextToBuffer(pSaveBuf, iFirst, iLast, iSize);
+        pBuf = utils.MoveTextToBuffer(pSaveBuf, iFirst, iLast, iSize);
 #if DEBUG_ON
         dts->CWrite("\r\niFirst:" + String(iFirst) + ", iLast:" +
               String(iLast) + ", iSize:" + String(iSize) + "\r\n");
 #endif
       }
       else // Unknown... (move edit-text to buffer...)
-        utils->MoveMainTextToBuffer(pBuf, iSize);
+        utils.MoveMainTextToBuffer(pBuf, iSize);
 
       if (pBuf == NULL || iSize == 0)
       {
@@ -184,7 +184,7 @@ void __fastcall TProcessEffect::Execute(bool bShowStatus)
       // Set the first part of a chained Undo UNDO_EFFECT_ORIG_TEXT. The pointer
       // to either SL_ORG or SL_IRC is in the oc struct. The original, unchanged
       // block of text is passed as WideString(pBuf)
-      ONCHANGEW oc = utils->GetInfoOC(tae, dts->SL_IRC);
+      ONCHANGEW oc = utils.GetInfoOC(tae, dts->SL_IRC);
       if (m_allowUndo)
         TOCUndo->Add(UNDO_EFFECT_ORIG_TEXT, iFirst, iSize, oc, WideString(pBuf));
 
@@ -192,7 +192,7 @@ void __fastcall TProcessEffect::Execute(bool bShowStatus)
       LeadingState.Clear();
       TrailingState.Clear();
 
-      if (utils->IsRtfIrcOrgView())
+      if (utils.IsRtfIrcOrgView())
       {
         int TempIdx = 0;
 
@@ -207,48 +207,48 @@ void __fastcall TProcessEffect::Execute(bool bShowStatus)
 
         if (bHaveSelText)
         {
-          if (utils->IsRtfView())
-            TempIdx = tae->SelStart-utils->GetLine(tae);
+          if (utils.IsRtfView())
+            TempIdx = tae->SelStart-utils.GetLine(tae);
           else
-            TempIdx = utils->GetRealIndex(pSaveBuf, iSaveSize, iFirst);
+            TempIdx = utils.GetRealIndex(pSaveBuf, iSaveSize, iFirst);
         }
 
         // Get state before leading spaces (need this here for ApplyPushPop())
         // (Background color on spaces is not tracked! (bTrackSpaceColorChanges false))
-        utils->SetStateFlags(pSaveBuf, iSaveSize, TempIdx, InitialState, false);
+        utils.SetStateFlags(pSaveBuf, iSaveSize, TempIdx, InitialState, false);
 
         // Get the color/font and text-effect state that exists at the first
         // printable char in the selection...
-        utils->SetStateFlags(pSaveBuf, iSaveSize, TempIdx, LeadingState);
+        utils.SetStateFlags(pSaveBuf, iSaveSize, TempIdx, LeadingState);
 
         // Get state at iLast
-        utils->SetStateFlags(pSaveBuf, iLast, STATE_MODE_ENDOFBUF, TrailingState);
+        utils.SetStateFlags(pSaveBuf, iLast, STATE_MODE_ENDOFBUF, TrailingState);
 
         if (TrailingState.fg == NO_COLOR)
-          TrailingState.fg = utils->ConvertColor(dts->Foreground, m_bFullSpectFg);
+          TrailingState.fg = utils.ConvertColor(dts->Foreground, m_bFullSpectFg);
 
         if (TrailingState.bg == NO_COLOR)
-          TrailingState.bg = utils->ConvertColor(dts->Background, m_bFullSpectBg);
+          TrailingState.bg = utils.ConvertColor(dts->Background, m_bFullSpectBg);
 
         // Obviously we can't leave the LeadingState with NO_COLOR. When we
         // restore colors between words, if there is NO_COLOR the program
         // will do the best it can and use Afg and Abg, but we still end up
         // with an unclear state at the start of the selection. So, we need
         // to write the colors...
-        if (utils->IsRtfView())
+        if (utils.IsRtfView())
           AddInitialCodes(m_ep3, LeadingState, TempStr);
       }
 
       // convert \pagebreak into C_FF before processing (this avoids having
       // the effect applied to a "\pagebreak" string and allows us to strip
       // the C_FF for E_STRIP
-      utils->PageBreaksToFormFeed(pBuf, iSize);
+      utils.PageBreaksToFormFeed(pBuf, iSize);
 
       // see if we have all spaces
-      bIsAllSpaces = utils->IsAllSpaces(pBuf, iSize);
+      bIsAllSpaces = utils.IsAllSpaces(pBuf, iSize);
 
       // Scan the text to find selection length
-      TotalLength = utils->GetRealLength(pBuf, iSize, 0, C_NULL, false);
+      TotalLength = utils.GetRealLength(pBuf, iSize, 0, C_NULL, false);
 
       CharCount = 1; // Init to 1!
 
@@ -292,9 +292,9 @@ void __fastcall TProcessEffect::Execute(bool bShowStatus)
         else if (m_ep1 == STRIP_ALL_PRESERVE)
           StripCodes(pBuf, iSize, true);
         else if (m_ep1 == STRIP_FG_COLOR)
-          utils->StripFgCodes(pBuf, iSize);
+          utils.StripFgCodes(pBuf, iSize);
         else if (m_ep1 == STRIP_BG_COLOR)
-          utils->StripBgCodes(pBuf, iSize);
+          utils.StripBgCodes(pBuf, iSize);
         else if (m_ep1 == STRIP_ALL_COLOR)
           StripExistingColorCodes(pBuf, iSize);
         else if (m_ep1 == STRIP_FONT_CODES)
@@ -304,27 +304,27 @@ void __fastcall TProcessEffect::Execute(bool bShowStatus)
         }
         else if (m_ep1 == STRIP_CRLF)
         {
-          utils->StripLeadingAndTrailingSpaces(pBuf, iSize);
-          utils->StripParagraphCRLF(pBuf, iSize);
+          utils.StripLeadingAndTrailingSpaces(pBuf, iSize);
+          utils.StripParagraphCRLF(pBuf, iSize);
         }
         else if (m_ep1 == STRIP_TAB)
-          utils->FlattenTabs(pBuf, iSize, dts->RegTabMode);
+          utils.FlattenTabs(pBuf, iSize, dts->RegTabMode);
         else if (m_ep1 == STRIP_TRIM_SPACES)
-          utils->StripLeadingAndTrailingSpaces(pBuf, iSize);
+          utils.StripLeadingAndTrailingSpaces(pBuf, iSize);
         else if (m_ep1 == STRIP_TRIM_TRAILING_SPACES)
-          utils->StripTrailingSpaces(pBuf, iSize);
+          utils.StripTrailingSpaces(pBuf, iSize);
         else if (m_ep1 == STRIP_PAD_SPACES)
         {
-          utils->StripTrailingSpaces(pBuf, iSize);
+          utils.StripTrailingSpaces(pBuf, iSize);
 
           int iLineCt, iWidth;
-          utils->LongestWidthAndLineCount(pBuf, iSize, iWidth, iLineCt);
+          utils.LongestWidthAndLineCount(pBuf, iSize, iWidth, iLineCt);
 
           // Use computed max line width if it's greater than tae->RegWidth
           if (iWidth < m_ep4)
             iWidth = m_ep4;
 
-          utils->PadTrailingSpaces(pBuf, iSize, iWidth);
+          utils.PadTrailingSpaces(pBuf, iSize, iWidth);
         }
         else if (m_ep1 == STRIP_PUSHPOP)
         {
@@ -352,10 +352,10 @@ void __fastcall TProcessEffect::Execute(bool bShowStatus)
       if (effect == E_MORPH_FGBG)
       {
         // Populate BlendColor structs for this effect...
-        fgToBC = utils->RgbToBlendColor(-dts->FgToColor);
-        fgFromBC = utils->RgbToBlendColor(-dts->FgFromColor);
-        bgToBC = utils->RgbToBlendColor(-dts->BgToColor);
-        bgFromBC = utils->RgbToBlendColor(-dts->BgFromColor);
+        fgToBC = utils.RgbToBlendColor(-dts->FgToColor);
+        fgFromBC = utils.RgbToBlendColor(-dts->FgFromColor);
+        bgToBC = utils.RgbToBlendColor(-dts->BgToColor);
+        bgFromBC = utils.RgbToBlendColor(-dts->BgFromColor);
 
         // Init the +/- steps to add for each char
         fgRed = (fgToBC.red - fgFromBC.red)/(double)TotalLength;
@@ -391,36 +391,36 @@ void __fastcall TProcessEffect::Execute(bool bShowStatus)
       else if (effect == E_RAND_COLORS)
       {
         if (m_ep3 == EM_FG)
-          utils->StripFgCodes(pBuf, iSize); // Mode is Random Foreground?
+          utils.StripFgCodes(pBuf, iSize); // Mode is Random Foreground?
   // No good!! lose initial bg-colors on each line!
   //    else if (m_ep3 == EM_BG) StripBGCodes(pBuf, iSize);
       }
       else if (effect == E_SET_COLORS)
       {
         if (m_ep3 == EM_FG)
-          utils->StripFgCodes(pBuf, iSize); // Setting only FG Color
+          utils.StripFgCodes(pBuf, iSize); // Setting only FG Color
         else if (m_ep3 == EM_BG)
-          utils->StripBgCodes(pBuf, iSize); // Setting only BG Color
+          utils.StripBgCodes(pBuf, iSize); // Setting only BG Color
         else
           StripExistingColorCodes(pBuf, iSize); // Setting FG/BG Colors
       }
       else if (effect == E_ALT_CHAR)
       {
         if (m_ep0 != NO_COLOR || m_ep1 != NO_COLOR)
-          utils->StripFgCodes(pBuf, iSize);
+          utils.StripFgCodes(pBuf, iSize);
         if (m_ep2 != C_NULL)
           StripSingleCode(pBuf, iSize, (wchar_t)m_ep2);
         if (m_ep4 != C_NULL)
           StripSingleCode(pBuf, iSize, (wchar_t)m_ep4);
       }
       else if (effect == E_FG_BLEND)
-        utils->StripFgCodes(pBuf, iSize);
+        utils.StripFgCodes(pBuf, iSize);
       else if (effect == E_BG_BLEND)
         // NOTE: interesting little problem I ran into - if we strip bg codes
         // in front of a ctrl-k,03 where ",03" is part of the text, you can
         // end up sticking a fg-color only in front of ",03" which turns it
         // into a real fg/bg color! Not cool...
-        utils->StripBgCodes(pBuf, iSize);
+        utils.StripBgCodes(pBuf, iSize);
       else if (effect == E_FONT_TYPE)
         StripFontType(pBuf, iSize);
       else if (IsFontSizeEffect())
@@ -482,14 +482,14 @@ void __fastcall TProcessEffect::Execute(bool bShowStatus)
 
       for(;;) // For each paragraph...
       {
-        iNextPar = utils->FindNextParagraph(iPresentPar, iSize, pBuf);
+        iNextPar = utils.FindNextParagraph(iPresentPar, iSize, pBuf);
 
         if (effect == E_FG_BLEND || effect == E_BG_BLEND)
           switch(dts->BlendScopeRadioButtons->ItemIndex)
           {
             case BLEND_BY_WORD: // Word
               // Scan the text to find first word length
-              TotalLength = utils->GetRealLength(pBuf, iSize,
+              TotalLength = utils.GetRealLength(pBuf, iSize,
                                                   iPresentPar, ' ', false);
               bFirstChar = true; // reset blender
               CharCount = 1;
@@ -497,7 +497,7 @@ void __fastcall TProcessEffect::Execute(bool bShowStatus)
 
             case BLEND_BY_LINE: // Line
               // Scan the text to find line length
-              TotalLength = utils->GetRealLength(pBuf, iSize,
+              TotalLength = utils.GetRealLength(pBuf, iSize,
                                                   iPresentPar, '\n', false);
               bFirstChar = true;
               CharCount = 1;
@@ -505,7 +505,7 @@ void __fastcall TProcessEffect::Execute(bool bShowStatus)
 
             case BLEND_BY_SENTENCE: // Sentence
               // Scan the text to find sentence length
-              TotalLength = utils->GetRealLength(pBuf, iSize,
+              TotalLength = utils.GetRealLength(pBuf, iSize,
                                                     iPresentPar, '.', false);
               bFirstChar = true; // reset blender
               CharCount = 1;
@@ -539,7 +539,7 @@ void __fastcall TProcessEffect::Execute(bool bShowStatus)
           if (ii >= iSize || pBuf[ii] == C_NULL)
             break;
 
-          if (utils->FoundCRLF(pBuf, ii, true))
+          if (utils.FoundCRLF(pBuf, ii, true))
           {
             TempStr += WideString(pBuf[ii]); // Add CR or LF to new string
 
@@ -548,7 +548,7 @@ void __fastcall TProcessEffect::Execute(bool bShowStatus)
             if (!bFoundCRLF)
             {
               // Get state before leading spaces
-              utils->SetStateFlags(pBuf, iNextPar, ii, STATE_MODE_FIRSTCHAR, InitialState, false);
+              utils.SetStateFlags(pBuf, iNextPar, ii, STATE_MODE_FIRSTCHAR, InitialState, false);
 
               if (effect == E_FG_BLEND || effect == E_BG_BLEND)
               {
@@ -556,14 +556,14 @@ void __fastcall TProcessEffect::Execute(bool bShowStatus)
                 {
                   case BLEND_BY_LINE: // Line
                     // Scan the text to find line length
-                    TotalLength = utils->GetRealLength(pBuf, iSize, ii+1, '\n', false);
+                    TotalLength = utils.GetRealLength(pBuf, iSize, ii+1, '\n', false);
                     bFirstChar = true;
                     CharCount = 1;
                   break;
 
                   case BLEND_BY_WORD: // Word
                     // Scan the text to find word length
-                    TotalLength = utils->GetRealLength(pBuf, iSize, ii+1, ' ', false);
+                    TotalLength = utils.GetRealLength(pBuf, iSize, ii+1, ' ', false);
                     bFirstChar = true; // reset blender
                     CharCount = 1;
                   break;
@@ -579,15 +579,15 @@ void __fastcall TProcessEffect::Execute(bool bShowStatus)
               // Carry the most recent blend-color to the start of the next line
               // (optimizer will weed out unnecessary codes!)
               if (effect == E_FG_BLEND)
-                utils->WriteSingle(PrevFG, TempStr, true);
+                utils.WriteSingle(PrevFG, TempStr, true);
               else if (effect == E_BG_BLEND)
-                utils->WriteSingle(PrevBG, TempStr, false);
+                utils.WriteSingle(PrevBG, TempStr, false);
               else if (effect == E_MORPH_FGBG)
                 // Reset colorcounter for Morph in Paltalk (each line can have
                 // 7 colors!) Setting colorCounter = colorCount causes a new
                 // color to be written before the next char is printed
                 colorCounter = colorCount;
-              else if (utils->IsRtfView())
+              else if (utils.IsRtfView())
                 // Write codes for cases where there are none
                 AddInitialCodes(m_ep3, InitialState, TempStr);
             }
@@ -607,10 +607,10 @@ void __fastcall TProcessEffect::Execute(bool bShowStatus)
             if (Pushes == 0)
             {
               PUSHSTRUCT s;
-              utils->SetStateFlags(pSaveBuf, iFirst+ii, STATE_MODE_LASTCHAR, s, false);
+              utils.SetStateFlags(pSaveBuf, iFirst+ii, STATE_MODE_LASTCHAR, s, false);
 
-              //ShowMessage(utils->PrintStateString(s));
-              utils->WriteColors(s.fg, s.bg, TempStr);
+              //ShowMessage(utils.PrintStateString(s));
+              utils.WriteColors(s.fg, s.bg, TempStr);
             }
 
             Pushes++;
@@ -627,7 +627,7 @@ void __fastcall TProcessEffect::Execute(bool bShowStatus)
             if (Pushes > 0)
               // Write in the most recent blend or morph colors after a pop
               if (--Pushes == 0)
-                utils->WriteColors(PrevFG, PrevBG, TempStr);
+                utils.WriteColors(PrevFG, PrevBG, TempStr);
 
             continue;
           }
@@ -657,7 +657,7 @@ void __fastcall TProcessEffect::Execute(bool bShowStatus)
 
           // Advance ii over smilies
           if (dts->AutoDetectEmotes->Checked &&
-                        utils->SkipSmileys(ii, pBuf, TempStr, iNextPar))
+                        utils.SkipSmileys(ii, pBuf, TempStr, iNextPar))
             continue;
 
           if (effect == E_FG_BLEND || effect == E_BG_BLEND)
@@ -668,7 +668,7 @@ void __fastcall TProcessEffect::Execute(bool bShowStatus)
                 if (PreviousChar == '.')
                 {
                   // Scan the text to find next sentence length
-                  TotalLength = utils->GetRealLength(pBuf, iSize,
+                  TotalLength = utils.GetRealLength(pBuf, iSize,
                                                           ii, '.', false);
                   bFirstChar = true; // reset blender
                   CharCount = 1;
@@ -679,7 +679,7 @@ void __fastcall TProcessEffect::Execute(bool bShowStatus)
                 if (PreviousChar == ' ' && !bIsAllSpaces)
                 {
                   // Scan the text to find word length
-                  TotalLength = utils->GetRealLength(pBuf, iSize,
+                  TotalLength = utils.GetRealLength(pBuf, iSize,
                                                         ii, ' ', false);
                   bFirstChar = true; // reset blender
                   CharCount = 1;
@@ -700,7 +700,7 @@ void __fastcall TProcessEffect::Execute(bool bShowStatus)
               SPACEITEM* p = (SPACEITEM*)SpaceBgColors->Items[0];
               if (ii >= p->Index)
               {
-                utils->WriteSingle(p->BgColor, TempStr, false);
+                utils.WriteSingle(p->BgColor, TempStr, false);
                 delete p;
                 SpaceBgColors->Delete(0);
               }
@@ -735,12 +735,12 @@ void __fastcall TProcessEffect::Execute(bool bShowStatus)
 
                 LimitBC(TempBC); // Check for 0-255 limits
 
-                int Temp = -utils->BlendColorToRgb(TempBC);
+                int Temp = -utils.BlendColorToRgb(TempBC);
 
                 if (Temp != NO_COLOR)
                 {
                   if (colorCounter >= colorCount)
-                    utils->WriteSingle(Temp, TempStr, true);
+                    utils.WriteSingle(Temp, TempStr, true);
 
                   PrevFG = Temp;
                 }
@@ -758,12 +758,12 @@ void __fastcall TProcessEffect::Execute(bool bShowStatus)
 
                 LimitBC(TempBC); // Check for 0-255 limits
 
-                int Temp = -utils->BlendColorToRgb(TempBC);
+                int Temp = -utils.BlendColorToRgb(TempBC);
 
                 if (Temp != NO_COLOR)
                 {
                   if (colorCounter >= colorCount)
-                    utils->WriteSingle(Temp, TempStr, false);
+                    utils.WriteSingle(Temp, TempStr, false);
 
                   PrevBG = Temp;
                 }
@@ -836,8 +836,8 @@ void __fastcall TProcessEffect::Execute(bool bShowStatus)
               // NOTE: Spaces in this effect are now handled above (search "What this does:")
               if (bFirstChar) // first character?
               {
-                fg = utils->ConvertColor(dts->Foreground, m_bFullSpectFg);
-                bg = utils->ConvertColor(dts->Background, m_bFullSpectBg);
+                fg = utils.ConvertColor(dts->Foreground, m_bFullSpectFg);
+                bg = utils.ConvertColor(dts->Background, m_bFullSpectBg);
               }
 
               WriteColorsRand(TempStr, m_ep3, fg, bg);
@@ -866,7 +866,7 @@ void __fastcall TProcessEffect::Execute(bool bShowStatus)
                   }
 
                   // Start with Color A
-                  utils->WriteSingle(m_ep0, TempStr, true);
+                  utils.WriteSingle(m_ep0, TempStr, true);
                   bEPColorOn = false;
 
                   // Add the character
@@ -886,7 +886,7 @@ void __fastcall TProcessEffect::Execute(bool bShowStatus)
                         fg = Rfg();
                     }
 
-                    utils->WriteSingle(fg, TempStr, true);
+                    utils.WriteSingle(fg, TempStr, true);
                     PrevFG = fg;
                     bEPColorOn = true;
                   }
@@ -920,7 +920,7 @@ void __fastcall TProcessEffect::Execute(bool bShowStatus)
 
                   if (bEPColorOn)
                   {
-                    utils->WriteSingle(m_ep0, TempStr, true);
+                    utils.WriteSingle(m_ep0, TempStr, true);
                     bEPColorOn = false;
                   }
 
@@ -962,7 +962,7 @@ void __fastcall TProcessEffect::Execute(bool bShowStatus)
 
                   if (bEPColorOn)
                   {
-                    utils->WriteSingle(m_ep0, TempStr, true);
+                    utils.WriteSingle(m_ep0, TempStr, true);
                     bEPColorOn = false;
                   }
                   else if (m_ep1 != NO_COLOR)
@@ -979,7 +979,7 @@ void __fastcall TProcessEffect::Execute(bool bShowStatus)
                     }
 
                     // Write new color
-                    utils->WriteSingle(fg, TempStr, true);
+                    utils.WriteSingle(fg, TempStr, true);
                     PrevFG = fg;
                     bEPColorOn = true;
                   }
@@ -1036,7 +1036,7 @@ void __fastcall TProcessEffect::Execute(bool bShowStatus)
                 if (m_ep2 == IRCRANDOM)
                   bg = Rbg();
 
-                utils->WriteColors(fg, bg, TempStr);
+                utils.WriteColors(fg, bg, TempStr);
 
                 // Need this so if we process a Pop, it writes our new
                 // color after the pop!
@@ -1059,11 +1059,11 @@ void __fastcall TProcessEffect::Execute(bool bShowStatus)
                 if (bFirstChar) Temp = dts->FG_BlendEngine->Init(TotalLength);
                 else Temp = dts->FG_BlendEngine->Blend(CharCount);
 
-                if (Temp == BLEND_ERR1) Temp = -utils->BlendColorToRgb(dts->FG_BlendEngine->EBC[0]);
+                if (Temp == BLEND_ERR1) Temp = -utils.BlendColorToRgb(dts->FG_BlendEngine->EBC[0]);
 
                 if (Temp != NO_COLOR)
                 {
-                  utils->WriteSingle(Temp, TempStr, true);
+                  utils.WriteSingle(Temp, TempStr, true);
                   PrevFG = Temp;
                 }
                 // else color-change is below RGB-Threshold!
@@ -1096,7 +1096,7 @@ void __fastcall TProcessEffect::Execute(bool bShowStatus)
 
                 if (Temp != NO_COLOR)
                 {
-                  utils->WriteSingle(Temp, TempStr, false);
+                  utils.WriteSingle(Temp, TempStr, false);
                   PrevBG = Temp;
                 }
                 // else color-change is below RGB-Threshold!
@@ -1112,21 +1112,21 @@ void __fastcall TProcessEffect::Execute(bool bShowStatus)
 
             case E_FONT_TYPE: // Font type-change
 
-              if (bFirstChar) TempStr += utils->FontTypeToString(m_ep1);
+              if (bFirstChar) TempStr += utils.FontTypeToString(m_ep1);
               TempStr += WideString(pBuf[ii]);
 
               if (CharCount == TotalLength) // last character?
-                TempStr += utils->FontTypeToString(TrailingState.fontType);
+                TempStr += utils.FontTypeToString(TrailingState.fontType);
 
             break;
 
             case E_FONT_SIZE: // Font size-change
 
-              if (bFirstChar) TempStr += utils->FontSizeToString(m_ep1);
+              if (bFirstChar) TempStr += utils.FontSizeToString(m_ep1);
               TempStr += WideString(pBuf[ii]);
 
               if (CharCount == TotalLength) // last character?
-                TempStr += utils->FontSizeToString(TrailingState.fontSize);
+                TempStr += utils.FontSizeToString(TrailingState.fontSize);
 
             break;
 
@@ -1154,7 +1154,7 @@ void __fastcall TProcessEffect::Execute(bool bShowStatus)
                 //if (bFirstChar || diff > 2 || (diff > 0 && TotalLength < 10) || (diff > 1 && TotalLength < 20))
                 if (bFirstChar || diff > 0)
                 {
-                  TempStr += utils->FontSizeToString(NewFont);
+                  TempStr += utils.FontSizeToString(NewFont);
                   OldFont = NewFont;
                 }
 
@@ -1187,7 +1187,7 @@ void __fastcall TProcessEffect::Execute(bool bShowStatus)
                 //if (bFirstChar || diff > 2 || (diff > 0 && TotalLength < 10) || (diff > 1 && TotalLength < 20))
                 if (bFirstChar || diff > 0)
                 {
-                  TempStr += utils->FontSizeToString(NewFont);
+                  TempStr += utils.FontSizeToString(NewFont);
                   OldFont = NewFont;
                 }
 
@@ -1216,7 +1216,7 @@ void __fastcall TProcessEffect::Execute(bool bShowStatus)
                 //if (bFirstChar || diff > 2 || TotalLength < 10 || (TotalLength < 20 && diff > 1))
                 if (bFirstChar || diff > 0)
                 {
-                  TempStr += utils->FontSizeToString(NewFont);
+                  TempStr += utils.FontSizeToString(NewFont);
                   OldFont = NewFont;
                 }
 
@@ -1240,7 +1240,7 @@ void __fastcall TProcessEffect::Execute(bool bShowStatus)
                 //if (bFirstChar || TotalLength < 10 || (TotalLength < 20 && diff > 1) || diff > 2)
                 if (bFirstChar || diff > 0)
                 {
-                  TempStr += utils->FontSizeToString(NewFont);
+                  TempStr += utils.FontSizeToString(NewFont);
                   OldFont = NewFont;
                 }
 
@@ -1281,13 +1281,13 @@ void __fastcall TProcessEffect::Execute(bool bShowStatus)
         dts->CpShow(STATUS[0]);
 
       // Convert the C_FF back to \pagebreak...
-      TempStr = utils->FormFeedToPageBreaks(TempStr);
+      TempStr = utils.FormFeedToPageBreaks(TempStr);
 
       // Init vars for last step of Undo
       oc.p = NULL; // Undo (no string-list!)
       int UndoIdx = 0;
 
-      if (utils->IsRtfIrcOrgView())
+      if (utils.IsRtfIrcOrgView())
       {
         try
         {
@@ -1301,7 +1301,7 @@ void __fastcall TProcessEffect::Execute(bool bShowStatus)
             // Optimize (otherwise, codes codes build up!). Only optimize the
             // text we changed or we will not be able to undo just the
             // effect-zone...
-            TempStr = utils->Optimize(TempStr, bShowStatus);
+            TempStr = utils.Optimize(TempStr, bShowStatus);
 
             // ResolveState will see if a font or color code exists in TempStr
             // (the effect string) and if the end state is different from
@@ -1310,10 +1310,10 @@ void __fastcall TProcessEffect::Execute(bool bShowStatus)
             // Only resolve if we added an effect to a selected zone that does
             // not reach to the end of the document
             if (bHaveSelText && iLast < iSaveSize)
-              utils->ResolveState(TrailingState, TempStr);
+              utils.ResolveState(TrailingState, TempStr);
 
-            //utils->ShowHex(TempStr);
-            //utils->ShowHex(utils->PrintStateString(TrailingState));
+            //utils.ShowHex(TempStr);
+            //utils.ShowHex(utils.PrintStateString(TrailingState));
           }
 
           int Slen = TempStr.Length();
@@ -1410,7 +1410,7 @@ bool __fastcall TProcessEffect::CheckExistingCodes(int &idx,  wchar_t buf[],
 
     if (c == CTRL_F || c == CTRL_S)
     {
-      int fs = utils->CountFontSequence(buf, idx, NextParIdx);
+      int fs = utils.CountFontSequence(buf, idx, NextParIdx);
 
       Output += WideString(c);
 
@@ -1446,7 +1446,7 @@ bool __fastcall TProcessEffect::CheckExistingCodes(int &idx,  wchar_t buf[],
       int bg = NO_COLOR;
 
       // Get length of color-codes not including this CTRL_K
-      int Count = utils->CountColorSequence(buf, idx, NextParIdx, fg, bg);
+      int Count = utils.CountColorSequence(buf, idx, NextParIdx, fg, bg);
 
       if (Count)
       {
@@ -1454,7 +1454,7 @@ bool __fastcall TProcessEffect::CheckExistingCodes(int &idx,  wchar_t buf[],
         if (effect == E_REPLACE_COLOR)
           WriteColorsReplace(Output, fg, bg);
         else
-          utils->WriteColors(fg, bg, Output);
+          utils.WriteColors(fg, bg, Output);
 
         idx += Count;
         bColorOn = true;
@@ -1518,7 +1518,7 @@ bool __fastcall TProcessEffect::CheckExistingCodes(int &idx,  wchar_t buf[],
       return true;
     }
 
-    if (utils->AnySpecialChar(buf[idx]))
+    if (utils.AnySpecialChar(buf[idx]))
       return true;
 
     return false;
@@ -1548,13 +1548,13 @@ void __fastcall TProcessEffect::StripCodes(wchar_t* pBuf, int &iSize,
     }
     else if (!Pushes && (pBuf[ii] == CTRL_F || pBuf[ii] == CTRL_S))
     {
-      if (utils->CountFontSequence(pBuf, ii, iSize)) ii += 2;
+      if (utils.CountFontSequence(pBuf, ii, iSize)) ii += 2;
       continue;
     }
     else if (!Pushes && pBuf[ii] == CTRL_K)
     {
       // strip
-      ii += utils->CountColorSequence(pBuf, ii, iSize);
+      ii += utils.CountColorSequence(pBuf, ii, iSize);
       continue;
     }
     else if (!Pushes && (pBuf[ii] == CTRL_B || pBuf[ii] == CTRL_U ||
@@ -1593,7 +1593,7 @@ void __fastcall TProcessEffect::StripFontSize(wchar_t* pBuf, int &iSize)
     }
     else if (!Pushes && pBuf[ii] == CTRL_S)
     {
-      if (utils->CountFontSequence(pBuf, ii, iSize))
+      if (utils.CountFontSequence(pBuf, ii, iSize))
         ii += 2;
 
       continue;
@@ -1625,7 +1625,7 @@ void __fastcall TProcessEffect::StripFontType(wchar_t* pBuf, int &iSize)
     }
     else if (!Pushes && pBuf[ii] == CTRL_F)
     {
-      if (utils->CountFontSequence(pBuf, ii, iSize))
+      if (utils.CountFontSequence(pBuf, ii, iSize))
         ii += 2;
 
       continue;
@@ -1659,7 +1659,7 @@ void __fastcall TProcessEffect::StripExistingColorCodes(wchar_t* pBuf,
     else if (!Pushes && pBuf[ii] == CTRL_K)
     {
       // strip
-      ii += utils->CountColorSequence(pBuf, ii, iSize);
+      ii += utils.CountColorSequence(pBuf, ii, iSize);
       continue;
     }
 
@@ -1732,14 +1732,14 @@ void __fastcall TProcessEffect::StripFGandUnderlineCodes(wchar_t* pBuf, int &iSi
       // strip
       int fg = NO_COLOR;
       int bg = NO_COLOR;
-      ii += utils->CountColorSequence(pBuf, ii, iSize, fg, bg);
+      ii += utils.CountColorSequence(pBuf, ii, iSize, fg, bg);
 
       // Re-write background code
       if (bg != NO_COLOR)
         // !!!!!!This is an error - we pass in a string reference here 11/20/18!!!!!!!
         // Created a new overload for WriteSingle() in utils.cpp
-        //utils->WriteSingle(bg, WideString(pBuf), false);
-        utils->WriteSingle(bg, pBuf, false);
+        //utils.WriteSingle(bg, WideString(pBuf), false);
+        utils.WriteSingle(bg, pBuf, false);
 
       continue;
     }
@@ -1766,16 +1766,16 @@ WideString __fastcall TProcessEffect::ApplyPushPop(WideString S)
     return "";
 
   // Strip if text has pre-existing codes
-  bool bHasPush = utils->ContainsChar(S, CTRL_PUSH);
-  bool bHasPop = utils->ContainsChar(S, CTRL_POP);
+  bool bHasPush = utils.ContainsChar(S, CTRL_PUSH);
+  bool bHasPop = utils.ContainsChar(S, CTRL_POP);
 
   if (bHasPush || bHasPop)
   {
     if (bHasPush)
-      S = utils->StripChar(S, CTRL_PUSH);
+      S = utils.StripChar(S, CTRL_PUSH);
 
     if (bHasPop)
-      S = utils->StripChar(S, CTRL_POP);
+      S = utils.StripChar(S, CTRL_POP);
 
     return S;
   }
@@ -1798,16 +1798,16 @@ WideString __fastcall TProcessEffect::ApplyPushPop(WideString S)
   // Add font/color state-codes the protected-zone needs to be independant
   // after the push.
   WideString wState = WideString(CTRL_PUSH) +
-                              utils->PrintStateString(psTemp, true);
+                              utils.PrintStateString(psTemp, true);
 
-  // utils->ShowState(psTemp); // diagnostic
+  // utils.ShowState(psTemp); // diagnostic
 
   // skip strings with no printable characters
   int iStartIdx = 0;
   for (int ii = 0; ii < slCount; ii++)
   {
     S = sl->GetString(ii);
-    int len = utils->GetRealLength(S);
+    int len = utils.GetRealLength(S);
     if (len > 0) break;
     iStartIdx++;
   }
@@ -1828,7 +1828,7 @@ WideString __fastcall TProcessEffect::ApplyPushPop(WideString S)
   // as the global InitialState which takes into account text before the
   // selected-zone even begins, back to the beginning of the line)
   int idx;
-  PUSHSTRUCT ps = utils->GetLeadingState(S, idx);
+  PUSHSTRUCT ps = utils.GetLeadingState(S, idx);
 
   if (idx >= 0)
   {
@@ -1837,26 +1837,26 @@ WideString __fastcall TProcessEffect::ApplyPushPop(WideString S)
       if (InitialState.bBold)
         wState += WideString(CTRL_B);
       else
-        wState = utils->InsertW(wState, WideString(CTRL_B), 1);
+        wState = utils.InsertW(wState, WideString(CTRL_B), 1);
     }
     if (ps.bUnderline)
     {
       if (InitialState.bUnderline)
         wState += WideString(CTRL_U);
       else
-        wState = utils->InsertW(wState, WideString(CTRL_U), 1);
+        wState = utils.InsertW(wState, WideString(CTRL_U), 1);
     }
     if (ps.bItalics)
     {
       if (InitialState.bItalics)
         wState += WideString(CTRL_R);
       else
-        wState = utils->InsertW(wState, WideString(CTRL_R), 1);
+        wState = utils.InsertW(wState, WideString(CTRL_R), 1);
     }
 
     // Replace the old leading state with the new one we've generated
-    S = utils->DeleteW(S, 1, idx); // delete idx chars
-    S = utils->InsertW(S, wState, 1);
+    S = utils.DeleteW(S, 1, idx); // delete idx chars
+    S = utils.InsertW(S, wState, 1);
 
     if (slCount > 1)
       S += WideString(CTRL_POP); // tack on this line's pop if more than one line
@@ -1872,10 +1872,10 @@ WideString __fastcall TProcessEffect::ApplyPushPop(WideString S)
     for (int ii = iStartIdx+1; ii < slCount-1; ii++)
     {
       S = sl->GetString(ii);
-      int len = utils->GetRealLength(S);
+      int len = utils.GetRealLength(S);
       if (len > 0)
       {
-        S = utils->InsertW(S, WideString(CTRL_PUSH), 1); // Leading code
+        S = utils.InsertW(S, WideString(CTRL_PUSH), 1); // Leading code
         S += WideString(CTRL_POP); // Trailing code
         sl->SetString(S, ii);
       }
@@ -1887,7 +1887,7 @@ WideString __fastcall TProcessEffect::ApplyPushPop(WideString S)
 
   S = sl->GetString(slCount-1); // get last string
 
-  int len = utils->GetRealLength(S);
+  int len = utils.GetRealLength(S);
 
   if (len > 0)
   {
@@ -1898,7 +1898,7 @@ WideString __fastcall TProcessEffect::ApplyPushPop(WideString S)
 
     // Add any font or color codes after the push
     WideString wState = WideString(CTRL_POP) +
-                                  utils->PrintStateString(psTemp, true);
+                                  utils.PrintStateString(psTemp, true);
 
     // Add style flags before or after pop as dictated by state at the
     // selection-start and the actual style control chars that immediately
@@ -1912,36 +1912,36 @@ WideString __fastcall TProcessEffect::ApplyPushPop(WideString S)
     // after the pop; otherwise, before it.
     int iStart, iEnd;
     // This gets the location and state of just the trailing codes
-    PUSHSTRUCT ps = utils->GetTrailingState(S, iStart, iEnd);
+    PUSHSTRUCT ps = utils.GetTrailingState(S, iStart, iEnd);
 
     if (ps.bItalics)
     {
       if (TrailingState.bItalics)
         wState += WideString(CTRL_R);
       else
-        wState = utils->InsertW(wState, WideString(CTRL_R), 1);
+        wState = utils.InsertW(wState, WideString(CTRL_R), 1);
     }
     if (ps.bUnderline)
     {
       if (TrailingState.bUnderline)
         wState += WideString(CTRL_U);
       else
-        wState = utils->InsertW(wState, WideString(CTRL_U), 1);
+        wState = utils.InsertW(wState, WideString(CTRL_U), 1);
     }
     if (ps.bBold)
     {
       if (TrailingState.bBold)
         wState += WideString(CTRL_B);
       else
-        wState = utils->InsertW(wState, WideString(CTRL_B), 1);
+        wState = utils.InsertW(wState, WideString(CTRL_B), 1);
     }
 
     // Replace the old trailing state with the new one we've generated
-    S = utils->DeleteW(S, iStart+1, iEnd-iStart+1); // delete trailing codes
-    S = utils->InsertW(S, wState, iStart+1);
+    S = utils.DeleteW(S, iStart+1, iEnd-iStart+1); // delete trailing codes
+    S = utils.InsertW(S, wState, iStart+1);
 
     if (slCount > 1)
-      S = utils->InsertW(S, WideString(CTRL_PUSH), 1); // prepend push if more than one line
+      S = utils.InsertW(S, WideString(CTRL_PUSH), 1); // prepend push if more than one line
 
     // write the string back
     sl->SetString(S, slCount-1);
@@ -2010,25 +2010,25 @@ bool __fastcall TProcessEffect::ProcessStyle(TStringsW* sl, int iLineCount, wcha
 
   // Get string
   s = sl->GetString(iLineCount);
-  int realLen = utils->GetRealLength(s);
+  int realLen = utils.GetRealLength(s);
 
   if (realLen == 0)
     return true; // no real chars!
 
   // Get the state and length of leading-codes only
   int iLeadingEnd;
-  PUSHSTRUCT psLeading = utils->GetLeadingState(s, iLeadingEnd);
+  PUSHSTRUCT psLeading = utils.GetLeadingState(s, iLeadingEnd);
 
   // This gets the location and state of just the trailing codes
   int iTrailingStart, iTrailingEnd;
-  PUSHSTRUCT psTrailing = utils->GetTrailingState(s, iTrailingStart, iTrailingEnd);
+  PUSHSTRUCT psTrailing = utils.GetTrailingState(s, iTrailingStart, iTrailingEnd);
 
   //ShowMessage(String(realLen));
-  //utils->ShowMessageW(sl->GetString(0));
-  //utils->ShowState(psLeading);
-  //utils->ShowState(psTrailing);
-  //utils->ShowState(LeadingState);
-  //utils->ShowState(TrailingState);
+  //utils.ShowMessageW(sl->GetString(0));
+  //utils.ShowState(psLeading);
+  //utils.ShowState(psTrailing);
+  //utils.ShowState(LeadingState);
+  //utils.ShowState(TrailingState);
 
   if (iLeadingEnd >= 0 && iTrailingEnd >= 0)
   {
@@ -2097,20 +2097,20 @@ bool __fastcall TProcessEffect::ProcessStyle(TStringsW* sl, int iLineCount, wcha
 
     // delete old trailing state first (or the index will no longer be right!)
     // !!!!!fix bug 11/8/2018 - number of characters to delete was short by 1!!!!!
-    //    s = utils->DeleteW(s, iTrailingStart+1, iTrailingEnd-iTrailingStart);
-    s = utils->DeleteW(s, iTrailingStart+1, iTrailingEnd-iTrailingStart+1);
+    //    s = utils.DeleteW(s, iTrailingStart+1, iTrailingEnd-iTrailingStart);
+    s = utils.DeleteW(s, iTrailingStart+1, iTrailingEnd-iTrailingStart+1);
 
     // delete old leading state
-    s = utils->DeleteW(s, 1, iLeadingEnd);
+    s = utils.DeleteW(s, 1, iLeadingEnd);
 
     // strip code to clear out possible conflicts
-    s = utils->StripChar(s, c);
+    s = utils.StripChar(s, c);
 
     // Replace the old leading state with the new one we've generated
-    s = utils->InsertW(s, utils->PrintStateString(psLeading, true), 1);
+    s = utils.InsertW(s, utils.PrintStateString(psLeading, true), 1);
 
     // Replace the old trailing state with the new one we've generated
-    s += utils->PrintStateString(psTrailing, false);
+    s += utils.PrintStateString(psTrailing, false);
 
     // write the string back
     sl->SetString(s, iLineCount);
@@ -2121,12 +2121,12 @@ bool __fastcall TProcessEffect::ProcessStyle(TStringsW* sl, int iLineCount, wcha
 //---------------------------------------------------------------------------
 int __fastcall TProcessEffect::Rfg(void)
 {
-  return utils->ConvertColor(IRCRANDOM, m_bFullSpectFg);
+  return utils.ConvertColor(IRCRANDOM, m_bFullSpectFg);
 }
 //---------------------------------------------------------------------------
 int __fastcall TProcessEffect::Rbg(void)
 {
-  return utils->ConvertColor(IRCRANDOM, m_bFullSpectBg);
+  return utils.ConvertColor(IRCRANDOM, m_bFullSpectBg);
 }
 //---------------------------------------------------------------------------
 void __fastcall TProcessEffect::WriteColorsReplace(WideString &S,
@@ -2137,24 +2137,24 @@ void __fastcall TProcessEffect::WriteColorsReplace(WideString &S,
 
   if (dts->bFgChecked && dts->bBgChecked)
   {
-    if (dts->FgFromColor == utils->YcToRgb(fg))
-      newFg = utils->RgbToYc(dts->FgToColor);
-    if (dts->BgFromColor == utils->YcToRgb(bg))
-      newBg = utils->RgbToYc(dts->BgToColor);
+    if (dts->FgFromColor == utils.YcToRgb(fg))
+      newFg = utils.RgbToYc(dts->FgToColor);
+    if (dts->BgFromColor == utils.YcToRgb(bg))
+      newBg = utils.RgbToYc(dts->BgToColor);
   }
   else if (dts->bFgChecked)
   {
-    if (dts->FgFromColor == utils->YcToRgb(fg))
-      newFg = utils->RgbToYc(dts->FgToColor);
+    if (dts->FgFromColor == utils.YcToRgb(fg))
+      newFg = utils.RgbToYc(dts->FgToColor);
   }
   else if (dts->bBgChecked)
   {
-    if (dts->BgFromColor == utils->YcToRgb(bg))
-      newBg = utils->RgbToYc(dts->BgToColor);
+    if (dts->BgFromColor == utils.YcToRgb(bg))
+      newBg = utils.RgbToYc(dts->BgToColor);
   }
 
   // Add the color-sequence to the current line
-  utils->WriteColors(newFg, newBg, S);
+  utils.WriteColors(newFg, newBg, S);
 
   // Need this so if we process a Pop, it writes our new
   // color after the pop!
@@ -2169,11 +2169,11 @@ void __fastcall TProcessEffect::WriteColorsAlt(WideString &S, int Mode,
 {
   // Mode is Fg, Bg or Both!
   if (Mode == 0)
-    utils->WriteSingle(fg, S, true); // Fg
+    utils.WriteSingle(fg, S, true); // Fg
   else if (Mode == 1)
-    utils->WriteSingle(bg, S, false); // Bg
+    utils.WriteSingle(bg, S, false); // Bg
   else
-    utils->WriteColors(fg, bg, S); // Both
+    utils.WriteColors(fg, bg, S); // Both
 
   // Swap colors
   int temp = fg;
@@ -2234,11 +2234,11 @@ void __fastcall TProcessEffect::WriteColorsInc(WideString &S, int Mode)
 
   // Mode is Fg, Bg or Both!
   if (Mode == 0)
-    utils->WriteSingle(tFg, S, true); // Fg
+    utils.WriteSingle(tFg, S, true); // Fg
   else if (Mode == 1)
-    utils->WriteSingle(tBg, S, false); // Bg
+    utils.WriteSingle(tBg, S, false); // Bg
   else
-    utils->WriteColors(tFg, tBg, S); // Both
+    utils.WriteColors(tFg, tBg, S); // Both
 
   PrevFG = tFg;
   PrevBG = tBg;
@@ -2309,7 +2309,7 @@ void __fastcall TProcessEffect::WriteColorsRand(WideString &S, int Mode, int fg,
     while (--tries && (nfg == fg || nfg == bg || nfg == PrevFG))
       nfg = Rfg();
 
-    utils->WriteSingle(nfg, S, true);
+    utils.WriteSingle(nfg, S, true);
 
     PrevFG = nfg;
   }
@@ -2320,7 +2320,7 @@ void __fastcall TProcessEffect::WriteColorsRand(WideString &S, int Mode, int fg,
     while (--tries && (nbg == fg || nbg == bg || nbg == PrevBG))
       nbg = Rbg();
 
-    utils->WriteSingle(nbg, S, false);
+    utils.WriteSingle(nbg, S, false);
 
     PrevBG = nbg;
   }
@@ -2335,7 +2335,7 @@ void __fastcall TProcessEffect::WriteColorsRand(WideString &S, int Mode, int fg,
       nbg = Rbg();
     }
 
-    utils->WriteColors(nfg, nbg, S);
+    utils.WriteColors(nfg, nbg, S);
 
     PrevFG = nfg;
     PrevBG = nbg;
@@ -2357,18 +2357,18 @@ void __fastcall TProcessEffect::AddInitialCodes(int mode, PUSHSTRUCT &State, Wid
 {
   if (State.fg == NO_COLOR)
   {
-    State.fg = utils->ConvertColor(dts->Foreground, m_bFullSpectFg);
+    State.fg = utils.ConvertColor(dts->Foreground, m_bFullSpectFg);
 
     if (IsFgColorEffect(mode))
-      utils->WriteSingle(State.fg, TempStr, true);
+      utils.WriteSingle(State.fg, TempStr, true);
   }
 
   if (State.bg == NO_COLOR)
   {
-    State.bg = utils->ConvertColor(dts->Background, m_bFullSpectBg);
+    State.bg = utils.ConvertColor(dts->Background, m_bFullSpectBg);
 
     if (IsBgColorEffect(mode))
-      utils->WriteSingle(State.bg, TempStr, false);
+      utils.WriteSingle(State.bg, TempStr, false);
   }
 
   // Write initial font type and size if this client allows it
@@ -2379,7 +2379,7 @@ void __fastcall TProcessEffect::AddInitialCodes(int mode, PUSHSTRUCT &State, Wid
       State.fontType = dts->cType;
 
       if (IsFontTypeEffect())
-        TempStr += utils->FontTypeToString(dts->cType);
+        TempStr += utils.FontTypeToString(dts->cType);
     }
 
     if (State.fontSize == -1)
@@ -2387,7 +2387,7 @@ void __fastcall TProcessEffect::AddInitialCodes(int mode, PUSHSTRUCT &State, Wid
       State.fontSize = dts->cSize;
 
       if (IsFontSizeEffect())
-        TempStr += utils->FontSizeToString(dts->cSize);
+        TempStr += utils.FontSizeToString(dts->cSize);
     }
   }
 }
@@ -2484,7 +2484,7 @@ TList* __fastcall TProcessEffect::RecordSpaceBgColors(wchar_t* pBuf, int iSize)
         fg = NO_COLOR;
         bg = NO_COLOR;
 
-        len = utils->CountColorSequence(pBuf, ii, iSize, fg, bg);
+        len = utils.CountColorSequence(pBuf, ii, iSize, fg, bg);
 
         // Background color?
         if (bg != NO_COLOR)
@@ -2496,7 +2496,7 @@ TList* __fastcall TProcessEffect::RecordSpaceBgColors(wchar_t* pBuf, int iSize)
       }
 
       // !!!!!fix bug 11/8/2018 - ii and iSize reversed below!!!!!!
-      iRet = utils->SkipCode(pBuf, iSize, ii);
+      iRet = utils.SkipCode(pBuf, iSize, ii);
 
       if (iRet == S_NULL)
         break;
