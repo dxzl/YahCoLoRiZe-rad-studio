@@ -5,6 +5,8 @@ This project builds with Embarcadero RAD Studio 10.4 Community Edition
 
 Free compiler: [Embarcadero C++ Builder 10.4 Community Edition](https://www.embarcadero.com/products/cbuilder/starter)
 
+IMPORTANT: Install the YcEdit RTF edit-control before trying to open the YahCoLoRiZe project! To do this, view Readme.txt in the YcEdit directory.
+
 The new edit component that goes with YahCoLoRiZe-rad-studio is YcEdit-rad-studio. There are a lot of demo, help, spelling dictionaries and other ancillary files for YahCoLoRiZe that are not included here but are in the old YahCoLoRiZe repository.
 
 The project first release is 7.48 and I've solved the major performance issue. It was traced to the TProgressBar. For RAD Studio I found that I need to check to see if the progress position has actually changed before setting the Position property.
