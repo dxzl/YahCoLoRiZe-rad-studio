@@ -73,7 +73,9 @@ private:
   TDTSColor* dts; // easy pointer to main form...
 
 public:
-    __fastcall TUtils(TComponent* Owner); // constructor
+    __fastcall TUtils(void); // constructor
+
+  void __fastcall Init(TDTSColor* dts);
 
   int __fastcall min(int a, int b);
   int __fastcall max(int a, int b);
@@ -532,7 +534,7 @@ public:
   String __fastcall GetDeskDir(void);
 };
 //---------------------------------------------------------------------------
-extern TUtils* utils;
+extern TUtils utils;
 
 typedef HRESULT __stdcall (*tGetFolderPath)(HWND hwndOwner, int nFolder,
     HANDLE hToken, DWORD dwFlags, LPTSTR pszPath);

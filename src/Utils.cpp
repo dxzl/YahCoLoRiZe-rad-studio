@@ -29,18 +29,21 @@
 #pragma package(smart_init)
 
 //---------------------------------------------------------------------------
-TUtils* utils; // System-wide global pointer
-//---------------------------------------------------------------------------
 // Utils class functions
 //---------------------------------------------------------------------------
-__fastcall TUtils::TUtils(TComponent* Owner)
+__fastcall TUtils::TUtils(void)
 // constructor
 {
-  this->dts = static_cast<TDTSColor*>(Owner);
+  dts = NULL;
 
   // Register clipboard formats
   cbHTML = (unsigned short)RegisterClipboardFormat(HTML_REGISTERED_NAME);
   cbRTF = (unsigned short)RegisterClipboardFormat(RTF_REGISTERED_NAME);
+}
+//---------------------------------------------------------------------------
+void __fastcall TUtils::Init(TDTSColor* dts)
+{
+  this->dts = dts;
 }
 //---------------------------------------------------------------------------
 void __fastcall TUtils::InitOnChange(TYcEdit* re, TNotifyEvent oce)
@@ -116,7 +119,7 @@ void __fastcall TUtils::ShowHex(void)
   {
     if (tae->SelLength > 10*16)
     {
-      utils->ShowMessageU(DS[77]);
+      utils.ShowMessageU(DS[77]);
       return;
     }
 
@@ -143,7 +146,7 @@ void __fastcall TUtils::ShowHex(void)
     if (!wTemp.IsEmpty())
       ShowHex(wTemp);
     else
-      utils->ShowMessageU(DS[78]);
+      utils.ShowMessageU(DS[78]);
   }
 }
 
@@ -251,7 +254,7 @@ AnsiString __fastcall TUtils::GetLocalFontStringA(int idx)
   if (idx < 0 || idx >= FONTITEMS)
     return ""; // out of range
 
-  return utils->Utf8ToAnsi(FONTS[idx]);
+  return utils.Utf8ToAnsi(FONTS[idx]);
 }
 
 WideString __fastcall TUtils::GetLocalFontStringW(int idx)
@@ -261,7 +264,7 @@ WideString __fastcall TUtils::GetLocalFontStringW(int idx)
   if (idx < 0 || idx >= FONTITEMS)
     return ""; // out of range
 
-  return utils->Utf8ToWide(FONTS[idx]);
+  return utils.Utf8ToWide(FONTS[idx]);
 }
 
 String __fastcall TUtils::GetLocalFontString(int idx)
@@ -319,9 +322,9 @@ ONCHANGEW __fastcall TUtils::GetInfoOC(TYcEdit* re)
   ONCHANGEW oc;
 
   oc.selStart = re->SelStart;
-  oc.line = this->GetLine(re);
+  oc.line = GetLine(re);
   oc.lineCount = re->LineCount;
-  oc.length = this->GetTextLength(re);
+  oc.length = GetTextLength(re);
   oc.deltaLength = oc.length - re->OldLength;
   oc.deltaLineCount = oc.lineCount - re->OldLineCount;
   oc.view = re->View;
@@ -362,7 +365,7 @@ void __fastcall TUtils::SetOldLineVars(TYcEdit* re, bool bInit)
   else
   {
     re->OldLineCount = re->LineCount;
-    re->OldLength = utils->GetTextLength(re);
+    re->OldLength = GetTextLength(re);
   }
 }
 //---------------------------------------------------------------------------
@@ -1086,9 +1089,9 @@ bool __fastcall TUtils::SetRichEditFont(TYcEdit* re, WideString FontName)
 //---------------------------------------------------------------------------
 void __fastcall TUtils::SetTabs(TYcEdit* re, int width)
 {
-  utils->PushOnChange(re);
+  utils.PushOnChange(re);
   re->TabWidth = width; // set all tab-stops to user's value
-  utils->PopOnChange(re);
+  utils.PopOnChange(re);
 }
 //---------------------------------------------------------------------------
 bool __fastcall TUtils::IsRtfIrcOrgView(void)
@@ -1316,7 +1319,7 @@ bool __fastcall TUtils::MoveMainTextToBuffer(wchar_t* &pBuf, int &iSize)
   catch(...)
   {
     // "Error In "
-    utils->ShowMessageU(String(DS[95]) + "MoveMainTextToBuffer()");
+    utils.ShowMessageU(String(DS[95]) + "MoveMainTextToBuffer()");
     return false;
   }
 }
@@ -2028,7 +2031,7 @@ void __fastcall TUtils::ShowState(PUSHSTRUCT ps, int iRow, int iColumn)
     wPrintStr += "\n(no foreground color)";
   else
   {
-    BlendColor fg = utils->YcToBlendColor(ps.fg);
+    BlendColor fg = utils.YcToBlendColor(ps.fg);
     wPrintStr += "\n\nForeground RGB: " + String(fg.red) + "," +
                     String(fg.green) + "," + String(fg.blue);
     if (ps.fg > 0) // palette color?
@@ -4450,7 +4453,7 @@ void __fastcall TUtils::PageBreaksToRtf(TYcEdit* re)
     // of all pages after the first page in the print-preview.
 
     // got this working now if needed!
-    //utils->ShowMessageW(tae->GetStringW(line_index));
+    //utils.ShowMessageW(tae->GetStringW(line_index));
 
     WideChar wC = re->SelTextW[foundLength+1];
 
@@ -4802,24 +4805,20 @@ int __fastcall TUtils::GetLine(TYcEdit* re)
 // RAD Studio versions!)
 long __fastcall TUtils::GetTextLength(TYcEdit* re)
 {
-  long textLength = re->TextLength;
-
-  if (textLength == 0)
-    return 0;
-
-#if !ISRADSTUDIO
-    textLength = textLength - re->LineCount + 1;
-    if (textLength < 0)
-      textLength = 0;
-//#if DEBUG_ON
-//  DTSColor->CWrite("BORLAND GetTextLength():" + String (textLength) + "\r\n");
-//#endif
-#else
+  long textLength;
+#if ISRADSTUDIO
+  textLength = re->TextLength;
 //#if DEBUG_ON
 //  DTSColor->CWrite("RAD GetTextLength():" + String (textLength) + "\r\n");
 //#endif
+#else
+  textLength = textLength - re->LineCount + 1;
+  if (textLength < 0)
+    textLength = 0;
+//#if DEBUG_ON
+//  DTSColor->CWrite("BORLAND GetTextLength():" + String (textLength) + "\r\n");
+//#endif
 #endif
-
   return textLength;
 }
 //---------------------------------------------------------------------
@@ -5419,7 +5418,7 @@ bool __fastcall TUtils::Optimize(bool bShowStatus)
 }
 
 //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-// PROBLEM:     utils->Optimize(nsl, false, NO_COLOR);  prints leading codes in
+// PROBLEM:     utils.Optimize(nsl, false, NO_COLOR);  prints leading codes in
 // a document with no codes at all!
 
 bool __fastcall TUtils::Optimize(TStringsW* sl, bool bShowStatus, int fgc)
@@ -6497,7 +6496,7 @@ WideString __fastcall TUtils::BlendColorToHex(BlendColor C)
 //{
 //  if (C.red > 255 || C.green > 255 || C.blue > 255)
 //  {
-//    utils->ShowMessageU(DS[95] + "BlendColorToTColor()");
+//    utils.ShowMessageU(DS[95] + "BlendColorToTColor()");
 //    return StringToColor("0x00000000");
 //  }
 //
@@ -6912,7 +6911,7 @@ PASTESTRUCT __fastcall TUtils::CutCopyRTF(bool bCut, bool bCopy,
 // that has a loop... or a static method in each that computs the # loops based
 // on the Client and View... then we just call the ones we need,
 // MyClass::GetNumLoops() + MyOtherClass::GetNumLoops();
-        int maxSections = utils->IsRtfView() ? 1 : 2;
+        int maxSections = utils.IsRtfView() ? 1 : 2;
         if (!dts->IsYahTrinPal()) // must be calling strip?
           maxSections += 2;
 
@@ -7094,11 +7093,11 @@ int __fastcall TUtils::ResolveStateForPaste(TPoint p, WideString &wInOut,
   {
     // Get the state and raw code index at our caret
     PUSHSTRUCT psInsertPoint;
-    utils->SetStateFlags(wInOut, p.x, psInsertPoint);
+    utils.SetStateFlags(wInOut, p.x, psInsertPoint);
 
     // Get trailing state of string we are pasting
     PUSHSTRUCT  psSnippetEnd;
-    utils->SetStateFlags(wPaste, STATE_MODE_ENDOFBUF, psSnippetEnd);
+    utils.SetStateFlags(wPaste, STATE_MODE_ENDOFBUF, psSnippetEnd);
 
     // if we are pasting into a plain string (no color)
     // then prepend a default string to wInOut
@@ -7119,7 +7118,7 @@ int __fastcall TUtils::ResolveStateForPaste(TPoint p, WideString &wInOut,
     {
       wInOut = InsertW(wInOut, PrintStateString(psTemp, true), 1);
       // refresh the state...
-      utils->SetStateFlags(wInOut, p.x, psInsertPoint);
+      utils.SetStateFlags(wInOut, p.x, psInsertPoint);
     }
 
     // get index of printable char
@@ -7133,22 +7132,22 @@ int __fastcall TUtils::ResolveStateForPaste(TPoint p, WideString &wInOut,
 
       // Get the old codes for analysis before we delete them
       PUSHSTRUCT psInsertPointCodes;
-      utils->SetStateFlags(wInOut.SubString(idxCodes+1, delLen),
+      utils.SetStateFlags(wInOut.SubString(idxCodes+1, delLen),
                                       idxCodes+1, psInsertPointCodes);
 
       // delete old codes
-      wInOut = utils->DeleteW(wInOut, idxCodes+1, delLen);
+      wInOut = utils.DeleteW(wInOut, idxCodes+1, delLen);
 
       // get leading state of string we are pasting and put its length
       // in delLen
       PUSHSTRUCT psSnippetStart =
-                utils->GetLeadingState(wPaste, delLen);
+                utils.GetLeadingState(wPaste, delLen);
 
       // delete leading state from string we want to paste. we will prepend
       // a resolved state later...
       // (handle special case of a line-terminator in the leading-codes!)
       int crlfCount = CountCRs(wPaste.SubString(1, delLen));
-      wPaste = utils->DeleteW(wPaste, 1, delLen);
+      wPaste = utils.DeleteW(wPaste, 1, delLen);
 
       // resolve leading state... (this was worked out on paper with a
       // logic truth-table). Turned out to be an XOR and !XOR of
@@ -7568,7 +7567,7 @@ int __fastcall TUtils::ConvertIrcToRtf(WideString S, TMemoryStream* &msOut,
 
         lih = 0;
 
-        utils->ShowMessageU("Error in ConvertIrcToRtf(): " + String(retVal));
+        utils.ShowMessageU("Error in ConvertIrcToRtf(): " + String(retVal));
       }
 
       delete rtf;
@@ -7578,7 +7577,7 @@ int __fastcall TUtils::ConvertIrcToRtf(WideString S, TMemoryStream* &msOut,
   }
   catch(...)
   {
-    utils->ShowMessageU("Threw exception in ConvertIrcToRtf()!");
+    utils.ShowMessageU("Threw exception in ConvertIrcToRtf()!");
     return 0;
   }
 }
@@ -8201,7 +8200,7 @@ String __fastcall TUtils::ReadStringFromFileW(WideString wPath)
   return sOut;
 }
 //----------------------------------------------------------------------------
-// Displays an OpenFile DIALOG and returns the name selected
+// Displays an SaveFile DIALOG and returns the name selected
 //----------------------------------------------------------------------------
 WideString __fastcall TUtils::GetSaveFileName(WideString &wFilters,
                    WideString wDefFile, WideString wDir, String uTitle)
@@ -8221,7 +8220,7 @@ WideString __fastcall TUtils::GetSaveFileName(WideString &wFilters,
       {
         SFDlgForm->Filters = wFilters;
 
-        if (SFDlgForm->ExecuteW(wDefFile, wDir, uTitle))
+        if (SFDlgForm->Execute(wDefFile, wDir, uTitle))
           wRetFile = SFDlgForm->FileName; // Get filepath
 
         // Set return reference
@@ -8234,7 +8233,7 @@ WideString __fastcall TUtils::GetSaveFileName(WideString &wFilters,
       // ->Close(), and its OnClose event handler calls EndDialog() to close
       // the system-dialog's thread... we throw an exception - cover it up
       // until we can deduce a better way...
-//      utils->ShowMessageU(String(DS[42])); // Can't save file...
+//      utils.ShowMessageU(String(DS[42])); // Can't save file...
     }
   }
   __finally
@@ -8243,6 +8242,10 @@ WideString __fastcall TUtils::GetSaveFileName(WideString &wFilters,
     {
       try { delete SFDlgForm; } catch(...) {}
       SFDlgForm = NULL;
+
+      // non-ideal fix for main window going below other windows when
+      // using FormSFDlg - not sure why - open dialog works ok...
+      dts->SetFocus();
     }
   }
 
@@ -8281,7 +8284,7 @@ WideString __fastcall TUtils::GetOpenFileName(WideString &wFilters, int iFilter,
 
       if (OFSSDlgForm)
       {
-        if (wDir.IsEmpty() || !utils->DirectoryExistsW(wDir))
+        if (wDir.IsEmpty() || !utils.DirectoryExistsW(wDir))
           wDir = dts->DeskDir;
 
         OFSSDlgForm->Filters = wFilters;
@@ -8299,7 +8302,7 @@ WideString __fastcall TUtils::GetOpenFileName(WideString &wFilters, int iFilter,
       // ->Close(), and its OnClose event handler calls EndDialog() to close
       // the system-dialog's thread... we throw an exception - cover it up
       // until we can deduce a better way...
-//      utils->ShowMessageU(String(DS[38])); // Can't load file...
+//      utils.ShowMessageU(String(DS[38])); // Can't load file...
     }
   }
   __finally
@@ -9277,7 +9280,7 @@ int __fastcall TUtils::MakeRGBPalette(wchar_t * pBuf, int iSize, bool bNoView)
   }
   catch(...)
   {
-    utils->ShowMessageU(DS[95] + "MakeRGBPalette()");
+    utils.ShowMessageU(DS[95] + "MakeRGBPalette()");
     ReturnValue = 2;
   }
 

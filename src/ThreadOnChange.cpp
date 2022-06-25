@@ -35,7 +35,9 @@ TThreadOnChange* ThreadOnChange = NULL;
 // Create suspended so we can set some vars in main.cpp!
 __fastcall TThreadOnChange::TThreadOnChange(void) : TThread(true)
 {
-  this->FreeOnTerminate = true;
+// problem using this is that the destructor below was not being called...
+//  this->FreeOnTerminate = true;
+
   this->ReturnValue = 0;
   this->bLocked = false;
 
@@ -44,13 +46,13 @@ __fastcall TThreadOnChange::TThreadOnChange(void) : TThread(true)
 }
 //---------------------------------------------------------------------------
 __fastcall TThreadOnChange::~TThreadOnChange(void)
-// This thread as used now never goes away it's just
-// suspended via utils->PushOnChange() and resumed on
-// utils->PopOnChange()
+// This thread as used now never goes away (until program close) it's just
+// suspended via utils.PushOnChange() and resumed on
+// utils.PopOnChange()
 {
   if (ocbuf) try {delete [] ocbuf;} catch(...) {}
-
-  ThreadOnChange = NULL;
+//ShowMessage("threadterm");
+//  ThreadOnChange = NULL;
 }
 //---------------------------------------------------------------------------
 void __fastcall TThreadOnChange::Execute(void)
@@ -159,14 +161,14 @@ bool __fastcall TThreadOnChange::ProcessOC(ONCHANGEW oc)
 
           bool bCodes = (oc.pos.x == 0) ? false : true;
 
-          if ((UndoIdx = utils->GetCodeIndex(TaeSL, oc.pos.x,
+          if ((UndoIdx = utils.GetCodeIndex(TaeSL, oc.pos.x,
                                                     UndoLine, bCodes)) >= 0)
           {
             // get the same index if undo-length is 1, but this time get the
             // index AFTER any leading codes...
             UndoLen = -oc.deltaLength;
 
-            int iLast = utils->GetCodeIndex(TaeSL, oc.pos.x+UndoLen-1,
+            int iLast = utils.GetCodeIndex(TaeSL, oc.pos.x+UndoLen-1,
                                                       UndoLine, false) + 1;
             if (iLast >= 0)
               // add in the second char of any line-terminators to the delta
@@ -259,18 +261,19 @@ bool __fastcall TThreadOnChange::ProcessOC(ONCHANGEW oc)
 
           UndoStr += WideString(c);
 
-          if (c == C_CR)
-            UndoStr += WideString(C_LF);
+// 6/24/2022 this is causing undo (Ctrl-Z) to fail in undoing
+// a line added in RTF mode...
+//          if (c == C_CR)
+//            UndoStr += WideString(C_LF);
 
         }
         UndoLen = UndoStr.Length();
-
         UndoLine = oc.pos.y;
         WideString wTemp = TaeSL->GetString(UndoLine); // get current line
 
         if (oc.view == V_RTF)
         {
-          if ((UndoIdx = utils->GetCodeIndex(wTemp, oc.pos.x, false)) < 0)
+          if ((UndoIdx = utils.GetCodeIndex(wTemp, oc.pos.x, false)) < 0)
           {
 #if DEBUG_ON
             DTSColor->CWrite("\r\nError 7 ProcessOC()\r\n");
@@ -289,7 +292,7 @@ bool __fastcall TThreadOnChange::ProcessOC(ONCHANGEW oc)
         {
           // don't tack on state if editing irc codes (V_IRC)...
           bool bAddState = (oc.view == V_RTF) ? true : false;
-          wTemp = utils->InsertW(wTemp, UndoStr, UndoIdx+1);
+          wTemp = utils.InsertW(wTemp, UndoStr, UndoIdx+1);
           ptDelta = TaeSL->SetStringEx(wTemp, UndoLine, bAddState);
 
           // force insert mode on for undo...
@@ -329,7 +332,7 @@ bool __fastcall TThreadOnChange::ProcessOC(ONCHANGEW oc)
         {
           // here we go to a little extra trouble to use a small-footprint
           // undo structure if only one char or line-break was deleted
-          if (UndoLen == 1 || (UndoLen == 2 && oc.deltaLineCount == +1))
+          if (UndoLen == 1 || (UndoLen == 2 && oc.deltaLineCount == 1))
           {
             wchar_t c;
 

@@ -68,7 +68,7 @@
 
 UINT m_buttonWidth = 0;
 UINT m_buttonHeight = 0;
-HMODULE m_hComCtl32 = NULL;
+//HMODULE m_hComCtl32 = NULL;
 //---------------------------------------------------------------------------
 #pragma package(smart_init)
 #pragma resource "*.dfm"
@@ -79,6 +79,8 @@ void __fastcall TOFSSDlgForm::FormCreate(TObject *Sender)
   TForm* f = static_cast<TForm*>(Sender);
   HWND h = f ? f->Handle : Application->Handle;
 
+  OleInitialize(NULL);
+
   FDlgHandle = NULL;
 
   FFolderIsSelected = false;
@@ -86,9 +88,10 @@ void __fastcall TOFSSDlgForm::FormCreate(TObject *Sender)
   p_szFileName = new WideChar[OF_BUFSIZE];
   p_szTitleName = new WideChar[OF_BUFSIZE];
 
-  m_hComCtl32 = LoadLibrary(L"Comctl32.dll");
+//  m_hComCtl32 = LoadLibrary(L"Comctl32.dll");
 
-  if (m_hComCtl32 == NULL || p_szFileName == NULL || p_szTitleName == NULL)
+  if (p_szFileName == NULL || p_szTitleName == NULL)
+//  if (m_hComCtl32 == NULL || p_szFileName == NULL || p_szTitleName == NULL)
   {
 #if DEBUG_ON
     OFDbg->CWrite( "\r\nUnable to load Comctl32.dll!\r\n");
@@ -106,6 +109,7 @@ void __fastcall TOFSSDlgForm::FormCreate(TObject *Sender)
   m_ofn.nMaxFileTitle     = OF_BUFSIZE;
   m_ofn.lCustData         = (unsigned long)this; // lets us access our class data
   m_ofn.lpfnHook          = OFNHookProc;
+  m_ofn.lCustData         = (unsigned long)this; // pointer to us to pass to the callbacks
   m_ofn.lpTemplateName    = NULL;
 
   p_filterBuf = NULL;
@@ -123,6 +127,8 @@ void __fastcall TOFSSDlgForm::FormDestroy(TObject *Sender)
 #if DEBUG_ON
   OFDbg->CWrite("\r\nFormDestroy() in TOFSSDlgForm()!\r\n");
 #endif
+
+  OleUninitialize();
 }
 //--------------------------------------------------------------------------- FileOpenDlg function ----------------------
 bool __fastcall TOFSSDlgForm::ExecuteU(String uFilter, String uInitialDir,
@@ -132,7 +138,7 @@ bool __fastcall TOFSSDlgForm::ExecuteU(String uFilter, String uInitialDir,
 
   // Try to locate the 1-based filter-index of the extension on our sDefFile
   // in the null-separated list of filters in the lpstrFilter filters-string
-  WideString wExt = WideString("*.") + OFUtil->Utf8ToWide(uFilter);
+  WideString wExt = WideString("*.") + OFUtil.Utf8ToWide(uFilter);
   int iFilter = FindFilter(this->p_filterBuf, wExt.c_bstr(), FFilterCount);
   return ExecuteU(iFilter, uInitialDir, uDlgTitle);
 }
@@ -140,7 +146,7 @@ bool __fastcall TOFSSDlgForm::ExecuteU(String uFilter, String uInitialDir,
 bool __fastcall TOFSSDlgForm::ExecuteU(int iFilter, String uInitialDir,
                                                             String uDlgTitle)
 {
-  return ExecuteW(iFilter, OFUtil->Utf8ToWide(uInitialDir), uDlgTitle);
+  return ExecuteW(iFilter, OFUtil.Utf8ToWide(uInitialDir), uDlgTitle);
 }
 
 bool __fastcall TOFSSDlgForm::ExecuteW(int iFilter, WideString wInitialDir,
@@ -151,7 +157,7 @@ bool __fastcall TOFSSDlgForm::ExecuteW(int iFilter, WideString wInitialDir,
 
   FFilterIndex = iFilter;
   FInitialDir = wInitialDir;
-  FDlgTitle = OFUtil->Utf8ToWide(uDlgTitle);
+  FDlgTitle = OFUtil.Utf8ToWide(uDlgTitle);
 
   m_ofn.lpstrFilter = this->SetFilter(); // sets FFilterCount property var!
 
@@ -326,7 +332,7 @@ int __fastcall TOFSSDlgForm::FindFilter(wchar_t* pFilterBuf, wchar_t* pFilterToF
 // Property getter for this->FileNameUtf8
 String __fastcall TOFSSDlgForm::GetFileNameUtf8(void)
 {
-  return OFUtil->WideToUtf8(this->FileName);
+  return OFUtil.WideToUtf8(this->FileName);
 }
 //---------------------------------------------------------------------------
 // Property getter for this->FileName
@@ -338,7 +344,7 @@ WideString __fastcall TOFSSDlgForm::GetFileName(void)
 // Property getter
 String __fastcall TOFSSDlgForm::GetTitleUtf8(void)
 {
-  return OFUtil->WideToUtf8(WideString(p_szTitleName));
+  return OFUtil.WideToUtf8(WideString(p_szTitleName));
 }
 //---------------------------------------------------------------------------
 /*
@@ -355,22 +361,22 @@ bool __fastcall TOFSSDlgForm::GetShortcut(WideString &sPath, bool &bIsDirectory)
 #endif
 
     // Do this first because we might have a .lnk file with no extension in our list-view control.
-    if (OFUtil->DirectoryExistsW(sPath))
+    if (OFUtil.DirectoryExistsW(sPath))
     {
       bIsDirectory = true;
       return true;
     }
 
-    if (OFUtil->FileExistsW(sPath))
+    if (OFUtil.FileExistsW(sPath))
     {
       if (ExtractFileExt(sPath).LowerCase() == ".lnk")
       {
         sPath = GetShortcutTarget(sPath);
 
-        if (OFUtil->FileExistsW(sPath))
+        if (OFUtil.FileExistsW(sPath))
           return true;
 
-        if (OFUtil->DirectoryExistsW(sPath))
+        if (OFUtil.DirectoryExistsW(sPath))
         {
           bIsDirectory = true;
           return true;
@@ -386,14 +392,14 @@ bool __fastcall TOFSSDlgForm::GetShortcut(WideString &sPath, bool &bIsDirectory)
 #if DEBUG_ON
       OFDbg->CWrite("\r\nCheck file: " + sPath + "\r\n");
 #endif
-      if (OFUtil->FileExistsW(sPath))
+      if (OFUtil.FileExistsW(sPath))
       {
         sPath = GetShortcutTarget(sPath);
 #if DEBUG_ON
         OFDbg->CWrite("\r\nShortcut target: " + sPath + "\r\n");
 #endif
 
-        if (OFUtil->FileExistsW(sPath))
+        if (OFUtil.FileExistsW(sPath))
         {
 #if DEBUG_ON
           OFDbg->CWrite("\r\nShortcut exists: " + sPath + "\r\n");
@@ -401,7 +407,7 @@ bool __fastcall TOFSSDlgForm::GetShortcut(WideString &sPath, bool &bIsDirectory)
           return true;
         }
 
-        if (OFUtil->DirectoryExistsW(sPath))
+        if (OFUtil.DirectoryExistsW(sPath))
         {
 #if DEBUG_ON
           OFDbg->CWrite("\r\nDirectory exists: " + sPath + "\r\n");
@@ -634,10 +640,9 @@ UINT CALLBACK TOFSSDlgForm::OFNHookProc(HWND hDlg, UINT msg, WPARAM wParam, LPAR
       if (p_ofn == NULL) break;
 
       TOFSSDlgForm* p_osfDlg = (TOFSSDlgForm*)p_ofn->lCustData;
+      if (p_osfDlg == NULL) break;
 
-      LPOFNOTIFY p_notify = (LPOFNOTIFY)lParam;
-
-      LRESULT r = p_osfDlg->ProcessNotifyMessage(hDlg, p_notify);
+      LRESULT r = p_osfDlg->ProcessNotifyMessage(hDlg, (LPOFNOTIFY)lParam);
 
       if (r != 0)
       {
@@ -653,7 +658,7 @@ UINT CALLBACK TOFSSDlgForm::OFNHookProc(HWND hDlg, UINT msg, WPARAM wParam, LPAR
 //---------------------------------------------------------------------------
 int __fastcall TOFSSDlgForm::ProcessNotifyMessage(HWND hDlg, LPOFNOTIFY p_notify)
 {
-  if (p_notify == NULL)
+  if (!p_notify)
     return 0;
 
   // notifyData.hdr.code can be: CDN_FILEOK, CDN_FOLDERCHANGE, CDN_HELP,
@@ -675,13 +680,13 @@ int __fastcall TOFSSDlgForm::ProcessNotifyMessage(HWND hDlg, LPOFNOTIFY p_notify
       if (!newFile.IsEmpty())
       {
         this->FFolderIsSelected =
-                   OFUtil->DirectoryExistsW(newFile) ? true : false;
+                   OFUtil.DirectoryExistsW(newFile) ? true : false;
 
-        HWND hFileName = GetDlgItem(hParent, ID_FileName);
+        HWND hFileNameCombo = GetDlgItem(hParent, ID_FileNameCombo);
 
         // clear the file-name edit-box when a new folder is opened
-        if (hFileName != NULL)
-          SetWindowTextW(hFileName, newFile.c_bstr());
+        if (hFileNameCombo != NULL)
+          SetWindowTextW(hFileNameCombo, newFile.c_bstr());
 
         return TRUE;
       }
@@ -692,7 +697,7 @@ int __fastcall TOFSSDlgForm::ProcessNotifyMessage(HWND hDlg, LPOFNOTIFY p_notify
 
     case CDN_TYPECHANGE:
     {
-      if (p_notify->lpOFN == NULL || p_notify->lpOFN->lCustData == NULL)
+      if (!p_notify->lpOFN || !p_notify->lpOFN->lCustData)
         break;
 
       LPOPENFILENAME pOFN = p_notify->lpOFN;
@@ -753,11 +758,11 @@ int __fastcall TOFSSDlgForm::ProcessNotifyMessage(HWND hDlg, LPOFNOTIFY p_notify
         WideString wTemp = this->FDlgTitle + ": " + newFolder;
         SetWindowTextW(hParent, wTemp.c_bstr());
 
-        HWND hFileName = GetDlgItem(hParent, ID_FileName);
+        HWND hFileNameCombo = GetDlgItem(hParent, ID_FileNameCombo);
 
         // clear the file-name edit-box when a new folder is opened
-        if (hFileName != NULL)
-          SetWindowTextW(hFileName, L"");
+        if (hFileNameCombo != NULL)
+          SetWindowTextW(hFileNameCombo, L"");
 
         return TRUE;
       }
@@ -772,9 +777,9 @@ int __fastcall TOFSSDlgForm::ProcessNotifyMessage(HWND hDlg, LPOFNOTIFY p_notify
 #if DEBUG_ON
       OFDbg->CWrite("\r\nTOFSSDlgForm() CDN_INITDONE\r\n");
 #endif
-      HWND hFileName = GetDlgItem(this->FDlgHandle, ID_FileName);
-      if (hFileName != NULL)
-        ::SetFocus(hFileName);
+      HWND hFileNameCombo = GetDlgItem(this->FDlgHandle, ID_FileNameCombo);
+      if (hFileNameCombo != NULL)
+        ::SetFocus(hFileNameCombo);
     }
     break;
   }

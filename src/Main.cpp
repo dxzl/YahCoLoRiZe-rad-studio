@@ -64,6 +64,8 @@
 // int MonNum = Screen->Monitor->MonitorNum;
 //---------------------------------------------------------------------------
 
+TUtils utils;
+
 #if LICENSE_ON
 KeyClass* PK;
 #endif
@@ -113,23 +115,23 @@ __fastcall TDTSColor::TDTSColor(TComponent* Owner)
 {
   // Try to register the IceChat, Hydra and Trinity message
   if ((RWM_ColorizeNet = RegisterWindowMessage(WMS_COLORIZENET)) == 0)
-    utils->ShowMessageU(String(DS[1]));
+    utils.ShowMessageU(String(DS[1]));
 
   // Try to register the SwiftMix messages
   if ((RWM_SwiftMixTime = RegisterWindowMessage(WMS_SWIFTMIXTIME)) == 0 ||
     (RWM_SwiftMixPlay = RegisterWindowMessage(WMS_SWIFTMIXPLAY)) == 0 ||
     (RWM_SwiftMixState = RegisterWindowMessage(WMS_SWIFTMIXSTATE)) == 0)
-    utils->ShowMessageU(String(DS[1]));
+    utils.ShowMessageU(String(DS[1]));
 
   // Try to register the WM_DataCoLoRiZe, WM_ChanCoLoRiZe (XiRCON/Trinity)
   if ((RWM_DataCoLoRiZe = RegisterWindowMessage(WMS_DATACOLORIZE)) == 0 ||
         (RWM_ChanCoLoRiZe = RegisterWindowMessage(WMS_CHANCOLORIZE)) == 0 ||
             (RWM_PlayCoLoRiZe = RegisterWindowMessage(WMS_PLAYCOLORIZE)) == 0)
-    utils->ShowMessageU(String(DS[1]));
+    utils.ShowMessageU(String(DS[1]));
 
   // Try to register the WM_YahELiteExt (YahELite)
   if ((RWM_YahELiteExt = RegisterWindowMessage(U16(FN[0]).c_bstr())) == 0)
-    utils->ShowMessageU(String(DS[1]));
+    utils.ShowMessageU(String(DS[1]));
 
   // Register clipboard formats
   cbHTML = (unsigned short)RegisterClipboardFormat(HTML_REGISTERED_NAME);
@@ -171,12 +173,14 @@ void __fastcall TDTSColor::FormCreate(TObject *Sender)
 
   try
   {
+    utils.Init(this);
+
     // Init License-Key Properties
 #if LICENSE_ON
     PK = new KeyClass();
 #endif
 
-    utils = new TUtils(this);
+//    utils = new TUtils(this);
 
 #if DEBUG_ON
     CInit();
@@ -386,7 +390,7 @@ void __fastcall TDTSColor::FormCreate(TObject *Sender)
   }
   catch(...)
   {
-    utils->ShowMessageU("Error creating basic objects in FormCreate!!!");
+    utils.ShowMessageU("Error creating basic objects in FormCreate!!!");
     this->Release();
     Application->Terminate();
     return;
@@ -408,7 +412,7 @@ void __fastcall TDTSColor::FormCreate(TObject *Sender)
   if (!pluginName || !pluginClass || !GDictList || !g_rooms || !TOCUndo ||
      !ThreadOnChange || !Iftf || !SL_ORG || !SL_IRC || !SL_HTM || !MS_RTF)
   {
-    utils->ShowMessageU("Unable to create string-lists...");
+    utils.ShowMessageU("Unable to create string-lists...");
     this->Release();
     Application->Terminate();
     return;
@@ -429,9 +433,9 @@ void __fastcall TDTSColor::FormShow(TObject *Sender)
 {
 //  ListStyleHooks();
 
-  if (tae == NULL || utils == NULL || ThreadOnChange == NULL)
+  if (tae == NULL || ThreadOnChange == NULL)
   {
-    utils->ShowMessageU("Null pointers in FormShow()!!!!");
+    utils.ShowMessageU("Null pointers in FormShow()!!!!");
     this->Release();
     Application->Terminate();
     return;
@@ -455,12 +459,12 @@ void __fastcall TDTSColor::FormShow(TObject *Sender)
   Application->ShowHint = true;
 
   // Access this as property "DeskDir"
-  wDeskDir = utils->GetSpecialFolder(CSIDL_DESKTOPDIRECTORY);
+  wDeskDir = utils.GetSpecialFolder(CSIDL_DESKTOPDIRECTORY);
 
   // Select Process tab...
   PageControl1->ActivePage = TabControl;
 
-  utils->SetOldLineVars(tae, true); // Init line vars
+  utils.SetOldLineVars(tae, true); // Init line vars
 
   // Set "Undo" limit OFF (we do our own undo)
   tae->ClearUndo();
@@ -510,7 +514,7 @@ void __fastcall TDTSColor::FormShow(TObject *Sender)
   // Firing when we are processing or loading text
   // Uses the Edit Control's Tag property as a LockCounter!
   // Enable OnChange Event last
-  utils->InitOnChange(tae, TaeEditChange);
+  utils.InitOnChange(tae, TaeEditChange);
 
   // Re-paint min interval for title-bar
   RepaintTimer->Interval = TIMER3TIME;
@@ -579,7 +583,7 @@ void __fastcall TDTSColor::InitAllSettings(bool RestoreFactory)
 
   // Do this before calling GetRegInfo()!
   bHaveSpeller =
-    utils->FileExistsW(utils->ExtractFilePathW(utils->GetExeNameW()) +
+    utils.FileExistsW(utils.ExtractFilePathW(utils.GetExeNameW()) +
              WideString("\\") + U16(SPELLINGMSG[35])) ? true : false;
 
   // Do this after we read the PaletteExtent and the web-site from
@@ -862,12 +866,15 @@ void __fastcall TDTSColor::FormDestroy(TObject *Sender)
 {
   try
   {
-    utils->PushOnChange(tae);
+    utils.PushOnChange(tae);
 
-    utils->WaitForThread();
+    utils.WaitForThread();
 
-    if (ThreadOnChange)
-      ThreadOnChange->Terminate(); // Free on terminate is set
+    if (ThreadOnChange){
+      ThreadOnChange->OnTerminate = NULL; // remove hook
+      ThreadOnChange->Free();
+      ThreadOnChange = NULL;
+    }
 
     // Delete objects
     if (TOCUndo) delete TOCUndo;
@@ -875,7 +882,6 @@ void __fastcall TDTSColor::FormDestroy(TObject *Sender)
     if (SL_HTM) delete SL_HTM;
     if (SL_IRC) delete SL_IRC;
     if (MS_RTF) delete MS_RTF;
-    if (utils) delete utils;
     if (Iftf) delete Iftf;
     if (g_rooms) delete g_rooms;
     if (GDictList) delete GDictList;
@@ -919,7 +925,7 @@ void __fastcall TDTSColor::FormCloseQuery(TObject *Sender, bool &CanClose)
                  (tae->View == V_ORG && SL_ORG->Count > 0)))
   {
     // "Unsaved work, close anyway?"
-    if (utils->ShowMessageU(Handle, DS[228],
+    if (utils.ShowMessageU(Handle, DS[228],
                 MB_ICONQUESTION|MB_YESNO|MB_DEFBUTTON2) == IDNO)
     {
       CanClose = false;
@@ -1026,7 +1032,7 @@ void __fastcall TDTSColor::FormMouseWheel(TObject *Sender, TShiftState Shift,
       // Get a pointer to the selected panel...
       TPanel* P = GetPointerToColorPanel(BlendButtonSelectIndex);
 
-      P->Color = utils->BlendColorToTColor(fG_BlendColors[BlendButtonSelectIndex]);
+      P->Color = utils.BlendColorToTColor(fG_BlendColors[BlendButtonSelectIndex]);
 
       Handled = true;
       return;
@@ -1058,7 +1064,7 @@ void __fastcall TDTSColor::FormMouseWheel(TObject *Sender, TShiftState Shift,
   // Get a pointer to the selected panel...
   TPanel* P = GetPointerToColorPanel(BlendButtonSelectIndex);
 
-  P->Color = utils->BlendColorToTColor(fG_BlendColors[BlendButtonSelectIndex]);
+  P->Color = utils.BlendColorToTColor(fG_BlendColors[BlendButtonSelectIndex]);
 
   Handled = true;
 }
@@ -1520,15 +1526,15 @@ void __fastcall TDTSColor::AddEffect(int Effect, bool bUndo,
 // bShowStatus defaults true and is cleared when adding an effect by
 // remote-command.
 {
-  if (!utils->IsRtfIrcOrgView())
+  if (!utils.IsRtfIrcOrgView())
     return;
 
-  bool bRepRTF = bShowRTF && utils->IsRtfView();
+  bool bRepRTF = bShowRTF && utils.IsRtfView();
 
   if (tae->LineCount == 0)
   {
     if (bShowStatus)
-      utils->ShowMessageU(String(DS[45])); // No text to process
+      utils.ShowMessageU(String(DS[45])); // No text to process
 
     return;
   }
@@ -1561,14 +1567,14 @@ void __fastcall TDTSColor::AddEffect(int Effect, bool bUndo,
   // used by the Morph effect right now
   ProcessEffect->MaxColors = DialogSaveMaxColors;
 
-  utils->PushOnChange(tae);
+  utils.PushOnChange(tae);
 
   // Save present cursor-position
   int SaveSelStart = tae->SelStart;
   int SaveSelLength = tae->SelLength;
   int SaveSelLine = tae->Line;
 
-//  int segmentsToAdd = utils->IsRtfView() ? 4 : 3;
+//  int segmentsToAdd = utils.IsRtfView() ? 4 : 3;
   int segmentsToAdd = 3;
   CpInit(segmentsToAdd);
 
@@ -1593,7 +1599,7 @@ void __fastcall TDTSColor::AddEffect(int Effect, bool bUndo,
     {
       case 1: // push/pop warning
         if (bShowStatus)
-          utils->ShowMessageU(String(DS[140]));
+          utils.ShowMessageU(String(DS[140]));
       case 0: // completed
       {
         // Clear bTextWasProcessed so we can DoProcess normally
@@ -1632,7 +1638,7 @@ void __fastcall TDTSColor::AddEffect(int Effect, bool bUndo,
           else
           {
             // TextLength counts line-terminators as two chars!
-            int len = utils->GetTextLength(tae);
+            int len = utils.GetTextLength(tae);
             if (NewPosition > len)
               NewPosition = len;
           }
@@ -1658,18 +1664,18 @@ void __fastcall TDTSColor::AddEffect(int Effect, bool bUndo,
 
       case -1: // User canceled operation!
         if (bShowStatus)
-          utils->ShowMessageU(String(DS[137]));
+          utils.ShowMessageU(String(DS[137]));
       break;
 
       case -2: // You cannot add an effect in this View!
         if (bShowStatus)
-          utils->ShowMessageU(String(DS[134]));
+          utils.ShowMessageU(String(DS[134]));
       break;
 
       default:
          // error in text-processing
         if (bShowStatus)
-          utils->ShowMessageU(String(DS[138]) + ": " + ReturnValue);
+          utils.ShowMessageU(String(DS[138]) + ": " + ReturnValue);
       break;
     }
   }
@@ -1683,7 +1689,7 @@ void __fastcall TDTSColor::AddEffect(int Effect, bool bUndo,
     // original CpInit()!
   }
 
-  utils->PopOnChange(tae);
+  utils.PopOnChange(tae);
 }
 //---------------------------------------------------------------------------
 void __fastcall TDTSColor::Timer2Timer(TObject *Sender)
@@ -1725,7 +1731,7 @@ void __fastcall TDTSColor::Timer2Timer(TObject *Sender)
     {
       bIsAnsiFile = false; // "Assume" a UTF-8 file...
 
-      if (OpenFileSetDefaultDirs(utils->Utf8ToWide(WmCopyStr)))
+      if (OpenFileSetDefaultDirs(utils.Utf8ToWide(WmCopyStr)))
         if (wmCopyData == 1)
           StartPlayClick(NULL);
     }
@@ -1781,13 +1787,13 @@ void __fastcall TDTSColor::Timer2Timer(TObject *Sender)
 
       // A Client Plugin that sends UTF-8 will set wmCopyData to 1.
       if ((IsPlugin() && wmCopyData == 1) || (!IsPlugin() && bSendUtf8))
-        S = utils->Utf8ToWide(WmCopyStr);
+        S = utils.Utf8ToWide(WmCopyStr);
       else
         S = WideString(WmCopyStr);
 
-      S = utils->StripTrailingCRLFs(S);
+      S = utils.StripTrailingCRLFs(S);
 
-      utils->WaitForThread();
+      utils.WaitForThread();
 
       // The first parm of a text string may be an effects index
       // 0 = "random" up to 19
@@ -1835,7 +1841,7 @@ void __fastcall TDTSColor::Timer2Timer(TObject *Sender)
           int index;
 
           if (T.Length() > 0 && T.Length() < 3) // Two chars
-            index = utils->ToIntDefW(T, -1);
+            index = utils.ToIntDefW(T, -1);
           else
             index = -1; // no good!
 
@@ -2076,7 +2082,7 @@ void __fastcall TDTSColor::Timer2Timer(TObject *Sender)
               {
                 // Get TaeEdit's leading colors
                 int fg, bg;
-                if (utils->GetTaeEditColors(fg, bg, false))
+                if (utils.GetTaeEditColors(fg, bg, false))
                 {
                   // Get dialog's properties to save
                   FgFromColor = fg;
@@ -2096,7 +2102,7 @@ void __fastcall TDTSColor::Timer2Timer(TObject *Sender)
               {
                 // Get TaeEdit's leading selection-colors
                 int fg, bg;
-                if (utils->GetTaeEditColors(fg, bg, false))
+                if (utils.GetTaeEditColors(fg, bg, false))
                 {
                   // Get dialog's properties to save
                   FgFromColor = fg;
@@ -2116,7 +2122,7 @@ void __fastcall TDTSColor::Timer2Timer(TObject *Sender)
               {
                 // Get TaeEdit's leading selection-colors
                 int fg, bg;
-                if (utils->GetTaeEditColors(fg, bg, false))
+                if (utils.GetTaeEditColors(fg, bg, false))
                 {
                   // Get dialog's properties to save
                   FgFromColor = fg;
@@ -2150,7 +2156,7 @@ void __fastcall TDTSColor::Timer2Timer(TObject *Sender)
         {
           // ***Should do this on the plugin-side!!!
           if (IsCli(C_ICECHAT) &&
-                  utils->LowerCaseW(WmChanNickStr) == WideString("console"))
+                  utils.LowerCaseW(WmChanNickStr) == WideString("console"))
             WmChanNickStr = STATUSCHAN; // set "status"
 
           AddRoom(WmChanNickStr); // Works for UTF-8 and ANSI both
@@ -2200,7 +2206,7 @@ void __fastcall TDTSColor::WMNCRDownClk(void)
   {
     if (TOCUndo != NULL)
     {
-      ONCHANGEW oc = utils->GetInfoOC(tae, NULL);
+      ONCHANGEW oc = utils.GetInfoOC(tae, NULL);
       TOCUndo->Add(UNDO_FG_COLOR, Foreground, 0, oc, "");
       TOCUndo->Add(UNDO_BG_COLOR, Background, 0, oc, "", true); // chained undo
     }
@@ -2217,9 +2223,9 @@ void __fastcall TDTSColor::WMNCRDownClk(void)
 void __fastcall TDTSColor::SafeEditAdd(WideString S)
 // Adds S to the TaeRichEdit without triggering the OnChange thread!
 {
-  utils->PushOnChange(tae);
+  utils.PushOnChange(tae);
   tae->TextW = S;
-  utils->PopOnChange(tae);
+  utils.PopOnChange(tae);
 }
 //----------------------------------------------------------------------------
 bool __fastcall TDTSColor::IsWmCopyData(void)
@@ -2372,21 +2378,21 @@ void __fastcall TDTSColor::ASCIIArtDemoClick(TObject *Sender)
 //---------------------------------------------------------------------------
 void __fastcall TDTSColor::DoDemo(WideString wFile, bool bAnsi)
 {
-  WideString wPath = utils->ExtractFilePathW(utils->GetExeNameW());
+  WideString wPath = utils.ExtractFilePathW(utils.GetExeNameW());
 
-  if (!utils->FileExistsW(wPath + wFile))
+  if (!utils.FileExistsW(wPath + wFile))
   {
     wPath += "Smileys\\";
 
-    if (!utils->FileExistsW(wPath + wFile))
+    if (!utils.FileExistsW(wPath + wFile))
     {
       // Cannot find...
-      utils->ShowMessageW(U16(DS[222]) + "\n\"" + wPath + wFile + "\"");
+      utils.ShowMessageW(U16(DS[222]) + "\n\"" + wPath + wFile + "\"");
       return;
     }
   }
 
-  utils->SetDefaultFont(tae);
+  utils.SetDefaultFont(tae);
 
   bIsAnsiFile = bAnsi; // set global flag (property)
 
@@ -2441,7 +2447,7 @@ void __fastcall TDTSColor::FileOpenUtf8Menu(TObject *Sender)
 
   // Run the open-file dialog in FormOFDlg.cpp
   // (wFilter has user's filter by reference on return!)
-  WideString wFile = utils->GetOpenFileName(wFilters, 1, OpenD, String(DS[36]));
+  WideString wFile = utils.GetOpenFileName(wFilters, 1, OpenD, String(DS[36]));
 
   // Load and convert file as per the file-type (either plain or rich text)
   if (!wFile.IsEmpty())
@@ -2449,7 +2455,7 @@ void __fastcall TDTSColor::FileOpenUtf8Menu(TObject *Sender)
     bIsAnsiFile = false;
 
     if (!OpenFileSetDefaultDirs(wFile))
-      utils->ShowMessageU(DS[38]); // Can't load file
+      utils.ShowMessageU(DS[38]); // Can't load file
   }
 }
 //---------------------------------------------------------------------------
@@ -2462,7 +2468,7 @@ void __fastcall TDTSColor::FileOpenAnsiMenu(TObject *Sender)
 
   // Run the open-file dialog in FormOFDlg.cpp
   // (wFilter has user's filter by reference on return!)
-  WideString wFile = utils->GetOpenFileName(wFilters, 1, OpenD, String(DS[36]));
+  WideString wFile = utils.GetOpenFileName(wFilters, 1, OpenD, String(DS[36]));
 
   // Load and convert file as per the file-type (either plain or rich text)
   if (!wFile.IsEmpty())
@@ -2470,7 +2476,7 @@ void __fastcall TDTSColor::FileOpenAnsiMenu(TObject *Sender)
     bIsAnsiFile = true;
 
     if (!OpenFileSetDefaultDirs(wFile))
-      utils->ShowMessageU(DS[38]); // Can't load file
+      utils.ShowMessageU(DS[38]); // Can't load file
   }
 }
 //---------------------------------------------------------------------------
@@ -2481,13 +2487,13 @@ bool __fastcall TDTSColor::OpenFileSetDefaultDirs(WideString wFile)
 
   try
   {
-    WideString wExt = utils->ExtractFileExtW(wFile);
-    wExt = utils->LowerCaseW(wExt);
+    WideString wExt = utils.ExtractFileExtW(wFile);
+    wExt = utils.LowerCaseW(wExt);
 
     // Our program actually HANGS when trying to open an EXE file on Windows8!
     if (wExt == WideString(".exe"))
     {
-//    utils->ShowMessageW("Not able to read EXE files! (" + wFile + ")");
+//    utils.ShowMessageW("Not able to read EXE files! (" + wFile + ")");
       return false;
     }
 
@@ -2510,8 +2516,8 @@ bool __fastcall TDTSColor::OpenFileSetDefaultDirs(WideString wFile)
       FileSaveItem->Enabled = true;
       bSaveWork = false;
 
-      OpenD = utils->ExtractFilePathW(wFile);
-      OpenF = utils->ExtractFileNameW(wFile);
+      OpenD = utils.ExtractFilePathW(wFile);
+      OpenF = utils.ExtractFileNameW(wFile);
       bFileOpened = true;
 
       // After opening a file odds are that we want to save
@@ -2555,24 +2561,24 @@ bool __fastcall TDTSColor::OpenYahcolorizeFile(WideString wFile, bool bShowStatu
 
       bIsColorFractal = false;
 
-      WideString Ext = utils->ExtractFileExtW(wFile);
-      Ext = utils->LowerCaseW(Ext);
+      WideString Ext = utils.ExtractFileExtW(wFile);
+      Ext = utils.LowerCaseW(Ext);
       if (Ext == WideString(".rtf"))
         bRet = LoadLines(wFile, true, false); // RTF?
       else if (Ext == WideString(".htm") || Ext == WideString(".html")) // HTML?
       {
-        WideString S = utils->HtmlToIrc(wFile, bShowStatus);
+        WideString S = utils.HtmlToIrc(wFile, bShowStatus);
 
         if (!S.IsEmpty())
         {
-          utils->WaitForThread();
+          utils.WaitForThread();
 
-          utils->PushOnChange(tae);
+          utils.PushOnChange(tae);
 
           SL_ORG->Text = S;
 
           // If new text has color, DoShow()
-          if (utils->TextContainsFormatCodes(S))
+          if (utils.TextContainsFormatCodes(S))
           {
             tae->View = V_ORG; // View must be V_ORG to copy SL_ORG to SL_IRC!
             DoShowRtf(bShowStatus); // Convert to RTF
@@ -2580,7 +2586,7 @@ bool __fastcall TDTSColor::OpenYahcolorizeFile(WideString wFile, bool bShowStatu
           else
             LoadView(V_ORG);
 
-          utils->PopOnChange(tae);
+          utils.PopOnChange(tae);
 
           bRet = true;
         }
@@ -2593,7 +2599,7 @@ bool __fastcall TDTSColor::OpenYahcolorizeFile(WideString wFile, bool bShowStatu
         if (LoadLines(wFile, true, true))
         {
           // If new text has color, DoShow()
-          if (utils->TextContainsFormatCodes(SL_ORG))
+          if (utils.TextContainsFormatCodes(SL_ORG))
             DoShowRtf(bShowStatus); // Convert to RTF
 
           bRet = true;
@@ -2611,7 +2617,7 @@ bool __fastcall TDTSColor::OpenYahcolorizeFile(WideString wFile, bool bShowStatu
     catch(...)
     {
       if (bShowStatus)
-        utils->ShowMessageU(String(DS[38]));
+        utils.ShowMessageU(String(DS[38]));
     }
   }
   __finally
@@ -2639,7 +2645,7 @@ void __fastcall TDTSColor::FileSaveItemClick(TObject *Sender)
 {
   if (SaveF.IsEmpty())
   {
-    utils->ShowMessageU(DS[40]); // No Filename Specified
+    utils.ShowMessageU(DS[40]); // No Filename Specified
     FileSaveItem->Enabled = false;
     return;
   }
@@ -2648,9 +2654,9 @@ void __fastcall TDTSColor::FileSaveItemClick(TObject *Sender)
 
   // FYI, "Can't Save File..." is DS[42]
 
-  if (!utils->FileExistsW(FileName))
+  if (!utils.FileExistsW(FileName))
   {
-    utils->ShowMessageU(String(DS[42]) +
+    utils.ShowMessageU(String(DS[42]) +
                  "\"" + FileName + "\""); // Error Saving Text to:
 
     FileSaveItem->Enabled = false;
@@ -2667,7 +2673,7 @@ void __fastcall TDTSColor::FileSaveAsItemClick(TObject *Sender)
   if (PK->ComputeDaysRemaining() <= 0)
   {
     //"Visit https://github.com/dxzl/YahCoLoRiZe/releases to download..."
-    utils->ShowMessageU(KEYSTRINGS[4] + Iftf->Strings[INFO_WEB_SITE] +
+    utils.ShowMessageU(KEYSTRINGS[4] + Iftf->Strings[INFO_WEB_SITE] +
                                                               KEYSTRINGS[5]);
     return;
   }
@@ -2675,7 +2681,7 @@ void __fastcall TDTSColor::FileSaveAsItemClick(TObject *Sender)
 
   try
   {
-    if (SaveD.IsEmpty() || !utils->DirectoryExistsW(SaveD))
+    if (SaveD.IsEmpty() || !utils.DirectoryExistsW(SaveD))
       SaveD = DeskDir;
 
     WideString wDefFile;
@@ -2693,13 +2699,13 @@ void __fastcall TDTSColor::FileSaveAsItemClick(TObject *Sender)
     // Run the TSFDlgForm and get a file name...
     // Pass strings in as utf-8... the default filter is chosen based on the
     // extension on sDefFile.
-    WideString wFile = utils->GetSaveFileName(wFilters, wDefFile,
+    WideString wFile = utils.GetSaveFileName(wFilters, wDefFile,
                                                  SaveD, String(DS[39]));
 
     if (wFile.IsEmpty())
       return;
 
-    WideString Ext = utils->ExtractFileExtW(wFile);
+    WideString Ext = utils.ExtractFileExtW(wFile);
 
     if (Ext.IsEmpty())
     {
@@ -2712,8 +2718,8 @@ void __fastcall TDTSColor::FileSaveAsItemClick(TObject *Sender)
     // 3 = .htm
     // 4 = *.*
 
-    if (utils->FileExistsW(wFile))
-      if (utils->ShowMessageU(Handle, DS[160],
+    if (utils.FileExistsW(wFile))
+      if (utils.ShowMessageU(Handle, DS[160],
                 MB_ICONQUESTION|MB_YESNO|MB_DEFBUTTON1) == IDNO)
         return; // Cancel
 
@@ -2732,7 +2738,7 @@ void __fastcall TDTSColor::FileSaveAsItemClick(TObject *Sender)
         bSaveWork = false;
       }
       else
-        utils->ShowMessageU("You can only save .rtf files in the\n\"Processed\" view or the \"RTF Source\" view!");
+        utils.ShowMessageU("You can only save .rtf files in the\n\"Processed\" view or the \"RTF Source\" view!");
     }
     else if (Ext == WideString(".htm") || Ext == WideString(".html")) // *.htm
     {
@@ -2743,29 +2749,29 @@ void __fastcall TDTSColor::FileSaveAsItemClick(TObject *Sender)
         bSaveWork = false;
       }
       else
-        utils->ShowMessageU("There is nothing to save!");
+        utils.ShowMessageU("There is nothing to save!");
     }
     else
       DoSaveFile(wFile); // *.txt, *.*
 
-    SaveD = utils->ExtractFilePathW(wFile);
-    SaveF = utils->ExtractFileNameW(wFile);
+    SaveD = utils.ExtractFilePathW(wFile);
+    SaveF = utils.ExtractFileNameW(wFile);
     bFileSaved = true;
 
     FileSaveItem->Enabled = true;
   }
-  catch(...) { utils->ShowMessageU(String(DS[42])); }
+  catch(...) { utils.ShowMessageU(String(DS[42])); }
 }
 //---------------------------------------------------------------------------
 void __fastcall TDTSColor::DoSaveFile(WideString wFile)
 {
   // If user is in the processed view and clicks "save as"
   // we try to save the IRC stream...
-  if (utils->IsRtfIrcOrgView())
+  if (utils.IsRtfIrcOrgView())
   {
-    utils->PushOnChange(tae);
+    utils.PushOnChange(tae);
 
-    TStringsW* sl = utils->IsOrgView() ? SL_ORG : SL_IRC;
+    TStringsW* sl = utils.IsOrgView() ? SL_ORG : SL_IRC;
 
     if (sl == NULL)
       return;
@@ -2775,13 +2781,13 @@ void __fastcall TDTSColor::DoSaveFile(WideString wFile)
     sl->Assign(nsl);
 
     // Optimize copy
-    utils->Optimize(nsl, false, NO_COLOR);
+    utils.Optimize(nsl, false, NO_COLOR);
 
     nsl->SaveToFile(wFile); // this saves in UTF-8!
 
     delete nsl;
 
-    utils->PopOnChange(tae);
+    utils.PopOnChange(tae);
   }
   else
     SaveFileViaStream(wFile, tae->View == V_RTF_SOURCE ? false : true);
@@ -2796,7 +2802,7 @@ void __fastcall TDTSColor::SaveFileViaStream(WideString wFile, bool SavePlain)
 
   if (MS_Temp != NULL)
   {
-    utils->PushOnChange(tae);
+    utils.PushOnChange(tae);
 
     bool SaveSelected;
 
@@ -2806,7 +2812,7 @@ void __fastcall TDTSColor::SaveFileViaStream(WideString wFile, bool SavePlain)
       SaveSelected = false; // No Selected text
 
     // convert our "textual" <<page>> into a real RTF \page
-    utils->PageBreaksToRtf(tae);
+    utils.PageBreaksToRtf(tae);
 
     // Flags: Stream, SelectionOnly, PlainText,
     //        NoObjects, PlainRTF
@@ -2817,16 +2823,16 @@ void __fastcall TDTSColor::SaveFileViaStream(WideString wFile, bool SavePlain)
       MS_Temp->SetSize(MS_Temp->Size-1); // Don't want a C_NULL in the file!
 
       // Write an ANSI string to a wide file-name
-      utils->WriteStringToFileW(wFile, utils->StreamToStringA(MS_Temp));
+      utils.WriteStringToFileW(wFile, utils.StreamToStringA(MS_Temp));
     }
 
     // restore graphical pagebreaks
-    if (utils->IsRtfView())
+    if (utils.IsRtfView())
       DoShowRtf(false); // put the <<page>> breaks back
     else
       LoadView(tae->View);
 
-    utils->PopOnChange(tae);
+    utils.PopOnChange(tae);
 
     delete MS_Temp;
   }
@@ -2841,7 +2847,7 @@ void __fastcall TDTSColor::PopupTextStateClick(TObject *Sender)
 {
   // View text state at caret
 
-  if (!utils->IsRtfIrcOrgView())
+  if (!utils.IsRtfIrcOrgView())
     return;
 
   TPoint p = tae->CaretPos;
@@ -2849,17 +2855,17 @@ void __fastcall TDTSColor::PopupTextStateClick(TObject *Sender)
   WideString wS;
 
   // get just the line the caret is on of raw codes into wS
-  utils->IsOrgView() ? wS = SL_ORG->GetString(p.y) : wS = SL_IRC->GetString(p.y);
+  utils.IsOrgView() ? wS = SL_ORG->GetString(p.y) : wS = SL_IRC->GetString(p.y);
 
-  if (!utils->IsRtfView())
-    p.x = utils->GetRealIndex(wS, p.x); // V_ORG or V_IRC, need real char index...
+  if (!utils.IsRtfView())
+    p.x = utils.GetRealIndex(wS, p.x); // V_ORG or V_IRC, need real char index...
 
   PUSHSTRUCT ps; // filled by reference in SetStateFlags()
 
-  if (utils->SetStateFlags(wS, p.x, ps) <= 0)
+  if (utils.SetStateFlags(wS, p.x, ps) <= 0)
     return; // error...
 
-  utils->ShowState(ps, p.y+1, p.x+1);
+  utils.ShowState(ps, p.y+1, p.x+1);
 }
 //----------------------------------------------------------------------------
 void __fastcall TDTSColor::EditCut(TObject *Sender)
@@ -2898,7 +2904,7 @@ void __fastcall TDTSColor::BordersClick(TObject *Sender)
     if (bTopEnabled || bSideEnabled)
       return;
 
-    utils->ShowMessageU(String(DS[43]));
+    utils.ShowMessageU(String(DS[43]));
 
     Borders->Checked = false;
   }
@@ -2917,7 +2923,7 @@ void __fastcall TDTSColor::WingdingsClick(TObject *Sender)
         return;
     }
 
-    utils->ShowMessageU(String(DS[44]));
+    utils.ShowMessageU(String(DS[44]));
 
     Wingdings->Checked = false;
   }
@@ -2937,10 +2943,10 @@ void __fastcall TDTSColor::DoProcess(bool bShowStatus)
   if (ReplaceTextForm)
     ReplaceTextForm->FrClose();
 
-  utils->PushOnChange(tae);
+  utils.PushOnChange(tae);
 
   // Get main-edit's undo-info
-  ONCHANGEW oc = utils->GetInfoOC();
+  ONCHANGEW oc = utils.GetInfoOC();
 
   // Add Undo point
   if (TOCUndo != NULL && oc.p != NULL)
@@ -2950,7 +2956,7 @@ void __fastcall TDTSColor::DoProcess(bool bShowStatus)
   }
 
   DoP(bShowStatus);
-  utils->PopOnChange(tae);
+  utils.PopOnChange(tae);
 }
 
 void __fastcall TDTSColor::DoP(bool bShowStatus)
@@ -2961,7 +2967,7 @@ void __fastcall TDTSColor::DoP(bool bShowStatus)
 
   if (bShowStatus && tae->LineCount == 0)
   {
-    utils->ShowMessageU(DS[45]); // "There is no text to process."
+    utils.ShowMessageU(DS[45]); // "There is no text to process."
     tae->SetFocus();
     return;
   }
@@ -2986,7 +2992,7 @@ void __fastcall TDTSColor::DoP(bool bShowStatus)
     {
       if (tae->TextLength > WARNINGLENGTH)
       {
-        if (utils->ShowMessageU(Handle, DS[130],
+        if (utils.ShowMessageU(Handle, DS[130],
                 MB_ICONQUESTION|MB_YESNO|MB_DEFBUTTON2) == IDNO)
         {
           UpdateProcessButtons(tae->View);
@@ -3029,7 +3035,7 @@ void __fastcall TDTSColor::DoP(bool bShowStatus)
         // if V_ORG to preserve SL_ORG!
         if (tae->View == V_ORG)
         {
-          utils->WaitForThread();
+          utils.WaitForThread();
           SL_IRC->Text = SL_ORG->Text;
           tae->View = V_IRC;
         }
@@ -3054,7 +3060,7 @@ void __fastcall TDTSColor::DoP(bool bShowStatus)
         // if V_ORG to preserve SL_ORG!
         if (tae->View == V_ORG)
         {
-          utils->WaitForThread();
+          utils.WaitForThread();
           SL_IRC->Text = SL_ORG->Text;
           tae->View = V_IRC;
         }
@@ -3115,7 +3121,7 @@ void __fastcall TDTSColor::DoP(bool bShowStatus)
       bool bStatusAW = false; // Auto-width initial status is off
 
       // AutoWidth on if V_RTF or V_IRC (makes nested borders neat!)
-      if (utils->IsRtfIrcView() && bTextWasProcessed)
+      if (utils.IsRtfIrcView() && bTextWasProcessed)
         bStatusAW = TempAutoWidth(true);
 
       // Save original position and carat
@@ -3164,7 +3170,7 @@ void __fastcall TDTSColor::DoP(bool bShowStatus)
         }
         else
         {
-          linesInRtfHeader = utils->ConvertIrcToRtf(SL_IRC, MS_RTF, tae, false,
+          linesInRtfHeader = utils.ConvertIrcToRtf(SL_IRC, MS_RTF, tae, false,
                                                           bShowStatus, false);
 
           if (linesInRtfHeader != 0 && MS_RTF != NULL)
@@ -3183,7 +3189,7 @@ void __fastcall TDTSColor::DoP(bool bShowStatus)
 
       if (retVal == 1) // User Cancel
       {
-        utils->ShowMessageU(String(DS[54]));
+        utils.ShowMessageU(String(DS[54]));
 
         LoadView(V_ORG);
       }
@@ -3245,10 +3251,10 @@ void __fastcall TDTSColor::ProcessError(int Error, int DefaultExtendedError)
     {
       // Unable to process
       if (DefaultExtendedError != -1000) // default in prototype main.h
-        utils->ShowMessageU(String(DS[52]) + "[" + String(Error) +
+        utils.ShowMessageU(String(DS[52]) + "[" + String(Error) +
               "," + String(DefaultExtendedError) + "]");
       else
-        utils->ShowMessageU(String(DS[52]) + "[" + String(Error) + "]");
+        utils.ShowMessageU(String(DS[52]) + "[" + String(Error) + "]");
     }
   }
   catch(...)
@@ -3428,7 +3434,7 @@ int __fastcall TDTSColor::ConvertIrcToHtml(bool bShowStatus)
         // style...
         ProcessHtml->bNonBreakingSpaces = false;
 
-        utils->WaitForThread();
+        utils.WaitForThread();
 
         SL_HTM->Clear();
 
@@ -3437,7 +3443,7 @@ int __fastcall TDTSColor::ConvertIrcToHtml(bool bShowStatus)
         sl->Text = SL_IRC->Text;
 
         // Optimize copy
-        utils->Optimize(sl, false, NO_COLOR);
+        utils.Optimize(sl, false, NO_COLOR);
 
         int count = sl->Count;
 
@@ -3590,7 +3596,7 @@ void __fastcall TDTSColor::MaskEditEnter(TObject *Sender)
     if (p->Name == "TabsEdit")
     {
       regTabs = Temp;
-      utils->SetTabs(tae, regTabs);
+      utils.SetTabs(tae, regTabs);
     }
     else if (p->Name == "LMarginEdit")
       regLmargin = Temp;
@@ -3614,7 +3620,7 @@ void __fastcall TDTSColor::MaskEditEnter(TObject *Sender)
     if (p->Name == "TabsEdit")
     {
       Temp = regTabs = TABSINIT;
-      utils->SetTabs(tae, regTabs);
+      utils.SetTabs(tae, regTabs);
     }
     else if (p->Name == "LMarginEdit")
       Temp = regLmargin = LMARGINIT;
@@ -3652,7 +3658,7 @@ void __fastcall TDTSColor::MaskEditDblClick(TObject *Sender)
   if (p->Name == "TabsEdit")
   {
     Temp = regTabs = TABSINIT;
-    utils->SetTabs(tae, regTabs);
+    utils.SetTabs(tae, regTabs);
   }
   else if (p->Name == "LMarginEdit")
     Temp = regLmargin = LMARGINIT;
@@ -3801,13 +3807,13 @@ void __fastcall TDTSColor::MenuSetWingColorClick(TObject *Sender)
 void __fastcall TDTSColor::MenuSetWindowColorClick(TObject *Sender)
 {
   // Set the bg color of the entire TaeEdit Control
-  if (utils != NULL && utils->GetTColorDialog(taeWindowColor))
+  if (utils.GetTColorDialog(taeWindowColor))
     tae->Color = taeWindowColor;
 }
 //---------------------------------------------------------------------------
 void __fastcall TDTSColor::SetFgColor(void)
 {
-  int C = utils->SelectCustomColor(UnicodeString(DS[63]), FgPanel->Color, COLOR_FORM_FG);
+  int C = utils.SelectCustomColor(UnicodeString(DS[63]), FgPanel->Color, COLOR_FORM_FG);
 
   if (C == IRCCANCEL)
     return;
@@ -3816,20 +3822,20 @@ void __fastcall TDTSColor::SetFgColor(void)
   {
     // Load fG_BlendColors
     if (!LoadBlendPresetFromRegistry(fG_BlendColors, GBlendPreset))
-      utils->ShowMessageU(String(DS[221])); // Preset is empty or corrupt
+      utils.ShowMessageU(String(DS[221])); // Preset is empty or corrupt
     else
       fG_BlendPreset = GBlendPreset;
   }
 
   // Invoke color-set effect on selected text
   if (tae->SelLength && tae->LockCounter == 0 &&
-      (C < IRCCANCEL || C == IRCRANDOM || C == IRCHORIZBLEND) && utils->IsRtfIrcOrgView())
+      (C < IRCCANCEL || C == IRCRANDOM || C == IRCHORIZBLEND) && utils.IsRtfIrcOrgView())
   {
     // Invoke color-set effect on selected text
     if (C == IRCRANDOM)
       EParm1 = IRCRANDOM;
     else
-      EParm1 = utils->ConvertColor(C, false);
+      EParm1 = utils.ConvertColor(C, false);
 
     EParm2 = NO_COLOR;
     EParm3 = EM_FG;
@@ -3843,11 +3849,11 @@ void __fastcall TDTSColor::SetFgColor(void)
   }
 
   if (C == Background && C != IRCVERTBLEND && C != IRCHORIZBLEND && C != IRCRANDOM)
-    utils->ShowMessageU(String(DS[64]));
+    utils.ShowMessageU(String(DS[64]));
 
   if (TOCUndo != NULL)
   {
-    ONCHANGEW oc = utils->GetInfoOC(tae, NULL);
+    ONCHANGEW oc = utils.GetInfoOC(tae, NULL);
     TOCUndo->Add(UNDO_FG_COLOR, Foreground, 0, oc, "");
   }
 
@@ -3858,7 +3864,7 @@ void __fastcall TDTSColor::SetFgColor(void)
 //---------------------------------------------------------------------------
 void __fastcall TDTSColor::SetBgColor(void)
 {
-  int C = utils->SelectCustomColor(String(DS[65]), BgPanel->Color, COLOR_FORM_BG);
+  int C = utils.SelectCustomColor(String(DS[65]), BgPanel->Color, COLOR_FORM_BG);
 
   if (C == IRCCANCEL) return;
 
@@ -3867,7 +3873,7 @@ void __fastcall TDTSColor::SetBgColor(void)
   {
     // Load bG_BlendColors
     if (!LoadBlendPresetFromRegistry(bG_BlendColors, GBlendPreset))
-      utils->ShowMessageU(String(DS[221])); // Preset is empty or corrupt
+      utils.ShowMessageU(String(DS[221])); // Preset is empty or corrupt
     else
       bG_BlendPreset = GBlendPreset;
   }
@@ -3881,7 +3887,7 @@ void __fastcall TDTSColor::SetBgColor(void)
     if (C == IRCRANDOM)
       EParm2 = IRCRANDOM;
     else
-      EParm2 = utils->ConvertColor(C, false);
+      EParm2 = utils.ConvertColor(C, false);
 
     EParm1 = NO_COLOR;
     EParm3 = EM_BG;
@@ -3897,14 +3903,14 @@ void __fastcall TDTSColor::SetBgColor(void)
   if (C != IRCVERTBLEND && C != IRCHORIZBLEND && C != IRCRANDOM)
   {
     if (C == Foreground)
-      utils->ShowMessageU(String(DS[66]));
+      utils.ShowMessageU(String(DS[66]));
     else if (C == WingColor)
-      utils->ShowMessageU(String(DS[67]));
+      utils.ShowMessageU(String(DS[67]));
   }
 
   if (TOCUndo != NULL)
   {
-    ONCHANGEW oc = utils->GetInfoOC(tae, NULL);
+    ONCHANGEW oc = utils.GetInfoOC(tae, NULL);
     TOCUndo->Add(UNDO_BG_COLOR, Background, 0, oc, "");
   }
 
@@ -3915,15 +3921,15 @@ void __fastcall TDTSColor::SetBgColor(void)
 //---------------------------------------------------------------------------
 void __fastcall TDTSColor::SetWingColor(void)
 {
-  int C = utils->SelectCustomColor(String(DS[68]), WingColorPanel->Color, COLOR_FORM_WING);
+  int C = utils.SelectCustomColor(String(DS[68]), WingColorPanel->Color, COLOR_FORM_WING);
 
   if (C == IRCCANCEL) return;
 
-  if (Background == C && C != IRCVERTBLEND && C != IRCHORIZBLEND && C != IRCRANDOM) utils->ShowMessageU(String(DS[69]));
+  if (Background == C && C != IRCVERTBLEND && C != IRCHORIZBLEND && C != IRCRANDOM) utils.ShowMessageU(String(DS[69]));
 
   if (TOCUndo != NULL)
   {
-    ONCHANGEW oc = utils->GetInfoOC(tae, NULL);
+    ONCHANGEW oc = utils.GetInfoOC(tae, NULL);
     TOCUndo->Add(UNDO_WING_COLOR, WingColor, 0, oc, "");
   }
 
@@ -3934,7 +3940,7 @@ void __fastcall TDTSColor::SetWingColor(void)
 //---------------------------------------------------------------------------
 void __fastcall TDTSColor::SetBlendBackgroundColor(void)
 {
-  int C = utils->SelectCustomColor(String(DS[65]), BlendColorPanel->Color, COLOR_FORM_BLEND);
+  int C = utils.SelectCustomColor(String(DS[65]), BlendColorPanel->Color, COLOR_FORM_BLEND);
 
   if (C != IRCCANCEL)
   {
@@ -3945,10 +3951,10 @@ void __fastcall TDTSColor::SetBlendBackgroundColor(void)
 //---------------------------------------------------------------------------
 void __fastcall TDTSColor::UpdateColorButtons(void)
 {
-  utils->SetPanelColorAndCaption(FgPanel, Foreground);
-  utils->SetPanelColorAndCaption(BgPanel, Background);
-  utils->SetPanelColorAndCaption(WingColorPanel, WingColor);
-  utils->SetPanelColorAndCaption(BlendColorPanel, BlendBackground);
+  utils.SetPanelColorAndCaption(FgPanel, Foreground);
+  utils.SetPanelColorAndCaption(BgPanel, Background);
+  utils.SetPanelColorAndCaption(WingColorPanel, WingColor);
+  utils.SetPanelColorAndCaption(BlendColorPanel, BlendBackground);
   SetAfgAbgAwcAbl();
 
   // Set title-bar colors the same as color-panels
@@ -3961,7 +3967,7 @@ void __fastcall TDTSColor::UpdateColorButtons(void)
 //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 // Convienient place to put this for now...
   // Get TColor for font from Afg
-//  cColor = utils->GetColor(Afg);
+//  cColor = utils.GetColor(Afg);
   cColor = clBlack;
 }
 //---------------------------------------------------------------------------
@@ -3969,18 +3975,18 @@ void __fastcall TDTSColor::SetAfgAbgAwcAbl(void)
 // Note: ComputeAllColors() sets
 // Afg, Abg, Abl and Awc during text-processing!
 {
-  Abl = utils->ConvertColor(BlendBackground, false);
-  Awc = utils->ConvertColor(WingColor, false);
+  Abl = utils.ConvertColor(BlendBackground, false);
+  Awc = utils.ConvertColor(WingColor, false);
 
   if (IsYahTrinPal() && (Foreground == IRCVERTBLEND || Foreground == IRCHORIZBLEND))
-    Afg = -utils->BlendColorToRgb(FG_BlendColors[0]);
+    Afg = -utils.BlendColorToRgb(FG_BlendColors[0]);
   else
-    Afg = utils->ConvertColor(Foreground, false);
+    Afg = utils.ConvertColor(Foreground, false);
 
   if (IsYahTrinPal() && (Background == IRCVERTBLEND || Background == IRCHORIZBLEND))
     Abg = Abl; // Set bg to blend BG color
   else
-    Abg = utils->ConvertColor(Background, false);
+    Abg = utils.ConvertColor(Background, false);
 }
 //---------------------------------------------------------------------------
 void __fastcall TDTSColor::ProcessButtonClick(TObject *Sender)
@@ -4054,8 +4060,8 @@ void __fastcall TDTSColor::ProcessSongTitleClick(TObject *Sender)
 
     ClearAndFocus(true);
 
-    utils->WaitForThread();
-    SL_ORG->Text = utils->Utf8ToWide(uFmt);
+    utils.WaitForThread();
+    SL_ORG->Text = utils.Utf8ToWide(uFmt);
     LoadView(V_ORG);
 
     // Process text and show RTF
@@ -4123,7 +4129,7 @@ void __fastcall TDTSColor::PauseButtonClick(TObject *Sender)
 //---------------------------------------------------------------------------
 void __fastcall TDTSColor::FileNewItemClick(TObject *Sender)
 {
-  utils->PushOnChange(tae);
+  utils.PushOnChange(tae);
 
   // Clear will add an undo, saving SL_ORG...
   ClearAndFocus(true);
@@ -4146,12 +4152,12 @@ void __fastcall TDTSColor::FileNewItemClick(TObject *Sender)
   bIsColorFractal = false;
 
   // This saves us if the lock-counter ever has unmatched push/pops!
-  utils->InitOnChange(tae, TaeEditChange);
+  utils.InitOnChange(tae, TaeEditChange);
 }
 //---------------------------------------------------------------------------
 void __fastcall TDTSColor::EditClearItemClick(TObject *Sender)
 {
-  utils->PushOnChange(tae);
+  utils.PushOnChange(tae);
 
   // If this gets stuck on (and it shouldn't) this clears it!
   // NOTE: do NOT call this in ClearAndFocus() because it will turn off
@@ -4185,7 +4191,7 @@ void __fastcall TDTSColor::EditClearItemClick(TObject *Sender)
   bIsColorFractal = false;
 
   // This saves us if the lock-counter ever has unmatched push/pops!
-  utils->InitOnChange(tae, TaeEditChange);
+  utils.InitOnChange(tae, TaeEditChange);
 }
 //---------------------------------------------------------------------------
 void __fastcall TDTSColor::Original1Click(TObject *Sender)
@@ -4229,7 +4235,7 @@ void __fastcall TDTSColor::ShowButtonClick(TObject *Sender)
   if (TOCUndo != NULL && (tae->View == V_ORG || tae->View == V_IRC))
   {
     // Add Undo point
-    ONCHANGEW oc = utils->GetInfoOC(tae, NULL);
+    ONCHANGEW oc = utils.GetInfoOC(tae, NULL);
     TOCUndo->Add(UNDO_SHOW, 0, 0, oc, "");
   }
 
@@ -4239,7 +4245,7 @@ void __fastcall TDTSColor::ShowButtonClick(TObject *Sender)
 // Don't name this DoShow() something in the system calls that!
 void __fastcall TDTSColor::DoShowRtf(bool bShowStatus)
 {
-  utils->PushOnChange(tae);
+  utils.PushOnChange(tae);
 
 // Don't think we need to stop play if we process to rtf do we?
 //  try
@@ -4278,7 +4284,7 @@ void __fastcall TDTSColor::DoShowRtf(bool bShowStatus)
 
   try
   {
-    linesInRtfHeader = utils->ConvertIrcToRtf(SL_IRC, MS_RTF, tae, true,
+    linesInRtfHeader = utils.ConvertIrcToRtf(SL_IRC, MS_RTF, tae, true,
                                                       bShowStatus, false);
 
     if (linesInRtfHeader != 0 && MS_RTF != NULL)
@@ -4304,7 +4310,7 @@ void __fastcall TDTSColor::DoShowRtf(bool bShowStatus)
 #endif
   }
 
-  utils->PopOnChange(tae);
+  utils.PopOnChange(tae);
 }
 //---------------------------------------------------------------------------
 void __fastcall TDTSColor::IRC1Click(TObject *Sender)
@@ -4351,7 +4357,7 @@ void __fastcall TDTSColor::RTFSource1Click(TObject *Sender)
 //---------------------------------------------------------------------------
 int __fastcall TDTSColor::SetView(int NewView)
 {
-  utils->PushOnChange(tae);
+  utils.PushOnChange(tae);
 
   bool bHaveText = (tae->LineCount > 0) ? true : false;
 
@@ -4369,7 +4375,7 @@ int __fastcall TDTSColor::SetView(int NewView)
 
     // Set TaeEdit vars used to determine how much text was typed in
     // to maintain a buffer of raw text codes in SL_ORG or SL_IRC
-    utils->SetOldLineVars(tae);
+    utils.SetOldLineVars(tae);
   }
   else
     EffectsMenu->Enabled = false;
@@ -4487,7 +4493,7 @@ int __fastcall TDTSColor::SetView(int NewView)
     EditReplaceItem->Enabled = true;
   }
 
-  utils->PopOnChange(tae);
+  utils.PopOnChange(tae);
 
   return ReturnView;
 }
@@ -4517,11 +4523,11 @@ int __fastcall TDTSColor::LoadView(int NewView)
   if (SpellCheckForm != NULL)
     SpellCheckForm->ScClose();
 
-  utils->PushOnChange(tae);
+  utils.PushOnChange(tae);
 
   int SaveSelStart = tae->SelStart;
   int SaveSelLength = tae->SelLength;
-  int SaveLine = utils->GetLine(tae);
+  int SaveLine = utils.GetLine(tae);
   int SaveView = tae->View;
 
   // Save this so we can return to previous V_ORG line
@@ -4548,7 +4554,7 @@ int __fastcall TDTSColor::LoadView(int NewView)
         if (SL_ORG->Count > 0)
         {
           // Highlight special codes and load into the main edit control
-          utils->EncodeHighlight(SL_ORG, tae);
+          utils.EncodeHighlight(SL_ORG, tae);
 
           tae->Line = orgLinePosition;
 
@@ -4565,9 +4571,9 @@ int __fastcall TDTSColor::LoadView(int NewView)
 
         TStringsW* sl = NULL;
 
-        if (utils->IsIrcView())
+        if (utils.IsIrcView())
           sl = SL_IRC;
-        else if (utils->IsOrgView())
+        else if (utils.IsOrgView())
           sl = SL_ORG;
 
         // If View is Org or Irc adjust cursor...
@@ -4578,20 +4584,20 @@ int __fastcall TDTSColor::LoadView(int NewView)
 
           // Limit the index to the max raw-codes text
           // TextLength counts line-terminators as two chars!
-          int IrcTextLength = utils->GetTextLength(tae);
+          int IrcTextLength = utils.GetTextLength(tae);
 
           if (Idx > IrcTextLength)
             Idx = IrcTextLength;
 
           // Set Cursor in RTF to the same point as cursor in IRC or ORG
-          SaveSelStart = utils->GetRealIndex(sl, Idx);
+          SaveSelStart = utils.GetRealIndex(sl, Idx);
 
           if (tae->SelLength)
           {
             // Map the start and end indices of the IRC or ORG selected text
             // to the text in the buffer.
-            Idx += SaveSelLength + utils->CountCRs(tae->SelTextW);
-            SaveSelLength = utils->GetRealIndex(sl, Idx) - SaveSelStart;
+            Idx += SaveSelLength + utils.CountCRs(tae->SelTextW);
+            SaveSelLength = utils.GetRealIndex(sl, Idx) - SaveSelStart;
           }
         }
         else
@@ -4612,7 +4618,7 @@ int __fastcall TDTSColor::LoadView(int NewView)
           if (SaveView == V_RTF_SOURCE)
             temp -= linesInRtfHeader;
 
-          utils->SetLine(tae, temp);
+          utils.SetLine(tae, temp);
         }
         else
         {
@@ -4635,7 +4641,7 @@ int __fastcall TDTSColor::LoadView(int NewView)
 
         // The text in the rich-edit has one-char per cr/lf pair
         // stored in the stream - so we will need to compensate below
-        int LinesSel = utils->CountCRs(tae->SelTextW);
+        int LinesSel = utils.CountCRs(tae->SelTextW);
 
         WideString SlText = SL_IRC->Text;
         int SlTextLen = SlText.Length();
@@ -4646,11 +4652,11 @@ int __fastcall TDTSColor::LoadView(int NewView)
         // points to the last+1. CI is the same as First but it points
         // to the start of any preceeding formatting codes... "Code Index"
         int iFirst, iLast, CI;
-        utils->GetCodeIndices(SlText, iFirst, iLast, CI, SaveSelStart,
+        utils.GetCodeIndices(SlText, iFirst, iLast, CI, SaveSelStart,
                                                         SaveSelLength);
 
         // Highlight special codes and load to edit-control
-        utils->EncodeHighlight(SlText, tae);
+        utils.EncodeHighlight(SlText, tae);
 
         if (SaveView == V_RTF)
         {
@@ -4693,7 +4699,7 @@ int __fastcall TDTSColor::LoadView(int NewView)
           if (SaveView == V_RTF_SOURCE)
             temp -= linesInRtfHeader;
 
-          utils->SetLine(tae, temp);
+          utils.SetLine(tae, temp);
         }
         else
         {
@@ -4726,7 +4732,7 @@ int __fastcall TDTSColor::LoadView(int NewView)
           if (SaveView == V_RTF_SOURCE)
             temp -= linesInRtfHeader;
 
-          utils->SetLine(tae, temp);
+          utils.SetLine(tae, temp);
         }
 
       break;
@@ -4738,7 +4744,7 @@ int __fastcall TDTSColor::LoadView(int NewView)
           if (SL_IRC->Count > 0 && (tae->Modified || MS_RTF->Size == 0))
           {
             // don't display status
-            linesInRtfHeader = utils->ConvertIrcToRtf(SL_IRC, MS_RTF, tae, false,
+            linesInRtfHeader = utils.ConvertIrcToRtf(SL_IRC, MS_RTF, tae, false,
                                                                 false, false);
 
             if (linesInRtfHeader != 0 && MS_RTF != NULL)
@@ -4752,7 +4758,7 @@ int __fastcall TDTSColor::LoadView(int NewView)
               // Back to other view's line #
               int temp = SaveLine+linesInRtfHeader;
 
-              utils->SetLine(tae, temp);
+              utils.SetLine(tae, temp);
             }
           }
           else if (MS_RTF->Size > 0)
@@ -4766,7 +4772,7 @@ int __fastcall TDTSColor::LoadView(int NewView)
             // Back to other view's line #
             int temp = SaveLine+linesInRtfHeader;
 
-            utils->SetLine(tae, temp);
+            utils.SetLine(tae, temp);
           }
           else if (tae->View != V_RTF_SOURCE && tae->LineCount > 0)
           {
@@ -4783,7 +4789,7 @@ int __fastcall TDTSColor::LoadView(int NewView)
             // Back to other view's line #
             int temp = SaveLine+linesInRtfHeader;
 
-            utils->SetLine(tae, temp);
+            utils.SetLine(tae, temp);
           }
         }
 
@@ -4804,7 +4810,7 @@ int __fastcall TDTSColor::LoadView(int NewView)
 
   tae->Modified = false;
 
-  utils->PopOnChange(tae);
+  utils.PopOnChange(tae);
 
   return tae->View;
 }
@@ -4838,7 +4844,7 @@ void __fastcall TDTSColor::UpdateProcessButtons(int View)
 void __fastcall TDTSColor::ClearAndFocus(bool bClearSL, bool bLeaveOrg)
 // bLeaveOrg defaults to false, it will retain the V_ORG view
 {
-  utils->PushOnChange(tae);
+  utils.PushOnChange(tae);
 
   // Clears tae edit-control unless view is V_ORG and bLeaveOrg
   // is set...
@@ -4862,7 +4868,7 @@ void __fastcall TDTSColor::ClearAndFocus(bool bClearSL, bool bLeaveOrg)
   if (bClearSL)
   {
     // Have to wait for any pending undos to finish being added!
-    utils->WaitForThread();
+    utils.WaitForThread();
 
     // Clear undo objects except UNDO_CLEARs
     if (TOCUndo != NULL)
@@ -4872,7 +4878,7 @@ void __fastcall TDTSColor::ClearAndFocus(bool bClearSL, bool bLeaveOrg)
       TOCUndo->ClearMost();
 
       // Save whatever we were working on (Add undo object)
-      ONCHANGEW oc = utils->GetInfoOC();
+      ONCHANGEW oc = utils.GetInfoOC();
       if (oc.p != NULL)
       {
         // here we want to save either the SL_IRC or SL_ORG stringlist
@@ -4910,7 +4916,7 @@ void __fastcall TDTSColor::ClearAndFocus(bool bClearSL, bool bLeaveOrg)
   tae->Modified = false;
   tae->SelStart = 0;
 
-  utils->PopOnChange(tae);
+  utils.PopOnChange(tae);
 }
 //---------------------------------------------------------------------------
 int __fastcall TDTSColor::Outside(double rec, double imc, int k)
@@ -4943,22 +4949,22 @@ bool __fastcall TDTSColor::LoadLines(TMemoryStream* ms, bool bClearSL, bool bPla
   try
   {
     Application->ProcessMessages();
-    utils->PushOnChange(tae);
+    utils.PushOnChange(tae);
 
     bool bTemp = bTextWasProcessed; // messy save of flag
     ClearAndFocus(bClearSL);
     bTextWasProcessed = bTemp;
 
-    utils->SetRichEditFont(tae);
+    utils.SetRichEditFont(tae);
     tae->PlainText = bPlainText;
     ms->Position = 0;
     tae->Lines->LoadFromStream(ms);
-    utils->PopOnChange(tae);
+    utils.PopOnChange(tae);
     Application->ProcessMessages();
   }
   catch(...)
   {
-    utils->ShowMessageU(String(DS[95]) + "LoadLines()");
+    utils.ShowMessageU(String(DS[95]) + "LoadLines()");
     return false;
   }
 
@@ -4974,21 +4980,21 @@ bool __fastcall TDTSColor::LoadLines(TStringsW* sl, bool bClearSL, bool bPlainTe
   try
   {
     Application->ProcessMessages();
-    utils->PushOnChange(tae);
+    utils.PushOnChange(tae);
 
     bool bTemp = bTextWasProcessed; // messy save of flag
     ClearAndFocus(bClearSL);
     bTextWasProcessed = bTemp;
 
-    utils->SetRichEditFont(tae);
-    utils->LoadFromStringList(tae, sl, bPlainText);
+    utils.SetRichEditFont(tae);
+    utils.LoadFromStringList(tae, sl, bPlainText);
 
-    utils->PopOnChange(tae);
+    utils.PopOnChange(tae);
     Application->ProcessMessages();
   }
   catch(...)
   {
-    utils->ShowMessageU(String(DS[95]) + "LoadLines()");
+    utils.ShowMessageU(String(DS[95]) + "LoadLines()");
     return false;
   }
 
@@ -5009,7 +5015,7 @@ bool __fastcall TDTSColor::LoadLines(WideString wFile, bool bClearSL, bool bPlai
   {
     Application->ProcessMessages();
 
-    utils->WaitForThread();
+    utils.WaitForThread();
 
     SL_ORG->LoadFromFile(wFile, bIsAnsiFile); // Load TStringsW
 
@@ -5026,12 +5032,12 @@ bool __fastcall TDTSColor::LoadLines(WideString wFile, bool bClearSL, bool bPlai
     //"cannot convert it to the native IRC code format\n"
     //"YahCoLoRiZe works with normally. There is no\n"
     //"converter at this time!", // 170
-    if (utils->ShowMessageU(Handle, DS[170],
+    if (utils.ShowMessageU(Handle, DS[170],
                       MB_ICONQUESTION|MB_OKCANCEL|MB_DEFBUTTON2) == IDCANCEL)
       return false;
 
     // Load memory-stream via a Unicode filename
-    AnsiString sTemp = utils->ReadStringFromFileW(wFile);
+    AnsiString sTemp = utils.ReadStringFromFileW(wFile);
 
     // this flag does nothing right now for a .rtf!
     //if (bIsAnsiFile)...
@@ -5052,17 +5058,17 @@ bool __fastcall TDTSColor::LoadLines(WideString wFile, bool bClearSL, bool bPlai
 void __fastcall TDTSColor::RestoreFactorySettings1Click(TObject *Sender)
 {
   // "Restore Defaults?", // 168
-  if (utils->ShowMessageU(Handle, DS[168],
+  if (utils.ShowMessageU(Handle, DS[168],
                 MB_ICONQUESTION|MB_YESNO|MB_DEFBUTTON2) == IDYES)
   {
     ClearAndFocus(true);
-    utils->PushOnChange(tae);
+    utils.PushOnChange(tae);
     InitAllSettings(true); // Init OnChange
 
     if (ThreadOnChange)
       ThreadOnChange->Flush();
 
-    utils->InitOnChange(tae, TaeEditChange);
+    utils.InitOnChange(tae, TaeEditChange);
   }
 }
 //---------------------------------------------------------------------------
@@ -5080,19 +5086,19 @@ void __fastcall TDTSColor::MenuShowHexClick(TObject *Sender)
 //!!!!!!!!!!!!!!!!!
 //  // Code to convert DefaultStrings table-sections to utf-8 ANSI on the clipboard...
 //  String sOut;
-//  sOut += "\"" + utils->AnsiToUtf8(String(TB)) + "\",\r\n";
-//  sOut += "\"" + utils->AnsiToUtf8(String(LB)) + "\",\r\n";
-//  sOut += "\"" + utils->AnsiToUtf8(String(RB)) + "\",\r\n";
+//  sOut += "\"" + utils.AnsiToUtf8(String(TB)) + "\",\r\n";
+//  sOut += "\"" + utils.AnsiToUtf8(String(LB)) + "\",\r\n";
+//  sOut += "\"" + utils.AnsiToUtf8(String(RB)) + "\",\r\n";
 //  for (int ii = 1; ii < 23; ii++)
-//    sOut += "\"" + utils->AnsiToUtf8(String(WINGEDITMAINMENU[ii])) + "\",\r\n";
-//  utils->SetClipboardText(sOut);
+//    sOut += "\"" + utils.AnsiToUtf8(String(WINGEDITMAINMENU[ii])) + "\",\r\n";
+//  utils.SetClipboardText(sOut);
 
 #if DIAG_SHOWHEX_IS_UTF8
     // diagnostic to paste raw ANSI text after clicking Tools->ShowHex
     // to convert a block of UTF-8 text to ANSI codes for DefaultStrings.cpp!
   DisplayAnsiToUtf8();
 #else
-  utils->ShowHex();
+  utils.ShowHex();
 #endif
 }
 //---------------------------------------------------------------------------
@@ -5104,7 +5110,7 @@ void __fastcall TDTSColor::Help1Click(TObject *Sender)
 
   // test of tae->GetSelTextBufW and other functions... to test parts of it,
   // use both an rtf, irc and html or rtf source view mode
-  //utils->ShowMessageW(utils->MoveMainTextToString());
+  //utils.ShowMessageW(utils.MoveMainTextToString());
 
   // diagnostic
   //ShowMessage(tae->TextRtf);
@@ -5114,7 +5120,7 @@ void __fastcall TDTSColor::PrinterPageSetupClick(TObject *Sender)
 {
   if (tae->LineCount == 0)
   {
-    utils->ShowMessageU(String(DS[80]));
+    utils.ShowMessageU(String(DS[80]));
     return;
   }
 
@@ -5136,7 +5142,7 @@ void __fastcall TDTSColor::PrinterPageSetupClick(TObject *Sender)
         // etc.
       }
       else
-        utils->ShowMessageU(String(FN[14])); // "TDTSTrinity"
+        utils.ShowMessageU(String(FN[14])); // "TDTSTrinity"
     }
     catch(...)
     {
@@ -5154,7 +5160,7 @@ void __fastcall TDTSColor::PrinterPageSetupClick(TObject *Sender)
 //  if (tae->YcPrint)
 //  {
 //    if (tae->LineCount == 0)
-//      utils->ShowMessageU(String(DS[80]));
+//      utils.ShowMessageU(String(DS[80]));
 //    else
 //    {
 //      TYcPageSetupDialog* p = new TYcPageSetupDialog(this);
@@ -5164,11 +5170,11 @@ void __fastcall TDTSColor::PrinterPageSetupClick(TObject *Sender)
 //        p->Execute(tae);
 //        delete p;
 //      }
-//      else utils->ShowMessageU(String(FN[14])); // "TDTSTrinity"
+//      else utils.ShowMessageU(String(FN[14])); // "TDTSTrinity"
 //    }
 //  }
 //  else
-//    utils->ShowMessageU(String(FN[14])); // "TDTSTrinity"
+//    utils.ShowMessageU(String(FN[14])); // "TDTSTrinity"
 }
 //---------------------------------------------------------------------------
 void __fastcall TDTSColor::PrintPreview1Click(TObject *Sender)
@@ -5192,7 +5198,7 @@ void __fastcall TDTSColor::PrintPreview1Click(TObject *Sender)
 
       if (tae->YcPrint && YcPreviewForm)
       {
-        utils->PushOnChange(tae);
+        utils.PushOnChange(tae);
 
         // Displayed in the dialog...
         WideString wTemp;
@@ -5201,8 +5207,8 @@ void __fastcall TDTSColor::PrintPreview1Click(TObject *Sender)
         else if (bFileOpened)
           wTemp = OpenD + OpenF;
 
-        if (!wTemp.IsEmpty() && utils->FileExistsW(wTemp))
-          tae->FileName = utils->GetAnsiPathW(wTemp);
+        if (!wTemp.IsEmpty() && utils.FileExistsW(wTemp))
+          tae->FileName = utils.GetAnsiPathW(wTemp);
         else
           tae->FileName = "";
 
@@ -5219,7 +5225,7 @@ void __fastcall TDTSColor::PrintPreview1Click(TObject *Sender)
         YcPreviewForm->CorrectionY = regWysiwygPrintScaleY;
 
         // replace \pagebreak strings with \page for FormatRange to work...
-        utils->PageBreaksToRtf(tae);
+        utils.PageBreaksToRtf(tae);
 
     ReShow:
         TModalResult mr = YcPreviewForm->Execute(tae);
@@ -5245,12 +5251,12 @@ void __fastcall TDTSColor::PrintPreview1Click(TObject *Sender)
 
         SL_HTM->Clear(); // clear so HTML gets re-generated
 
-        if (utils->IsRtfView())
+        if (utils.IsRtfView())
           DoShowRtf(false); // put the \pagebreak strings back
         else
           LoadView(tae->View);
 
-        utils->PopOnChange(tae);
+        utils.PopOnChange(tae);
       }
       else
         ShowMessage("Unable to start print-support!");
@@ -5277,7 +5283,7 @@ void __fastcall TDTSColor::FilePrintClick(TObject *Sender)
   if (PK->ComputeDaysRemaining() <= 0)
   {
     //"Visit https://github.com/dxzl/YahCoLoRiZe/releases to to download..."
-    utils->ShowMessageU(KEYSTRINGS[4] +
+    utils.ShowMessageU(KEYSTRINGS[4] +
             Iftf->Strings[INFO_WEB_SITE] + KEYSTRINGS[5]);
     return;
   }
@@ -5289,14 +5295,14 @@ void __fastcall TDTSColor::FilePrintClick(TObject *Sender)
   if (tae->YcPrint)
   {
     if (tae->LineCount == 0)
-      utils->ShowMessageU(String(DS[80]));
+      utils.ShowMessageU(String(DS[80]));
     else
     {
       TYcPrintDialog* p = new TYcPrintDialog(tae);
 
       if (p != NULL)
       {
-        utils->PushOnChange(tae);
+        utils.PushOnChange(tae);
 
         // Displayed in the dialog...
         WideString wTemp;
@@ -5305,32 +5311,32 @@ void __fastcall TDTSColor::FilePrintClick(TObject *Sender)
         else if (bFileOpened)
           wTemp = OpenD + OpenF;
 
-        if (!wTemp.IsEmpty() && utils->FileExistsW(wTemp))
-          tae->FileName = utils->GetAnsiPathW(wTemp);
+        if (!wTemp.IsEmpty() && utils.FileExistsW(wTemp))
+          tae->FileName = utils.GetAnsiPathW(wTemp);
         else
           tae->FileName = "";
 
         // replace \pagebreak strings with \page for FormatRange to work...
-        utils->PageBreaksToRtf(tae);
+        utils.PageBreaksToRtf(tae);
 
         // This will set: FRichEditPrint->RendDC = Printer()->Handle;
         p->TaeExecute(tae->FileName);
 
         delete p;
 
-        if (utils->IsRtfView())
+        if (utils.IsRtfView())
           DoShowRtf(false); // put the \pagebreak strings back
         else
           LoadView(tae->View);
 
-        utils->PopOnChange(tae);
+        utils.PopOnChange(tae);
       }
       else
-        utils->ShowMessageU(String(FN[14])); // "TDTSTrinity"
+        utils.ShowMessageU(String(FN[14])); // "TDTSTrinity"
     }
   }
   else
-    utils->ShowMessageU(String(FN[14])); // "TDTSTrinity"
+    utils.ShowMessageU(String(FN[14])); // "TDTSTrinity"
 }
 //---------------------------------------------------------------------------
 void __fastcall TDTSColor::MenuColorFractalClick(TObject *Sender)
@@ -5360,7 +5366,7 @@ void __fastcall TDTSColor::GenColorFract(void)
 
   int OldColor = -1;
 
-  utils->PushOnChange(tae);
+  utils.PushOnChange(tae);
 
   TYcPosition* p;
 
@@ -5379,7 +5385,7 @@ void __fastcall TDTSColor::GenColorFract(void)
   {
     TextLine.Empty();
 
-    utils->WriteColors(Afg, Abg, TextLine);
+    utils.WriteColors(Afg, Abg, TextLine);
 
     for (int x = 0; x < LineWidth; x++)
     {
@@ -5424,7 +5430,7 @@ void __fastcall TDTSColor::GenColorFract(void)
     SL_ORG->Add(TextLine);
   }
 
-  utils->PopOnChange(tae);
+  utils.PopOnChange(tae);
 
   LoadView(V_ORG);
   DoProcess(true);
@@ -5471,15 +5477,15 @@ void __fastcall TDTSColor::TaeEditMouseDown(TObject *Sender,
   // any you can't see what you type.
   if (tae->View == V_RTF)
   {
-    if (utils->IsDarkColor(Abg))
+    if (utils.IsDarkColor(Abg))
     {
 //      tae->DefaultRtfFileFont->Color = clWhite;
       tae->SelAttributes->Color = clWhite;
     }
     else
     {
-//      tae->DefaultRtfFileFont->Color = utils->YcToTColor(Afg);
-      tae->SelAttributes->Color = utils->YcToTColor(Afg);
+//      tae->DefaultRtfFileFont->Color = utils.YcToTColor(Afg);
+      tae->SelAttributes->Color = utils.YcToTColor(Afg);
     }
   }
 
@@ -5541,7 +5547,7 @@ void __fastcall TDTSColor::TaeEditKeyPress(TObject *Sender, char &Key)
   else if (Key == C_TAB)
   {
     int SaveSelStart = tae->SelStart;
-    PASTESTRUCT ps = TaeEditPaste(false, utils->GetTabStringW(regTabs));
+    PASTESTRUCT ps = TaeEditPaste(false, utils.GetTabStringW(regTabs));
 
     if (ps.error == 0)
       tae->SelStart = SaveSelStart+ps.delta;
@@ -5691,7 +5697,7 @@ void __fastcall TDTSColor::PrintShortLineCount(void)
   else if (tae->View == V_ORG)
     CharCt = SL_ORG->TotalLength;
   else
-    CharCt = utils->GetTextLength(tae);
+    CharCt = utils.GetTextLength(tae);
 
   // Line Count
   StatusBar->Panels->Items[SB_COUNT]->Text = String(DS[97]) + " " +
@@ -5706,17 +5712,17 @@ void __fastcall TDTSColor::PrintLineCount(void)
     return;
 
   int Width, CharCt;
-  int LineCt = utils->GetLine(tae);
+  int LineCt = utils.GetLine(tae);
 
   String sCaption;
 
-  if (utils->IsRtfIrcOrgView())
+  if (utils.IsRtfIrcOrgView())
   {
     TStringsW* sl = (tae->View == V_ORG) ? SL_ORG : SL_IRC;
 
     if (LineCt < sl->Count)
     {
-      Width = utils->GetRealLineLengthFromSL(sl, LineCt);
+      Width = utils.GetRealLineLengthFromSL(sl, LineCt);
       CharCt = sl->GetString(LineCt).Length();
 
       sCaption = String(DS[115]) + " " + String(LineCt+1) +
@@ -5742,7 +5748,7 @@ void __fastcall TDTSColor::MenuRandomNumClick(TObject *Sender)
   // ReInit random number generator
   randomize();
 
-  utils->ShowMessageU(String(DS[82]));
+  utils.ShowMessageU(String(DS[82]));
 }
 //---------------------------------------------------------------------------
 AnsiString __fastcall TDTSColor::YahELiteRandomColor(bool StrType, bool bRgbRand)
@@ -5773,7 +5779,7 @@ void __fastcall TDTSColor::MenuChangeColorPaletteClick(TObject *Sender)
 {
   TColorDialog* ColorDialog = new TColorDialog(this);
 
-  utils->SetCustomColorsDialogFromPalette(ColorDialog);
+  utils.SetCustomColorsDialogFromPalette(ColorDialog);
 
   // Show user-defined color-dialog
   ColorDialog->Options << cdFullOpen;
@@ -5786,7 +5792,7 @@ void __fastcall TDTSColor::MenuChangeColorPaletteClick(TObject *Sender)
     return; // Cancel-button
   }
 
-  utils->GetPaletteFromCustomColorsDialog(ColorDialog);
+  utils.GetPaletteFromCustomColorsDialog(ColorDialog);
 
   UpdateColorButtons();
   delete ColorDialog;
@@ -5800,13 +5806,13 @@ void __fastcall TDTSColor::FavoriteColorsClick(TObject *Sender)
   {
     if (IsYahTrinPal())
     {
-      Foreground = utils->RgbToYc(FavColorsForm->FgColor);
-      Background = utils->RgbToYc(FavColorsForm->BgColor);
+      Foreground = utils.RgbToYc(FavColorsForm->FgColor);
+      Background = utils.RgbToYc(FavColorsForm->BgColor);
     }
     else // need to find closest palette match to rgb color if IRC!
     {
-      Foreground = utils->ResolveRGBLocal(-FavColorsForm->FgColor);
-      Background = utils->ResolveRGBLocal(-FavColorsForm->BgColor);
+      Foreground = utils.ResolveRGBLocal(-FavColorsForm->FgColor);
+      Background = utils.ResolveRGBLocal(-FavColorsForm->BgColor);
     }
     UpdateColorButtons(); // Panel needs to be painted, set Afg, Abg, Etc.
   }
@@ -5887,7 +5893,7 @@ void __fastcall TDTSColor::PageBreak1Click(TObject *Sender)
     DoShowRtf(false);
 */
 
-  utils->PushOnChange(tae);
+  utils.PushOnChange(tae);
 
   TPoint p = tae->CaretPos;
   TStringsW* sl;
@@ -5896,16 +5902,16 @@ void __fastcall TDTSColor::PageBreak1Click(TObject *Sender)
 
   tae->SelLength = 0; // deselect text
 
-  if (utils->IsRtfIrcOrgView())
+  if (utils.IsRtfIrcOrgView())
   {
-    sl = utils->IsOrgView() ? SL_ORG : SL_IRC;
+    sl = utils.IsOrgView() ? SL_ORG : SL_IRC;
 
     // get only the raw-codes line the caret is on - the line-index is the same
     // in both the RTF view and in the SL_IRC string-list...
     wS = sl->GetString(p.y);
 
-    if (utils->IsRtfView())
-      idx = utils->GetCodeIndex(wS, p.x, true);
+    if (utils.IsRtfView())
+      idx = utils.GetCodeIndex(wS, p.x, true);
     else
       idx = p.x;
   }
@@ -5953,13 +5959,13 @@ void __fastcall TDTSColor::PageBreak1Click(TObject *Sender)
   WideString wFormFeed = PAGE_BREAK;
 
   if (bInsertBefore)
-    wFormFeed = utils->InsertW(wFormFeed, CRLF, 1);
+    wFormFeed = utils.InsertW(wFormFeed, CRLF, 1);
 
   if (bInsertAfter)
   {
     // get state
     WideString wState;
-    utils->GetState(wS, wState, idx, true, false, false);
+    utils.GetState(wS, wState, idx, true, false, false);
     wFormFeed += CRLF + wState;
   }
 
@@ -5972,7 +5978,7 @@ void __fastcall TDTSColor::PageBreak1Click(TObject *Sender)
   {
     // Insert cr/lf + page-break + cr/lf into line p.y at index p.x
     // form a line that is allowed to have cr/lfs
-    wS = utils->InsertW(wS, wFormFeed, idx+1);
+    wS = utils.InsertW(wS, wFormFeed, idx+1);
 
     // flatten wS into the string-list (will add new-lines and add state
     // at cr/lfs)
@@ -5981,7 +5987,7 @@ void __fastcall TDTSColor::PageBreak1Click(TObject *Sender)
     if (TOCUndo != NULL)
     {
       // Add Undo
-      ONCHANGEW oc = utils->GetInfoOC();
+      ONCHANGEW oc = utils.GetInfoOC();
       TOCUndo->Add(UNDO_INS, idx, ptDelta.x, oc, "");
     }
   }
@@ -6023,13 +6029,13 @@ void __fastcall TDTSColor::PageBreak1Click(TObject *Sender)
 //  tae->SelTextW = wFormFeed;
 
   // details... details...
-  utils->SetOldLineVars(tae);
+  utils.SetOldLineVars(tae);
   tae->Modified = true;
   bSaveWork = true;
   bTextWasProcessed = false;
   PrintShortLineCount();
 
-  utils->PopOnChange(tae);
+  utils.PopOnChange(tae);
 }
 //---------------------------------------------------------------------------
 void __fastcall TDTSColor::CtrlPushClick(TObject *Sender)
@@ -6078,7 +6084,7 @@ void __fastcall TDTSColor::FontType1Click(TObject *Sender)
     if (IsRawCodeMode())
     {
       int SaveSelStart = tae->SelStart;
-      WideString sTemp = utils->FontTypeToString(iType);
+      WideString sTemp = utils.FontTypeToString(iType);
       TaeEditPaste(true, sTemp);
       tae->SelStart = SaveSelStart + sTemp.Length();
     }
@@ -6106,7 +6112,7 @@ void __fastcall TDTSColor::FontSize1Click(TObject *Sender)
     if (IsRawCodeMode())
     {
       int SaveSelStart = tae->SelStart;
-      WideString sTemp = utils->FontSizeToString(iSize);
+      WideString sTemp = utils.FontSizeToString(iSize);
       TaeEditPaste(true, sTemp);
       tae->SelStart = SaveSelStart + sTemp.Length();
     }
@@ -6136,13 +6142,13 @@ PUSHSTRUCT __fastcall TDTSColor::GetState(void)
   if (!S.IsEmpty())
   {
     if (tae->View == V_RTF)
-      utils->SetStateFlags(S, iColumn, ps);
+      utils.SetStateFlags(S, iColumn, ps);
     else if (tae->View == V_ORG || tae->View == V_IRC || tae->View == V_OFF)
     {
       if (tae->SelLength > 0)
       {
-        int iReal = utils->GetRealIndex(S, iColumn);
-        utils->SetStateFlags(S, iReal, ps);
+        int iReal = utils.GetRealIndex(S, iColumn);
+        utils.SetStateFlags(S, iReal, ps);
       }
     }
   }
@@ -6176,7 +6182,7 @@ void __fastcall TDTSColor::MenuEmoticonsClick(TObject *Sender)
   }
   catch(...)
   {
-    utils->ShowMessageU("Unable to open Emoticons!");
+    utils.ShowMessageU("Unable to open Emoticons!");
   }
 }
 //---------------------------------------------------------------------------
@@ -6252,7 +6258,7 @@ void __fastcall TDTSColor::ComputeAllColors(int ActualLineCount, int IRCLineCoun
       Temp = FG_BlendEngine->Blend(IRCLineCount);
 
     if (Temp == BLEND_ERR1)
-      Afg = -utils->BlendColorToRgb(FG_BlendEngine->EBC[0]); // first blend button that's enabled
+      Afg = -utils.BlendColorToRgb(FG_BlendEngine->EBC[0]); // first blend button that's enabled
     else if (Temp != NO_COLOR)
       Afg = Temp;
   }
@@ -6261,14 +6267,14 @@ void __fastcall TDTSColor::ComputeAllColors(int ActualLineCount, int IRCLineCoun
     // Get next random color
     for (int timer = 0; timer < 16; timer++)
     {
-      Afg = utils->ConvertColor(Foreground, bRgbRandFG);
+      Afg = utils.ConvertColor(Foreground, bRgbRandFG);
 
       if (Afg != PrevFG)
         break;
     }
   }
   else
-    Afg = utils->ConvertColor(Foreground, bRgbRandFG);
+    Afg = utils.ConvertColor(Foreground, bRgbRandFG);
 
   PrevFG = Afg;
 
@@ -6292,7 +6298,7 @@ void __fastcall TDTSColor::ComputeAllColors(int ActualLineCount, int IRCLineCoun
     // Get next random color
     for (int timer = 0; timer < 16; timer++)
     {
-      Abg = utils->ConvertColor(Background, bRgbRandBG);
+      Abg = utils.ConvertColor(Background, bRgbRandBG);
 
       if (Abg != PrevBG && Abg != Afg)
         break;
@@ -6301,7 +6307,7 @@ void __fastcall TDTSColor::ComputeAllColors(int ActualLineCount, int IRCLineCoun
   else if (Background == IRCHORIZBLEND)
     Abg = Abl; // Set bg to blend BG color
   else
-    Abg = utils->ConvertColor(Background, bRgbRandBG);
+    Abg = utils.ConvertColor(Background, bRgbRandBG);
 
   PrevBG = Abg;
 
@@ -6310,14 +6316,14 @@ void __fastcall TDTSColor::ComputeAllColors(int ActualLineCount, int IRCLineCoun
   {
     for (int timer = 0; timer < 16; timer++)
     {
-      Awc = utils->ConvertColor(WingColor, bRgbRandWing);
+      Awc = utils.ConvertColor(WingColor, bRgbRandWing);
 
       if (Awc != PrevAwc && Awc != Afg && Awc != Abg)
         break;
     }
   }
   else
-    Awc = utils->ConvertColor(WingColor, bRgbRandWing);
+    Awc = utils.ConvertColor(WingColor, bRgbRandWing);
 
   PrevAwc = Awc;
 }
@@ -6330,7 +6336,7 @@ void __fastcall TDTSColor::LoadBlendMemoryFromDefaultPreset(const int Init[], Bl
   {
     for (int ii = 0; ii < MAXBLENDCOLORS; ii++)
     {
-      BC[ii] = utils->RgbToBlendColor(Init[ii]);
+      BC[ii] = utils.RgbToBlendColor(Init[ii]);
       BC[ii].enabled = true;
     }
   }
@@ -6415,7 +6421,7 @@ void __fastcall TDTSColor::GetRegInfo(bool RestoreFactory)
 
   this->Cli = DEF_CLIENT;
 
-  Default_Playfile = utils->GetTempFileW(U16(FN[6]));
+  Default_Playfile = utils.GetTempFileW(U16(FN[6]));
 
   bPadSpaces = NO_SPACES;
   bUseDLL = USE_DLL;
@@ -6515,7 +6521,7 @@ void __fastcall TDTSColor::GetRegInfo(bool RestoreFactory)
 
   bNewInstallation = false;
 
-  utils->SetDefaultFont(tae);
+  utils.SetDefaultFont(tae);
 
   try
   {
@@ -6530,7 +6536,7 @@ void __fastcall TDTSColor::GetRegInfo(bool RestoreFactory)
 
       // Add defaults to registry
       SaveBlendPresets();
-      utils->ShowMessageU(String(DS[92]));
+      utils.ShowMessageU(String(DS[92]));
 
       // Reload everything (and do any required setup)
       ReadFromRegistry();
@@ -6551,10 +6557,10 @@ void __fastcall TDTSColor::GetRegInfo(bool RestoreFactory)
           // Add defaults to registry
           SaveBlendPresets();
 
-          utils->ShowMessageU(String(DS[93]));
+          utils.ShowMessageU(String(DS[93]));
 #endif
           // Save old settings?
-          if (utils->ShowMessageU(Handle, DS[94],
+          if (utils.ShowMessageU(Handle, DS[94],
                         MB_ICONQUESTION|MB_YESNO|MB_DEFBUTTON1) == IDYES)
           {
             // Force new revision and play buffer size
@@ -6603,7 +6609,7 @@ void __fastcall TDTSColor::GetRegInfo(bool RestoreFactory)
   }
   catch(ERegistryException &E)
   {
-    utils->ShowMessageU(String(DS[95]) + "GetRegInfo()");
+    utils.ShowMessageU(String(DS[95]) + "GetRegInfo()");
     delete MyRegistry;
     return;
   }
@@ -6815,7 +6821,7 @@ bool __fastcall TDTSColor::ReadFromRegistry(void)
       if (bErr) // not there?
         continue;
 
-      if (sRead.IsEmpty() || utils->IsAllSpaces(sRead)) // invalid?
+      if (sRead.IsEmpty() || utils.IsAllSpaces(sRead)) // invalid?
       {
         pReg->DeleteValue(sName); // Delete invalid slots...
         continue;
@@ -6846,7 +6852,7 @@ bool __fastcall TDTSColor::ReadFromRegistry(void)
 
     GDictionary = RegReadStringW(pReg, "Dict", DEF_DICTIONARY);
 
-    sTemp = utils->WideToUtf8(utils->GetTempFileW(U16(FN[6])));
+    sTemp = utils.WideToUtf8(utils.GetTempFileW(U16(FN[6])));
     Default_Playfile = RegReadStringW(pReg, "Default_Playfile", sTemp.c_str());
 
     // Get the client index from registry
@@ -6869,19 +6875,19 @@ bool __fastcall TDTSColor::ReadFromRegistry(void)
     this->cFont = RegReadStringW(pReg, "CFont", USER_DEF_FONT);
 
     int ii;
-    wTemp = utils->LowerCaseW(cFont);
+    wTemp = utils.LowerCaseW(cFont);
 
     for (ii = 0; ii < FONTITEMS; ii++)
-      if (utils->LowerCaseW(U16(FONTS[ii])) == wTemp)
+      if (utils.LowerCaseW(U16(FONTS[ii])) == wTemp)
         break;
 
     // Can't find the font?
     if (ii == FONTITEMS)
       this->cFont = U16(USER_DEF_FONT);
 
-    cType = utils->GetLocalFontIndex(cFont);
+    cType = utils.GetLocalFontIndex(cFont);
 
-    utils->SetRichEditFont(tae);
+    utils.SetRichEditFont(tae);
 
     GMaxPlayXmitBytes = RegReadInt(pReg, "PlayBufSize", DEF_PLAYBUFSIZE);
     GLineBurstSize = RegReadInt(pReg, "LineBurstSize", LINEBURSTSIZE);
@@ -6964,17 +6970,17 @@ WideString __fastcall TDTSColor::RegReadStringW(TRegistry* pReg, char* pVal, cha
   {
     if (!pReg->ValueExists(pVal))
     {
-      wOut = utils->Utf8ToWide(String(pDef));
+      wOut = utils.Utf8ToWide(String(pDef));
 
       if (bErr != NULL)
         *bErr = true;
     }
     else
     {
-      wOut = utils->Utf8ToWide(String(pReg->ReadString(pVal)));
+      wOut = utils.Utf8ToWide(String(pReg->ReadString(pVal)));
 
       if (wOut.IsEmpty())
-        wOut = utils->Utf8ToWide(String(pDef));
+        wOut = utils.Utf8ToWide(String(pDef));
 
       if (bErr != NULL)
         *bErr = false;
@@ -6982,7 +6988,7 @@ WideString __fastcall TDTSColor::RegReadStringW(TRegistry* pReg, char* pVal, cha
   }
   catch(...)
   {
-    wOut = utils->Utf8ToWide(String(pDef));
+    wOut = utils.Utf8ToWide(String(pDef));
 
     if (bErr != NULL)
       *bErr = true;
@@ -7114,7 +7120,7 @@ bool __fastcall TDTSColor::SaveBlendPresetToRegistry(BlendColor* BC, int Idx)
   }
   catch(...)
   {
-    utils->ShowMessageU(String(DS[95]) + "SaveBlendPresetToRegistry()");
+    utils.ShowMessageU(String(DS[95]) + "SaveBlendPresetToRegistry()");
     return(false);
   }
 }
@@ -7314,11 +7320,11 @@ void __fastcall TDTSColor::SaveToRegistry(void)
         MyRegistry->CloseKey();
       }
       else
-        utils->ShowMessageU(DS[96]);
+        utils.ShowMessageU(DS[96]);
     }
     catch(ERegistryException &E)
     {
-      utils->ShowMessageU(DS[95] + String("SaveToRegistry()"));
+      utils.ShowMessageU(DS[95] + String("SaveToRegistry()"));
       MyRegistry->CloseKey();
     }
 
@@ -7329,7 +7335,7 @@ bool __fastcall TDTSColor::RegWriteStringW(TRegistry* pReg, String sVal, WideStr
 {
   try
   {
-    pReg->WriteString(sVal.c_str(), utils->WideToUtf8(sIn).c_str());
+    pReg->WriteString(sVal.c_str(), utils.WideToUtf8(sIn).c_str());
     return true;
   }
   catch(...)
@@ -7400,7 +7406,7 @@ bool __fastcall TDTSColor::CompareSecurityCode(void)
     }
     catch(...)
     {
-      utils->ShowMessageU(String(DS[102]));
+      utils.ShowMessageU(String(DS[102]));
       MyRegistry->CloseKey();
       delete MyRegistry;
       return(false);
@@ -7409,13 +7415,13 @@ bool __fastcall TDTSColor::CompareSecurityCode(void)
     MyRegistry->CloseKey();
     delete MyRegistry;
 
-//    utils->ShowMessageU(IntToHex((int)dwOriginalSecurity, sizeof(int)*2));
+//    utils.ShowMessageU(IntToHex((int)dwOriginalSecurity, sizeof(int)*2));
 
     DWORD PresentSecurity = ComputeSecurityCode();
 
     if (dwOriginalSecurity != PresentSecurity)
     {
-      utils->ShowMessageU(String(DS[101]));
+      utils.ShowMessageU(String(DS[101]));
       return(false);
     }
 
@@ -7423,7 +7429,7 @@ bool __fastcall TDTSColor::CompareSecurityCode(void)
   }
   catch(...)
   {
-    utils->ShowMessageU(String(DS[102]));
+    utils.ShowMessageU(String(DS[102]));
     return(false);
   }
 #else
@@ -7438,12 +7444,12 @@ String __fastcall TDTSColor::DisplaySecurityCode(void)
 
   if (dwSecurityCode == 0)
   {
-    utils->ShowMessageU(String(DS[103]));
+    utils.ShowMessageU(String(DS[103]));
     return("");
   }
 
   String Temp = IntToHex((int)dwSecurityCode, sizeof(int) * 2);
-  utils->ShowMessageU(String(DS[104]) + Temp + "\n" + String(DS[105]));
+  utils.ShowMessageU(String(DS[104]) + Temp + "\n" + String(DS[105]));
 
   return String(Temp);
 }
@@ -7456,22 +7462,22 @@ DWORD __fastcall TDTSColor::ComputeSecurityCode(void)
 
     try
     {
-        WideString wExe = utils->GetExeNameW();
+        WideString wExe = utils.GetExeNameW();
 
         // Open our own .EXE in binary/read-only mode
         FILE *f = _wfopen(wExe.c_bstr(), L"rb");
 
         if (f == NULL)
         {
-          utils->ShowMessageW(U16(DS[106]) + wExe);
+          utils.ShowMessageW(U16(DS[106]) + wExe);
           return(0);
         }
 
-        int iFileLength = (int)utils->filesize(f);
+        int iFileLength = (int)utils.filesize(f);
 
         if (iFileLength <= 0)
         {
-          utils->ShowMessageW(U16(DS[106]) + wExe);
+          utils.ShowMessageW(U16(DS[106]) + wExe);
           fclose(f);
           return 0;
         }
@@ -7487,7 +7493,7 @@ DWORD __fastcall TDTSColor::ComputeSecurityCode(void)
     }
     catch(ERegistryException &E)
     {
-      utils->ShowMessageU(String(DS[95]) + "ComputeSecurityCode()");
+      utils.ShowMessageU(String(DS[95]) + "ComputeSecurityCode()");
     }
 
   return dwSecurityCode;
@@ -7546,7 +7552,7 @@ void __fastcall TDTSColor::EffectSetFgBgClick(TObject *Sender)
   {
     int SaveSelStart = tae->SelStart;
     WideString sColors;
-    utils->WriteColors(SetColorsForm->FgColor, SetColorsForm->BgColor, sColors);
+    utils.WriteColors(SetColorsForm->FgColor, SetColorsForm->BgColor, sColors);
     YcDestroyForm(SetColorsForm);
     SetColorsForm = NULL; 
     TaeEditPaste(true, sColors);
@@ -7586,9 +7592,9 @@ void __fastcall TDTSColor::EffectMorphOrReplace(bool bUseDialog, bool bMorph)
 
   // Get TaeEdit colors at the caret
   int fg, bg;
-  if (!utils->GetTaeEditColors(fg, bg, true))
+  if (!utils.GetTaeEditColors(fg, bg, true))
   {
-    utils->ShowMessageU(DS[45]); // "no text to process"
+    utils.ShowMessageU(DS[45]); // "no text to process"
     return;
   }
 
@@ -7599,11 +7605,11 @@ void __fastcall TDTSColor::EffectMorphOrReplace(bool bUseDialog, bool bMorph)
 //      cf.cbSize = sizeof(CHARFORMAT2);
 //      SendMessage(tae->Handle, EM_GETCHARFORMAT, SCF_SELECTION, (LPARAM)&cf);
 //
-//      FgFrom = -utils->TColorToRgb((TColor)cf.crTextColor);
-//      FgTo = utils->YcToRgb(Abg);
+//      FgFrom = -utils.TColorToRgb((TColor)cf.crTextColor);
+//      FgTo = utils.YcToRgb(Abg);
 //      //FgTo = FgToColor; // from registry (must be negative rgb!)
-//      BgFrom = -utils->TColorToRgb((TColor)cf.crBackColor);
-//      BgTo = utils->YcToRgb(Afg);
+//      BgFrom = -utils.TColorToRgb((TColor)cf.crBackColor);
+//      BgTo = utils.YcToRgb(Afg);
 //      //BgTo = BgToColor; // from registry (must be negative rgb!)
 //    }
 
@@ -7633,8 +7639,8 @@ void __fastcall TDTSColor::EffectMorphOrReplace(bool bUseDialog, bool bMorph)
 
     // FgFromColor and BgFromColor do NOT get saved in the registry but must always be
     // in negative RGB format...
-    MorphForm->FgFromColor = utils->YcToRgb(fg);
-    MorphForm->BgFromColor = utils->YcToRgb(bg);
+    MorphForm->FgFromColor = utils.YcToRgb(fg);
+    MorphForm->BgFromColor = utils.YcToRgb(bg);
 
     // If paltalk we init to 10 colors - otherwise it's -1 (infinite)
     if (IsCli(C_PALTALK))
@@ -7851,11 +7857,11 @@ void __fastcall TDTSColor::IncrementForegroundBackgroundClick(TObject *Sender)
     int cl;
 
     if (mode == EM_BG) // Background only? Use BG color as base for palette
-      cl = utils->ConvertColor(Background, bRgbRandBG);
+      cl = utils.ConvertColor(Background, bRgbRandBG);
     else
-      cl = utils->ConvertColor(Foreground, bRgbRandFG);
+      cl = utils.ConvertColor(Foreground, bRgbRandFG);
 
-    BlendColor bc = utils->TColorToBlendColor(utils->YcToTColor(cl));
+    BlendColor bc = utils.TColorToBlendColor(utils.YcToTColor(cl));
 
     bool bRedUp, bGreenUp, bBlueUp;
 
@@ -7886,7 +7892,7 @@ void __fastcall TDTSColor::IncrementForegroundBackgroundClick(TObject *Sender)
     for (int ii = 0; ii < DTSColor->RGB_PaletteSize; ii++)
     {
       IncDecColor(bc, bRedUp, bGreenUp, bBlueUp, redDelta, greenDelta, blueDelta);
-      DTSColor->RGB_Palette[ii] = utils->BlendColorToRgb(bc);
+      DTSColor->RGB_Palette[ii] = utils.BlendColorToRgb(bc);
     }
   }
   else // IRC Client... no editing deltas!
@@ -8051,7 +8057,7 @@ void __fastcall TDTSColor::MenuStripCodesClick(TObject *Sender)
   // STRIP_TAB           11
   // STRIP_FF            12
 
-  EParm1 = utils->SelectStripMode();
+  EParm1 = utils.SelectStripMode();
 
   if (EParm1 >= 0)
   {
@@ -8382,10 +8388,10 @@ void __fastcall TDTSColor::MenuSetFontClick(TObject *Sender)
   //FontDlg->Options << fdWysiwyg;
 
   if (!IsYahTrinPal())
-    utils->ShowMessageU(String(DS[76])); //warn only Bold, etc for IRC
+    utils.ShowMessageU(String(DS[76])); //warn only Bold, etc for IRC
 
   FontDlg->Font->Charset = cCharset;
-  FontDlg->Font->Name = utils->WideToUtf8(cFont);
+  FontDlg->Font->Name = utils.WideToUtf8(cFont);
   FontDlg->Font->Pitch = cPitch;
   FontDlg->Font->Size = cSize;
   FontDlg->Font->Style = cStyle;
@@ -8397,7 +8403,7 @@ void __fastcall TDTSColor::MenuSetFontClick(TObject *Sender)
       //"Changing the font requires changing to the\n"
       //"Original text view and reprocessing. Any changes\n"
       //"you have made will be lost. Continue?", // 73
-      if (utils->ShowMessageU(Handle, DS[73],
+      if (utils.ShowMessageU(Handle, DS[73],
                       MB_ICONQUESTION|MB_YESNO|MB_DEFBUTTON2) == IDNO)
       {
         delete FontDlg;
@@ -8406,7 +8412,7 @@ void __fastcall TDTSColor::MenuSetFontClick(TObject *Sender)
     }
 
     cCharset = FontDlg->Font->Charset;
-    this->cFont = utils->Utf8ToWide(FontDlg->Font->Name);
+    this->cFont = utils.Utf8ToWide(FontDlg->Font->Name);
     cPitch = FontDlg->Font->Pitch;
     cSize = FontDlg->Font->Size;
 
@@ -8416,14 +8422,14 @@ void __fastcall TDTSColor::MenuSetFontClick(TObject *Sender)
       cSize = 1;
 
     // Init an index into our local FONTS[] table in DefaultStrings.cpp
-    cType = utils->GetLocalFontIndex(cFont);
+    cType = utils.GetLocalFontIndex(cFont);
 
     cStyle = FontDlg->Font->Style;
 
 //ShowMessage("name: " + cFont + " Height: " + String(FontDlg->Font->Height) +
 // " Pitch: " + String(FontDlg->Font->Pitch)+ " Size: " + String(FontDlg->Font->Size));
 
-    utils->SetRichEditFont(tae);
+    utils.SetRichEditFont(tae);
 
     // HAVE to do this because changing the font messes up the
     // RTF Processed text.
@@ -8480,14 +8486,14 @@ void __fastcall TDTSColor::DoFontEffect(int type, int p1, int p2, double p5)
   {
     if (tae->View == V_RTF)
     {
-      if (utils->ShowMessageU(Handle, DS[148],
+      if (utils.ShowMessageU(Handle, DS[148],
                       MB_ICONQUESTION|MB_YESNO|MB_DEFBUTTON2) == IDYES)
         return;
     }
     else
     {
       // Border edges warning asking to turn off borders...
-      if (utils->ShowMessageU(Handle, DS[147],
+      if (utils.ShowMessageU(Handle, DS[147],
                       MB_ICONQUESTION|MB_YESNO|MB_DEFBUTTON2) == IDYES)
         Borders->Checked = false;
     }
@@ -8514,7 +8520,7 @@ void __fastcall TDTSColor::BlendFGMenu(TObject *Sender)
   {
     // Load bG_BlendColors
     if (!LoadBlendPresetFromRegistry(fG_BlendColors, GBlendPreset))
-      utils->ShowMessageU(String(DS[221])); // Preset is empty or corrupt
+      utils.ShowMessageU(String(DS[221])); // Preset is empty or corrupt
     else
     {
       fG_BlendPreset = GBlendPreset;
@@ -8539,7 +8545,7 @@ void __fastcall TDTSColor::BlendBGMenu(TObject *Sender)
   {
     // Load bG_BlendColors
     if (!LoadBlendPresetFromRegistry(bG_BlendColors, GBlendPreset))
-      utils->ShowMessageU(String(DS[221])); // Preset is empty or corrupt
+      utils.ShowMessageU(String(DS[221])); // Preset is empty or corrupt
     else
     {
       bG_BlendPreset = GBlendPreset;
@@ -8661,9 +8667,9 @@ bool __fastcall TDTSColor::CreateBlendEngine(int Type)
     if (EnabledCount < 0)
     {
       if (EnabledCount == -4) // < 2 buttons
-        utils->ShowMessageU(String(DS[152]));
+        utils.ShowMessageU(String(DS[152]));
       else
-        utils->ShowMessageU(String(DS[150]) + String(EnabledCount));
+        utils.ShowMessageU(String(DS[150]) + String(EnabledCount));
 
       DeleteBlendEngine();
       return false;
@@ -8687,7 +8693,7 @@ bool __fastcall TDTSColor::CreateBlendEngine(int Type)
   {
     DeleteBlendEngine();
 
-    utils->ShowMessageU(String(DS[153]));
+    utils.ShowMessageU(String(DS[153]));
     return false;
   }
 }
@@ -8840,7 +8846,7 @@ int __fastcall TDTSColor::GetEnabledBlendButtonCount(BlendColor* BC)
   wchar_t* Buf = NULL;
   int Size;
 
-  utils->MoveMainTextToBuffer(Buf, Size);
+  utils.MoveMainTextToBuffer(Buf, Size);
 
   if (Buf == NULL)
     return(-2);
@@ -8852,7 +8858,7 @@ int __fastcall TDTSColor::GetEnabledBlendButtonCount(BlendColor* BC)
   }
 
   // Get the text without color-codes and emotion-codes
-  int Length = utils->GetRealLength(Buf, Size, 0, '\0', false);
+  int Length = utils.GetRealLength(Buf, Size, 0, '\0', false);
 
   delete [] Buf;
 
@@ -8900,7 +8906,7 @@ void __fastcall TDTSColor::BlendMouseDown(TObject *Sender,
 
       // Get a pointer to the selected panel...
       TPanel* P = GetPointerToColorPanel(BlendButtonSelectIndex);
-      P->Color = utils->BlendColorToTColor(fG_BlendColors[BlendButtonSelectIndex]);
+      P->Color = utils.BlendColorToTColor(fG_BlendColors[BlendButtonSelectIndex]);
       MouseBlendIndex = -1; // restored
     }
   }
@@ -8937,7 +8943,7 @@ void __fastcall TDTSColor::BlendPanelColorClick(TPanel* P)
   TColor c = P->Color;
 
   // returns c by reference!
-  if (!utils->GetTColorDialog(c))
+  if (!utils.GetTColorDialog(c))
     return; // Cancel-button
 
   SetBlendColor(P, c);
@@ -8947,7 +8953,7 @@ void __fastcall TDTSColor::SetBlendColor(TPanel* p, TColor c)
 {
   // Be careful of this, don't depend on the name property being
   // "Blend0 - Blend9" -- set and use the Tag property
-  fG_BlendColors[p->Tag] = utils->TColorToBlendColor(c);
+  fG_BlendColors[p->Tag] = utils.TColorToBlendColor(c);
 
   // Change panel to new color
   p->Color = c;
@@ -8986,7 +8992,7 @@ void __fastcall TDTSColor::SaveWorkingBlendPreset(void)
   BlendColor* TempColors = new BlendColor[MAXBLENDCOLORS];
   if (LoadBlendPresetFromRegistry(TempColors, fG_BlendPreset))
     if (!BlendColorsEqual(fG_BlendColors, TempColors))
-      if (utils->ShowMessageU(Handle, DS[154],
+      if (utils.ShowMessageU(Handle, DS[154],
                       MB_ICONQUESTION|MB_YESNO|MB_DEFBUTTON2) == IDYES)
         SaveBlendPresetToRegistry(fG_BlendColors, fG_BlendPreset);
   delete [] TempColors;
@@ -9010,7 +9016,7 @@ void __fastcall TDTSColor::ExportBlender(TObject *Sender)
                                    "Binary files (*.bin)|*.bin");
 
     // "Blendcolors1.bin""
-    WideString wFile = utils->GetSaveFileName(wFilter, U16(FN[13]),
+    WideString wFile = utils.GetSaveFileName(wFilter, U16(FN[13]),
                                                  DeskDir, String(DS[156]));
 
     if (wFile.IsEmpty())
@@ -9021,7 +9027,7 @@ void __fastcall TDTSColor::ExportBlender(TObject *Sender)
 
     if (!f)
     {
-      utils->ShowMessageU(String(DS[161]));
+      utils.ShowMessageU(String(DS[161]));
       return;
     }
 
@@ -9050,7 +9056,7 @@ void __fastcall TDTSColor::ExportBlender(TObject *Sender)
   }
   catch(...)
   {
-    utils->ShowMessageU(String(DS[158]));
+    utils.ShowMessageU(String(DS[158]));
   }
 }
 //---------------------------------------------------------------------------
@@ -9066,15 +9072,15 @@ void __fastcall TDTSColor::ExportBlenderText(TObject *Sender)
                                    "Text files (*.txt)|*.txt");
 
     // "BlendColors1.txt" FN[26]
-    WideString wFile = utils->GetSaveFileName(wFilter, FN[26],
+    WideString wFile = utils.GetSaveFileName(wFilter, FN[26],
                                                  DeskDir, String(DS[159]));
 
     if (!wFile.Length())
       return;
 
-    if (utils->FileExistsW(wFile))
+    if (utils.FileExistsW(wFile))
     {
-      if (utils->ShowMessageU(Handle, DS[160],
+      if (utils.ShowMessageU(Handle, DS[160],
                       MB_ICONQUESTION|MB_YESNO|MB_DEFBUTTON1) == IDNO)
         return; // Cancel
     }
@@ -9084,7 +9090,7 @@ void __fastcall TDTSColor::ExportBlenderText(TObject *Sender)
 
     if (!f)
     {
-      utils->ShowMessageU(String(DS[161]));
+      utils.ShowMessageU(String(DS[161]));
       return;
     }
 
@@ -9111,7 +9117,7 @@ void __fastcall TDTSColor::ExportBlenderText(TObject *Sender)
   }
   catch(...)
   {
-      utils->ShowMessageU(String(DS[162]));
+      utils.ShowMessageU(String(DS[162]));
   }
 }
 //---------------------------------------------------------------------------
@@ -9127,7 +9133,7 @@ void __fastcall TDTSColor::ImportBlenderText(TObject *Sender)
                     "Text files (*.txt)|*.txt");
 
     // Run the open-file dialog in FormOFDlg.cpp
-    WideString wFile = utils->GetOpenFileName(wFilter, 2, DeskDir, String(DS[163]));
+    WideString wFile = utils.GetOpenFileName(wFilter, 2, DeskDir, String(DS[163]));
 
     // Load and convert file as per the file-type (either plain or rich text)
     if (wFile.IsEmpty())
@@ -9137,7 +9143,7 @@ void __fastcall TDTSColor::ImportBlenderText(TObject *Sender)
 
     if (!in)
     {
-      utils->ShowMessageU(String(DS[164]));
+      utils.ShowMessageU(String(DS[164]));
       return;
     }
 
@@ -9145,7 +9151,7 @@ void __fastcall TDTSColor::ImportBlenderText(TObject *Sender)
 
     if (fscanf(in, "%6s", s) != 1 || strcmp(s, "BLEND:") != 0)
     {
-      utils->ShowMessageU(String(DS[164]));
+      utils.ShowMessageU(String(DS[164]));
       return;
     }
 
@@ -9160,7 +9166,7 @@ void __fastcall TDTSColor::ImportBlenderText(TObject *Sender)
     {
       if (jj < ii)
       {
-        BlendColor BC = utils->RgbToBlendColor(c[jj]);
+        BlendColor BC = utils.RgbToBlendColor(c[jj]);
 
         fG_BlendColors[jj].red = BC.red;
         fG_BlendColors[jj].green = BC.green;
@@ -9183,7 +9189,7 @@ void __fastcall TDTSColor::ImportBlenderText(TObject *Sender)
   }
   catch(...)
   {
-      utils->ShowMessageU(String(DS[165]));
+      utils.ShowMessageU(String(DS[165]));
   }
 }
 //---------------------------------------------------------------------------
@@ -9203,7 +9209,7 @@ void __fastcall TDTSColor::ImportBlender(TObject *Sender)
                     "Binary files (*.bin)|*.bin");
 
     // Run the open-file dialog in FormOFDlg.cpp
-    WideString wFile = utils->GetOpenFileName(wFilter, 2, DeskDir, String(DS[166]));
+    WideString wFile = utils.GetOpenFileName(wFilter, 2, DeskDir, String(DS[166]));
 
     // Load and convert file as per the file-type (either plain or rich text)
     if (wFile.IsEmpty())
@@ -9214,12 +9220,12 @@ void __fastcall TDTSColor::ImportBlender(TObject *Sender)
     if (!f)
       return;
 
-    long fileLen = utils->filesize(f);
+    long fileLen = utils.filesize(f);
     long expected = (MAXBLENDPRESETS*SizeOfOnePreset)+Quallen;
 
     if (fileLen != expected)
     {
-      utils->ShowMessageU(String(DS[167]));
+      utils.ShowMessageU(String(DS[167]));
       fclose(f);
       return; // Cancel
     }
@@ -9233,7 +9239,7 @@ void __fastcall TDTSColor::ImportBlender(TObject *Sender)
 
     if (br != Quallen || strncmp(Qual, Qualstr, Quallen) != 0)
     {
-      utils->ShowMessageU(String(DS[167]));
+      utils.ShowMessageU(String(DS[167]));
       fclose(f);
       delete [] Qualstr;
       return;
@@ -9249,7 +9255,7 @@ void __fastcall TDTSColor::ImportBlender(TObject *Sender)
 
       if (br != SizeOfOnePreset)
       {
-        utils->ShowMessageU(String(DS[151]));
+        utils.ShowMessageU(String(DS[151]));
         fclose(f);
         return;
       }
@@ -9268,7 +9274,7 @@ void __fastcall TDTSColor::ImportBlender(TObject *Sender)
   }
   catch(...)
   {
-    utils->ShowMessageU(String(DS[38]));
+    utils.ShowMessageU(String(DS[38]));
   }
 }
 //---------------------------------------------------------------------------
@@ -9329,14 +9335,14 @@ void __fastcall TDTSColor::BlendPresetLoadClick(TObject* Sender)
 
   // See if user tried to load an empty preset
   if (!LoadBlendPresetFromRegistry(TempColors, P->Tag))
-    utils->ShowMessageU(String(DS[169]));
+    utils.ShowMessageU(String(DS[169]));
   else
   {
     // See if user had been editing colors...
     // Offer to save them in old preset before over-writing
     if (LoadBlendPresetFromRegistry(TempColors, fG_BlendPreset))
       if (!BlendColorsEqual(fG_BlendColors, TempColors))
-        if (utils->ShowMessageU(Handle, DS[154],
+        if (utils.ShowMessageU(Handle, DS[154],
                       MB_ICONQUESTION|MB_YESNO|MB_DEFBUTTON2) == IDYES)
           SaveBlendPresetToRegistry(fG_BlendColors, fG_BlendPreset);
 
@@ -9398,7 +9404,7 @@ void __fastcall TDTSColor::BlendPresetStoreClick(TObject* Sender)
   {
     // Success...
     fG_BlendPreset = P->Tag;
-    utils->ShowMessageU(String(DS[171]) + String(fG_BlendPreset+1) + "!");
+    utils.ShowMessageU(String(DS[171]) + String(fG_BlendPreset+1) + "!");
   }
 }
 //---------------------------------------------------------------------------
@@ -9500,7 +9506,7 @@ bool __fastcall TDTSColor::SetBlendButtonColor(TPanel* p, BlendColor* BC)
   {
     if (p && BC != NULL)
     {
-      p->Color = utils->BlendColorToTColor(BC[p->Tag]);
+      p->Color = utils.BlendColorToTColor(BC[p->Tag]);
 
       // Show button selected or de-selected
       if (BlendButtonSelectIndex == p->Tag)
@@ -9685,7 +9691,7 @@ void __fastcall TDTSColor::WordWrapClick(TObject *Sender)
 //---------------------------------------------------------------------------
 void __fastcall TDTSColor::SetWordWrap(bool bOn)
 {
-  utils->PushOnChange(tae); // freeze on-change text-entry
+  utils.PushOnChange(tae); // freeze on-change text-entry
 
   // wwtPrinter another option FYI
   if (bOn && WordWrap->Enabled)
@@ -9693,7 +9699,7 @@ void __fastcall TDTSColor::SetWordWrap(bool bOn)
     // "WARNING: You cannot edit any text in word-wrap mode!", // 49
     if (!bWordWrapWarningShown)
     {
-      utils->ShowMessageU(DS[49]);
+      utils.ShowMessageU(DS[49]);
       bWordWrapWarningShown = true;
     }
 
@@ -9715,7 +9721,7 @@ void __fastcall TDTSColor::SetWordWrap(bool bOn)
   tae->Align = alClient;
   Application->ProcessMessages();
 
-  utils->PopOnChange(tae); // release on-change text-entry
+  utils.PopOnChange(tae); // release on-change text-entry
 }
 //---------------------------------------------------------------------------
 void __fastcall TDTSColor::InfoPanelMouseDown(TObject* Sender,
@@ -9747,7 +9753,7 @@ void __fastcall TDTSColor::ExportAsWebPage1Click(TObject *Sender)
   if (PK->ComputeDaysRemaining() <= 0)
   {
     //"Visit https://github.com/dxzl/YahCoLoRiZe/releases to download..."
-    utils->ShowMessageU(KEYSTRINGS[4] +
+    utils.ShowMessageU(KEYSTRINGS[4] +
                   Iftf->Strings[INFO_WEB_SITE] + KEYSTRINGS[5]);
     return;
   }
@@ -9762,7 +9768,7 @@ void __fastcall TDTSColor::ViewInBrowser1Click(TObject *Sender)
   // No TWebExportForm is shown and no TSFDlgForm.
   // Generate HTML in temp-file for browser to read...
   //  WideString fileName = GenerateHTML(false);
-  String fileName = utils->WideToUtf8(GenerateHTML(false));
+  String fileName = utils.WideToUtf8(GenerateHTML(false));
 
   if (!fileName.IsEmpty())
     ShellExecute(NULL, L"open", fileName.w_str(), NULL, NULL, SW_SHOWNORMAL);
@@ -9793,7 +9799,7 @@ WideString __fastcall TDTSColor::GenerateHTML(bool bCreateDialog,
         // because we want to preserve "Undo" items
         //
         // (We only return 0 = success or 1 = cancel at present...)
-        if (c->Convert(utils->Optimize(utils->MoveMainTextToString(),
+        if (c->Convert(utils.Optimize(utils.MoveMainTextToString(),
                                                   false), bCreateDialog) == 0)
           sRet = c->FileName; // Read property
         else
@@ -9821,16 +9827,16 @@ bool __fastcall TDTSColor::ReadSmileys(void)
   try
   {
     AutoDetectEmotes->Checked = false;
-    WideString SmileyFile = utils->ExtractFilePathW(utils->GetExeNameW()) +
+    WideString SmileyFile = utils.ExtractFilePathW(utils.GetExeNameW()) +
                                                            U16(SMILEYFILE);
 
 //    String SmileyFile = (String)DeskDir + "\\" +
 //          OUR_COMPANY_S + "\\" + OUR_NAME_S + "\\" + String(SMILEYFILE);
 
-    if (!utils->FileExistsW(SmileyFile))
+    if (!utils.FileExistsW(SmileyFile))
     {
       // "Cannot find... Please reinstall YahCoLoRiZe..."
-      utils->ShowMessageU(DS[222] +
+      utils.ShowMessageU(DS[222] +
         String("\n") + SmileyFile + String("\n\n") + DS[223]);
       return false;
     }
@@ -9850,7 +9856,7 @@ bool __fastcall TDTSColor::ReadSmileys(void)
     {
       // Read a wide-string from our custom string-list, trim it and
       // reset it.
-      SL2->SetString(utils->TrimW(SL2->GetString(ii)), ii);
+      SL2->SetString(utils.TrimW(SL2->GetString(ii)), ii);
 
       if (!SL2->GetString(ii).IsEmpty() && SL2->GetString(ii).Pos("//") != 1)
         SL1->Add(SL2->GetString(ii));
@@ -9901,13 +9907,13 @@ void __fastcall TDTSColor::CopyIniFile(void)
     try
     {
       // Look in the exe path first...
-      WideString newIniPath = utils->ExtractFilePathW(utils->GetExeNameW()) +
-                                                utils->Utf8ToWide(INIFILE);
-      // utils->ShowMessageW(newIniPath);
+      WideString newIniPath = utils.ExtractFilePathW(utils.GetExeNameW()) +
+                                                utils.Utf8ToWide(INIFILE);
+      // utils.ShowMessageW(newIniPath);
 
-      if (utils->FileExistsW(newIniPath))
+      if (utils.FileExistsW(newIniPath))
       {
-        pIni = utils->OpenIniFile(newIniPath);
+        pIni = utils.OpenIniFile(newIniPath);
 
         if (pIni == NULL)
           return;
@@ -9921,22 +9927,22 @@ void __fastcall TDTSColor::CopyIniFile(void)
 
         // get Users\(name)\AppData\Roaming\Discrete-Time Systems\YahCoLoRiZe path
         // (path MUST be created by the installer!)
-        WideString oldIniPath = utils->GetSpecialFolder(CSIDL_APPDATA) +
-          "\\" + utils->Utf8ToWide(OUR_COMPANY) + "\\" +
-                utils->Utf8ToWide(OUR_NAME) + "\\";
+        WideString oldIniPath = utils.GetSpecialFolder(CSIDL_APPDATA) +
+          "\\" + utils.Utf8ToWide(OUR_COMPANY) + "\\" +
+                utils.Utf8ToWide(OUR_NAME) + "\\";
 
 // this won't work without a security descriptor, so must create path via installer!
 //        if (CreateDirectoryW(oldIniPath, NULL) == 0)
 //          ShowMessage("fail");
 
-        oldIniPath += utils->Utf8ToWide(INIFILE);
+        oldIniPath += utils.Utf8ToWide(INIFILE);
 
-        // utils->ShowMessageW(oldIniPath);
+        // utils.ShowMessageW(oldIniPath);
 
-        if (utils->FileExistsW(oldIniPath))
+        if (utils.FileExistsW(oldIniPath))
         {
           delete pIni;
-          pIni = utils->OpenIniFile(oldIniPath);
+          pIni = utils.OpenIniFile(oldIniPath);
 
           int oldRev = pIni->ReadInteger(OUR_NAME_S, "revision", -1);
 
@@ -9977,7 +9983,7 @@ bool __fastcall TDTSColor::ReadIniFile(void)
   {
     try
     {
-      pIni = utils->OpenIniFile();
+      pIni = utils.OpenIniFile();
 
       if (pIni == NULL)
       {
@@ -10176,7 +10182,7 @@ bool __fastcall TDTSColor::WriteDictToIniFile(void)
   {
     try
     {
-      pIni = utils->OpenIniFile();
+      pIni = utils.OpenIniFile();
 
       if (pIni == NULL)
         return false;
@@ -10186,7 +10192,7 @@ bool __fastcall TDTSColor::WriteDictToIniFile(void)
       pIni->EraseSection(INI_DICT_SECTION_NAME);
       for (int ii = 0; ii < GDictList->Count && ii < MAX_DICT_COUNT; ii++)
         pIni->WriteString(INI_DICT_SECTION_NAME, "D" +
-                    utils->GoFormat("%.4d", ii), GDictList->Strings[ii]);
+                    utils.GoFormat("%.4d", ii), GDictList->Strings[ii]);
 
       bRet = true;
     }
@@ -10291,32 +10297,32 @@ void __fastcall TDTSColor::RepaintTimeout(TObject *Sender)
       {
         if (bRgbRandFG)
         {
-          captionFG = -(utils->GetRandomRGB());
-          FGColor = utils->RgbToBlendColor(-captionFG);
+          captionFG = -(utils.GetRandomRGB());
+          FGColor = utils.RgbToBlendColor(-captionFG);
         }
         else
         {
           captionFG = random(paletteSize)+1;
-          FGColor = utils->RgbToBlendColor(palette[captionFG-1]);
+          FGColor = utils.RgbToBlendColor(palette[captionFG-1]);
         }
 
         if (bRgbRandBG)
         {
-          captionBG = -(utils->GetRandomRGB());
-          BGColor = utils->RgbToBlendColor(-captionBG);
+          captionBG = -(utils.GetRandomRGB());
+          BGColor = utils.RgbToBlendColor(-captionBG);
         }
         else
         {
           captionBG = random(paletteSize)+1;
-          BGColor = utils->RgbToBlendColor(palette[captionBG-1]);
+          BGColor = utils.RgbToBlendColor(palette[captionBG-1]);
         }
       }
       else
       {
         captionFG = random(paletteSize)+1;
-        FGColor = utils->RgbToBlendColor(palette[captionFG-1]);
+        FGColor = utils.RgbToBlendColor(palette[captionFG-1]);
         captionBG = random(paletteSize)+1;
-        BGColor = utils->RgbToBlendColor(palette[captionBG-1]);
+        BGColor = utils.RgbToBlendColor(palette[captionBG-1]);
       }
 
       if (abs(FGColor.red-BGColor.red) >= RNG || abs(FGColor.green-BGColor.green) >= RNG || abs(FGColor.blue-BGColor.blue) >= RNG)
@@ -10324,7 +10330,7 @@ void __fastcall TDTSColor::RepaintTimeout(TObject *Sender)
     }
   }
 
-  WMNCPaint(utils->BlendColorToTColor(FGColor),  utils->BlendColorToTColor(BGColor));
+  WMNCPaint(utils.BlendColorToTColor(FGColor),  utils.BlendColorToTColor(BGColor));
 }
 //---------------------------------------------------------------------------
 void __fastcall TDTSColor::WMNCPaint(TColor fg, TColor bg)
@@ -10415,7 +10421,7 @@ void __fastcall TDTSColor::MenuOptimizeClick(TObject *Sender)
       // All undos are garbage if we optimize! (So ask...)
       if (TOCUndo->Count > 0)
       {
-        if (utils->ShowMessageU(Handle, DS[50],
+        if (utils.ShowMessageU(Handle, DS[50],
                       MB_ICONQUESTION|MB_YESNO|MB_DEFBUTTON1) == IDNO)
           return;
       }
@@ -10428,7 +10434,7 @@ void __fastcall TDTSColor::MenuOptimizeClick(TObject *Sender)
     // Save original position and carat
     TYcPosition* p = new TYcPosition(tae);
     p->SavePos = p->Position;
-    utils->Optimize(true);
+    utils.Optimize(true);
     p->Position = p->SavePos;
     delete p;
   }
@@ -10511,9 +10517,9 @@ void __fastcall TDTSColor::ddechanPokeData(TObject *Sender)
     if (bSendUtf8)
       sRoom = sOrig;
     else
-      sRoom = utils->AnsiToUtf8(sOrig);
+      sRoom = utils.AnsiToUtf8(sOrig);
 
-    sRoom = utils->StripTrailingCRLFsA(sRoom);
+    sRoom = utils.StripTrailingCRLFsA(sRoom);
 
     if (sRoom.IsEmpty())
       sRoom = STATUSCHAN; // "status"
@@ -10539,9 +10545,9 @@ void __fastcall TDTSColor::ddeplayPokeData(TObject *Sender)
     if (bSendUtf8)
       sCmd = sOrig;
     else
-      sCmd = utils->AnsiToUtf8(sOrig);
+      sCmd = utils.AnsiToUtf8(sOrig);
 
-    sCmd = utils->StripTrailingCRLFsA(sCmd); // keep this in case it's a file-name! (see below)
+    sCmd = utils.StripTrailingCRLFsA(sCmd); // keep this in case it's a file-name! (see below)
 
     String lcCmd = sCmd.LowerCase();
 
@@ -10556,11 +10562,11 @@ void __fastcall TDTSColor::ddeplayPokeData(TObject *Sender)
     else
     {
       // file-name (possibly...)
-      WideString wCmd = utils->Utf8ToWide(sCmd);
+      WideString wCmd = utils.Utf8ToWide(sCmd);
 
       bIsAnsiFile = false; // "Assume" a UTF-8 file...
 
-      if (utils->FileExistsW(wCmd) && LoadLines(wCmd, true, true) && tae->LineCount)
+      if (utils.FileExistsW(wCmd) && LoadLines(wCmd, true, true) && tae->LineCount)
       {
         DoProcess(true);
         StartPlayClick(NULL);
@@ -10608,11 +10614,11 @@ PASTESTRUCT __fastcall TDTSColor::TaeEditCutCopy(bool bCut, bool bCopy)
   if (!selLen)
   {
     // "You must select text to perform this operation!", //25
-    utils->ShowMessageU(String(EDITMSG[25]));
+    utils.ShowMessageU(String(EDITMSG[25]));
     return ps;
   }
 
-  if (!utils->IsRtfIrcOrgView())
+  if (!utils.IsRtfIrcOrgView())
   {
     try
     {
@@ -10620,16 +10626,16 @@ PASTESTRUCT __fastcall TDTSColor::TaeEditCutCopy(bool bCut, bool bCopy)
 
       if (bCopy)
       {
-        utils->ClearClipboard();
-        utils->CopyTextToClipboard(wSelText);
+        utils.ClearClipboard();
+        utils.CopyTextToClipboard(wSelText);
       }
 
       if (bCut)
       {
-        utils->PushOnChange(tae);
+        utils.PushOnChange(tae);
 
         // # of cr/lf pairs in the selected text
-        ps.lines = utils->CountCRs(wSelText);
+        ps.lines = utils.CountCRs(wSelText);
 
         // ps.delta is the number of chars cut including
         // each cr/lf as a count of 2
@@ -10637,7 +10643,7 @@ PASTESTRUCT __fastcall TDTSColor::TaeEditCutCopy(bool bCut, bool bCopy)
 
         // Populate ONCHANGE thread's struct (ProcessOnChange.h) for Undo
         // (Get the deltas in length and line-count!)
-        ONCHANGEW oc = utils->GetInfoOC(tae, NULL);
+        ONCHANGEW oc = utils.GetInfoOC(tae, NULL);
         // Add to undo-objects
         TOCUndo->Add(UNDO_CUT, tae->SelStart, 0, oc, wSelText);
 
@@ -10645,9 +10651,9 @@ PASTESTRUCT __fastcall TDTSColor::TaeEditCutCopy(bool bCut, bool bCopy)
 
         tae->Modified = true;
         bSaveWork = true;
-        utils->SetOldLineVars(tae); // Update OldLength and OldLineCount
+        utils.SetOldLineVars(tae); // Update OldLength and OldLineCount
         PrintShortLineCount();
-        utils->PopOnChange(tae);
+        utils.PopOnChange(tae);
       }
     }
     catch(...) { ps.error = -10; }
@@ -10657,23 +10663,23 @@ PASTESTRUCT __fastcall TDTSColor::TaeEditCutCopy(bool bCut, bool bCopy)
 
   TStringsW* sl;
 
-  if (utils->IsOrgView())
+  if (utils.IsOrgView())
     sl = SL_ORG;
   else
     sl = SL_IRC;
 
-  if (utils->IsRtfView())
+  if (utils.IsRtfView())
     // Erases clipboard then copies Html, Rtf and Utf-16 text formats to it
-    ps = utils->CutCopyRTF(bCut, bCopy, tae, sl);
+    ps = utils.CutCopyRTF(bCut, bCopy, tae, sl);
   else
     // Erases clipboard then copies Utf-16 text format to it
-    ps = utils->CutCopyIRC(bCut, bCopy, tae, sl);
+    ps = utils.CutCopyIRC(bCut, bCopy, tae, sl);
 
   if (ps.error == 0) // ps.lines serves as an error-code if negative!
   {
     if (bCut)
     {
-      utils->SetOldLineVars(tae);
+      utils.SetOldLineVars(tae);
 
       if (tae->LineCount == 0 || sl->TotalLength == 0)
       {
@@ -10694,7 +10700,7 @@ PASTESTRUCT __fastcall TDTSColor::TaeEditCutCopy(bool bCut, bool bCopy)
     return ps;
   }
 
-  utils->ShowMessageU("TaeEditCutCopy(), Can't cut/copy text,\n"
+  utils.ShowMessageU("TaeEditCutCopy(), Can't cut/copy text,\n"
                           "text selected? Code: " + String(ps.error));
 
   return ps;
@@ -10705,9 +10711,9 @@ void __fastcall TDTSColor::EditPaste(TObject *Sender)
 #if DIAG_SHOWHEX_IS_UTF8
   // diagnostic to paste raw ANSI text after clicking Tools->ShowHex
   // to convert a block of UTF-8 text to ANSI codes for DefaultStrings.cpp!
-  utils->PushOnChange(tae);
+  utils.PushOnChange(tae);
   tae->Text = Clipboard()->AsText;
-  utils->PopOnChange(tae);
+  utils.PopOnChange(tae);
 #else
   PASTESTRUCT ps = TaeEditPaste(false);
 
@@ -10722,7 +10728,7 @@ void __fastcall TDTSColor::EditPasteColor(TObject *Sender)
 {
   try
   {
-    utils->PushOnChange(tae);
+    utils.PushOnChange(tae);
 
     // Save original position and carat
     TYcPosition* p = new TYcPosition(tae);
@@ -10752,14 +10758,14 @@ void __fastcall TDTSColor::EditPasteColor(TObject *Sender)
 
           if (ps.delta)
           {
-            ps.lines = utils->CountCRs(S); // Count cr/lfs
+            ps.lines = utils.CountCRs(S); // Count cr/lfs
 
             // SelLength needed to Undo the paste directly
             // in the control later!
             int len = S.Length() - ps.lines;
 
             // Add undo info (don't need the paste-string saved...)
-            ONCHANGEW oc = utils->GetInfoOC(tae, NULL);
+            ONCHANGEW oc = utils.GetInfoOC(tae, NULL);
             TOCUndo->Add(UNDO_PASTE, tae->SelStart, len, oc, "");
 
             tae->SelLength = 0; // deselect if selected...
@@ -10781,7 +10787,7 @@ void __fastcall TDTSColor::EditPasteColor(TObject *Sender)
         // This allows you to paste HTML source into the HTML view...
         if (Clipboard()->HasFormat(cbHTML))
         {
-          WideString S = utils->Utf8ToWide(utils->LoadHtmlFromClipboard());
+          WideString S = utils.Utf8ToWide(utils.LoadHtmlFromClipboard());
 
           int len = S.Length();
 
@@ -10789,11 +10795,11 @@ void __fastcall TDTSColor::EditPasteColor(TObject *Sender)
           {
             // SelLength needed to Undo the paste directly
             // in the control later!
-            int numCRs = utils->CountCRs(S);
+            int numCRs = utils.CountCRs(S);
             len = len - numCRs;
 
             // Add undo info (don't need the paste-string saved...)
-            ONCHANGEW oc = utils->GetInfoOC(tae, NULL);
+            ONCHANGEW oc = utils.GetInfoOC(tae, NULL);
             TOCUndo->Add(UNDO_PASTE, tae->SelStart, len, oc, "");
 
             tae->SelTextW = S; // Replace selected text or insert at caret...
@@ -10809,20 +10815,20 @@ void __fastcall TDTSColor::EditPasteColor(TObject *Sender)
     }
     else if (Clipboard()->HasFormat(cbHTML))
     {
-      int oldLen = utils->GetTextLength(tae);
+      int oldLen = utils.GetTextLength(tae);
 
       // NOTE: a large quantity of HTML on the clipboard takes FOREVER
       // to convert! (so use the plain-text if it's in our color-format...)
-      if (utils->TextContainsFormatCodes(utils->GetClipboardText()))
+      if (utils.TextContainsFormatCodes(utils.GetClipboardText()))
         ps = TaeEditPaste(true);
       else
         // Go convert the raw html on clipboard from utf-8 to utf-16 and then
         // convert it to IRC format...
-        ps = TaeEditPaste(true, utils->ClipboardHtmlToIrc(true));
+        ps = TaeEditPaste(true, utils.ClipboardHtmlToIrc(true));
 
       // Convert to RTF if we have IRC codes and the edit-control
       // was empty before the paste...
-      if (oldLen == 0 && utils->TextContainsFormatCodes(SL_ORG))
+      if (oldLen == 0 && utils.TextContainsFormatCodes(SL_ORG))
       {
         tae->View = V_ORG; // View must be V_ORG to copy SL_ORG to SL_IRC!
         DoShowRtf(true); // Convert to RTF
@@ -10839,11 +10845,11 @@ void __fastcall TDTSColor::EditPasteColor(TObject *Sender)
     if (ps.delta > 0)
       tae->SelStart += ps.delta - ps.lines;
 
-    utils->PopOnChange(tae);
+    utils.PopOnChange(tae);
   }
   catch(...)
   {
-    utils->ShowMessageU("Error in EditPasteColor()...");
+    utils.ShowMessageU("Error in EditPasteColor()...");
   }
 
   PrintShortLineCount();
@@ -10857,7 +10863,7 @@ PASTESTRUCT __fastcall TDTSColor::TaeEditPaste(bool bColor)
 
   try
   {
-    WideString wOut = utils->GetClipboardText();
+    WideString wOut = utils.GetClipboardText();
 
     if (!wOut.IsEmpty())
       ps = TaeEditPaste(bColor, wOut);
@@ -10891,7 +10897,7 @@ PASTESTRUCT __fastcall TDTSColor::TaeEditPaste(bool bColor, WideString wTemp)
   // with "nothing" wTemp CAN be empty!)
   if (tae->SelLength)
   {
-    utils->PushOnChange(tae);
+    utils.PushOnChange(tae);
 
     try
     {
@@ -10902,7 +10908,7 @@ PASTESTRUCT __fastcall TDTSColor::TaeEditPaste(bool bColor, WideString wTemp)
 #if DEBUG_ON
         CWrite("\r\nError [3] in TaeEditPaste(bool, string)...\r\n");
 #endif
-        utils->PopOnChange(tae);
+        utils.PopOnChange(tae);
         ps.error = -3;
         return ps;
       }
@@ -10912,14 +10918,14 @@ PASTESTRUCT __fastcall TDTSColor::TaeEditPaste(bool bColor, WideString wTemp)
 #if DEBUG_ON
       CWrite("\r\nError [4] in TaeEditPaste(bool, string)...\r\n");
 #endif
-      utils->PopOnChange(tae);
+      utils.PopOnChange(tae);
       ps.error = -4;
       return ps;
     }
 
     bChain = true; // Flag to chain a paste Undo item (below)
 
-    utils->PopOnChange(tae);
+    utils.PopOnChange(tae);
   }
 
   if (wTemp.IsEmpty())
@@ -10929,12 +10935,12 @@ PASTESTRUCT __fastcall TDTSColor::TaeEditPaste(bool bColor, WideString wTemp)
   {
     if (!bColor)
     {
-      wTemp = utils->StripAllCodes(wTemp);
+      wTemp = utils.StripAllCodes(wTemp);
 
       if (wTemp.Length() == 0)
         return ps;
     }
-    else if (!utils->TextContainsFormatCodes(wTemp))
+    else if (!utils.TextContainsFormatCodes(wTemp))
       bColor = false; // don't need to do a DoShowRtf() (no flicker!)
   }
   catch(...)
@@ -10950,7 +10956,7 @@ PASTESTRUCT __fastcall TDTSColor::TaeEditPaste(bool bColor, WideString wTemp)
   // to allow highlights and edits...
   if (tae->View == V_OFF)
   {
-    utils->PushOnChange(tae);
+    utils.PushOnChange(tae);
 
     try
     {
@@ -10959,13 +10965,13 @@ PASTESTRUCT __fastcall TDTSColor::TaeEditPaste(bool bColor, WideString wTemp)
       tae->View = LoadView(V_ORG);
 
       // Add undo info (don't need the paste-string saved...)
-      ONCHANGEW oc = utils->GetInfoOC(tae, SL_ORG);
+      ONCHANGEW oc = utils.GetInfoOC(tae, SL_ORG);
       TOCUndo->Add(UNDO_INS, 0, wTemp.Length(), oc, "", bChain);
 //      TOCUndo->Add(UNDO_PASTE, 0, wTemp.Length(), oc, "", bChain);
 
       // Prevent autoset of line-width in RTF mode!
       bTextWasProcessed = false;
-      ps.lines = utils->CountCRs(wTemp);
+      ps.lines = utils.CountCRs(wTemp);
       ps.delta = wTemp.Length();
     }
     catch(...)
@@ -10976,13 +10982,13 @@ PASTESTRUCT __fastcall TDTSColor::TaeEditPaste(bool bColor, WideString wTemp)
       ps.error = -2;
     }
 
-    utils->PopOnChange(tae);
+    utils.PopOnChange(tae);
     return ps;
   }
 
   if (tae->View != V_RTF)
   {
-    utils->PushOnChange(tae);
+    utils.PushOnChange(tae);
 
     try
     {
@@ -11015,7 +11021,7 @@ PASTESTRUCT __fastcall TDTSColor::TaeEditPaste(bool bColor, WideString wTemp)
 
         // Insert new paste-text into a string cantaining the line the
         // caret is on
-        wS = utils->InsertW(wS, wTemp, p.x+1);
+        wS = utils.InsertW(wS, wTemp, p.x+1);
 
         // Insert new text (including line-breaks) into string-list
         TPoint ptDelta = TaeSL->SetStringEx(wS, p.y);
@@ -11023,7 +11029,7 @@ PASTESTRUCT __fastcall TDTSColor::TaeEditPaste(bool bColor, WideString wTemp)
         // Add undo point
         if (TOCUndo != NULL)
         {
-          ONCHANGEW oc = utils->GetInfoOC();
+          ONCHANGEW oc = utils.GetInfoOC();
           TOCUndo->Add(UNDO_INS, p.x, ptDelta.x, oc, "");
         }
 
@@ -11033,25 +11039,25 @@ PASTESTRUCT __fastcall TDTSColor::TaeEditPaste(bool bColor, WideString wTemp)
         // changed - ConvertToRtf also needs to be able to convert and insert
         // just the changed text so we don't have to re-process the entire
         // document...
-        utils->EncodeHighlight(TaeSL, tae, false);
+        utils.EncodeHighlight(TaeSL, tae, false);
       }
       else // other view...
       {
         // SelLength needed to Undo the paste directly in the control later!
-        int len = wTemp.Length() - utils->CountCRs(wTemp);
+        int len = wTemp.Length() - utils.CountCRs(wTemp);
 
         // Add undo info (don't need the paste-string saved...)
-        ONCHANGEW oc = utils->GetInfoOC(tae, NULL);
+        ONCHANGEW oc = utils.GetInfoOC(tae, NULL);
         TOCUndo->Add(UNDO_INS, tae->SelStart, len, oc, "", bChain);
 
         tae->SelTextW = wTemp;
       }
 
-      ps.lines += utils->CountCRs(wTemp); // Count CRs
+      ps.lines += utils.CountCRs(wTemp); // Count CRs
       ps.delta += wTemp.Length(); // includes 2 chars for each cr/lf!
 
       // Reset for OnChange Event...
-      utils->SetOldLineVars(tae);
+      utils.SetOldLineVars(tae);
     }
     catch(...)
     {
@@ -11061,7 +11067,7 @@ PASTESTRUCT __fastcall TDTSColor::TaeEditPaste(bool bColor, WideString wTemp)
       ps.error = -5;
     }
 
-    utils->PopOnChange(tae);
+    utils.PopOnChange(tae);
     return ps;
   }
 
@@ -11084,7 +11090,7 @@ PASTESTRUCT __fastcall TDTSColor::TaeEditPaste(bool bColor, WideString wTemp)
 //      if (wTemp == WideString(CRLF))
 //        tae->SelAttributes->BackColor = clWindow;
 
-      utils->PushOnChange(tae);
+      utils.PushOnChange(tae);
 
       try
       {
@@ -11095,7 +11101,7 @@ PASTESTRUCT __fastcall TDTSColor::TaeEditPaste(bool bColor, WideString wTemp)
         WideString wS = SL_IRC->GetString(p.y);
 
         // Get text states settled (wS is in/out by reference!)
-        int idxIns = utils->ResolveStateForPaste(p, wS, wTemp);
+        int idxIns = utils.ResolveStateForPaste(p, wS, wTemp);
 
         if (idxIns >= 0)
         {
@@ -11105,7 +11111,7 @@ PASTESTRUCT __fastcall TDTSColor::TaeEditPaste(bool bColor, WideString wTemp)
           // Add undo point
           if (TOCUndo != NULL)
           {
-            ONCHANGEW oc = utils->GetInfoOC(tae, SL_IRC);
+            ONCHANGEW oc = utils.GetInfoOC(tae, SL_IRC);
             TOCUndo->Add(UNDO_INS, idxIns, ptDelta.x, oc, "");
           }
 
@@ -11114,8 +11120,8 @@ PASTESTRUCT __fastcall TDTSColor::TaeEditPaste(bool bColor, WideString wTemp)
 
           // Set vars used to compute new caret position after paste
           // (the calling function will set it to the end of the paste-text!)
-          WideString Stripped = utils->StripAllCodes(wTemp);
-          ps.lines += utils->CountCRs(Stripped);
+          WideString Stripped = utils.StripAllCodes(wTemp);
+          ps.lines += utils.CountCRs(Stripped);
           ps.delta += Stripped.Length(); // length added to RTF text-view
 
           if (!bColor) // this is used in pasting a string of TAB spaces!
@@ -11131,7 +11137,7 @@ PASTESTRUCT __fastcall TDTSColor::TaeEditPaste(bool bColor, WideString wTemp)
             DoShowRtf(bShowStatus);
 
           // Reset for OnChange Event...
-          utils->SetOldLineVars(tae);
+          utils.SetOldLineVars(tae);
           tae->Modified = true;
           bSaveWork = true;
         }
@@ -11151,15 +11157,15 @@ PASTESTRUCT __fastcall TDTSColor::TaeEditPaste(bool bColor, WideString wTemp)
         ps.error = -8;
       }
 
-      utils->PopOnChange(tae);
+      utils.PopOnChange(tae);
     }
     catch(...)
     {
       // Reset for OnChange Event...
-      utils->SetOldLineVars(tae);
+      utils.SetOldLineVars(tae);
       tae->Modified = true;
       bSaveWork = true;
-      utils->PopOnChange(tae);
+      utils.PopOnChange(tae);
   #if DEBUG_ON
       CWrite("\r\nError [9] in TaeEditPaste(bool, string)...\r\n");
   #endif
@@ -11498,11 +11504,11 @@ void __fastcall TDTSColor::MenuClientClick(TObject *Sender)
       // Ask user if they mind having the edit text cleared...
       // have to do that if changing from an RGB client to a non-RGB client
       // and there is coded text...
-      if (utils->TextContainsFormatCodes(SL_IRC->Text) && IsYahTrinPal() &&
+      if (utils.TextContainsFormatCodes(SL_IRC->Text) && IsYahTrinPal() &&
         p->Tag != C_PALTALK && p->Tag != C_YAHELITE && p->Tag != C_TRINITY)
       {
         // "OK to clear the text and set a new client-mode?"
-        if (utils->ShowMessageU(Handle, DS[212],
+        if (utils.ShowMessageU(Handle, DS[212],
                       MB_ICONQUESTION|MB_YESNO|MB_DEFBUTTON1) == IDNO)
           return;
       }
@@ -11555,7 +11561,7 @@ void __fastcall TDTSColor::SetNewClient(int Client, bool bAskSetupPaltalk)
         if (bAskSetupPaltalk)
         {
           // "Auto-set everything for Paltalk?"
-          if (utils->ShowMessageU(Handle, DS[46],
+          if (utils.ShowMessageU(Handle, DS[46],
                       MB_ICONQUESTION|MB_YESNO|MB_DEFBUTTON1) == IDYES)
           {
             // Set everything for Paltalk
@@ -11567,7 +11573,7 @@ void __fastcall TDTSColor::SetNewClient(int Client, bool bAskSetupPaltalk)
             // Fudge to set the font before we set Cli (below)
             int temp = Cli;
             Cli = Client;
-            utils->SetDefaultFont(tae);
+            utils.SetDefaultFont(tae);
             Cli = temp;
 
             Background = IRCWHITE;
@@ -11580,7 +11586,7 @@ void __fastcall TDTSColor::SetNewClient(int Client, bool bAskSetupPaltalk)
         }
       }
       else
-        utils->ShowMessageU("Unable to instantiate TPaltalk()!");
+        utils.ShowMessageU("Unable to instantiate TPaltalk()!");
     }
     else
     {
@@ -11676,8 +11682,8 @@ void __fastcall TDTSColor::ConfigureForPaltalk(int Client)
   // Need this for IRC if we were in paltalk
   int temp = Cli;
   Cli = Client;
-//  utils->SetDefaultFont(tae); S.S. 10/20/2015 bug
-  utils->SetRichEditFont(tae);
+//  utils.SetDefaultFont(tae); S.S. 10/20/2015 bug
+  utils.SetRichEditFont(tae);
 
   if (SL_ORG->Count > 0)
   {
@@ -11725,7 +11731,7 @@ void __fastcall TDTSColor::ConfigureForIRC(int Client)
 
     RangeCheckColorPanels();
 
-    utils->SetDefaultFont(tae);
+    utils.SetDefaultFont(tae);
 
     if (SL_ORG->Count > 0)
     {
@@ -11790,7 +11796,7 @@ int __fastcall TDTSColor::SetClientStatus(int Client)
 {
   if (ClientMenu->Count != MAXCLIENTS)
   {
-    utils->ShowMessageU("Number of Client menu-items does not match\n"
+    utils.ShowMessageU("Number of Client menu-items does not match\n"
                 "number of client-enumerated types!");
     return 0;
   }
@@ -11838,7 +11844,7 @@ void __fastcall TDTSColor::CopyColorMenuItemClick(TObject *Sender)
   if (c->ClassNameIs("TPanel"))
   {
     TPanel* p = (TPanel*)c;
-    Clipboard()->AsText = utils->TColorToHex(p->Color);
+    Clipboard()->AsText = utils.TColorToHex(p->Color);
   }
 }
 //---------------------------------------------------------------------------
@@ -11864,7 +11870,7 @@ void __fastcall TDTSColor::ColorCopyPasteMenuPopup(TObject *Sender)
     String S = Clipboard()->AsText;
 
     PUSHSTRUCT ps;
-    utils->SetStateFlags(S, STATE_MODE_FIRSTCHAR, ps);
+    utils.SetStateFlags(S, STATE_MODE_FIRSTCHAR, ps);
 
     if (ps.fg == NO_COLOR && ps.bg == NO_COLOR)
     {
@@ -11876,15 +11882,15 @@ void __fastcall TDTSColor::ColorCopyPasteMenuPopup(TObject *Sender)
         try
         {
           if (S.Pos("0x") != 1)
-            S = utils->InsertW(S, "0x", 1); // Need this for ToIntDef, below
+            S = utils.InsertW(S, "0x", 1); // Need this for ToIntDef, below
 
           int i = S.ToIntDef(-1); // Need this to see if it's a legit color
 
           if (i >= 0)
           {
-            BlendColor bc = utils->HexToBlendColor(S); // handles "0x" prefix
-            int rgb = utils->BlendColorToRgb(bc);
-            ColorCopyFg = utils->ResolveRGBExact(rgb);
+            BlendColor bc = utils.HexToBlendColor(S); // handles "0x" prefix
+            int rgb = utils.BlendColorToRgb(bc);
+            ColorCopyFg = utils.ResolveRGBExact(rgb);
 
             if (ColorCopyFg == 0)
               ColorCopyFg = -rgb;
@@ -11997,10 +12003,10 @@ void __fastcall TDTSColor::PasteColor(int C)
     //    (name.Length() > 3 && name.Pos("alt") == 1))
     //{
     //  TPanel* pan = (TPanel*)c;
-    //  if (pan) pan->Color = utils->YcToTColor(C);
+    //  if (pan) pan->Color = utils.YcToTColor(C);
     //}
     else if (name.Length() > 5 && name.Pos("blend") == 1)
-      SetBlendColor(pan, utils->YcToTColor(C));
+      SetBlendColor(pan, utils.YcToTColor(C));
     else if (name == "editwingpanel")
     {
       if (WingEditForm != NULL) WingEditForm->SetBorderBgColor(C);
@@ -12042,7 +12048,7 @@ void __fastcall TDTSColor::ShowColorMenuItemClick(TObject *Sender)
   if (c->ClassNameIs("TPanel"))
   {
     TPanel* p = (TPanel*)c;
-    utils->ShowColor(p->Color);
+    utils.ShowColor(p->Color);
   }
 }
 //---------------------------------------------------------------------------
@@ -12052,7 +12058,7 @@ void __fastcall TDTSColor::EditSpellCheckItemClick(TObject *Sender)
   {
     // "No Spell-checker: Unable to locate hunspell.dll!\n"
     // "Try uninstalling then reinstalling YahCoLoRiZe...", // 182
-    utils->ShowMessageU(DS[182]);
+    utils.ShowMessageU(DS[182]);
     return;
   }
 
@@ -12062,7 +12068,7 @@ void __fastcall TDTSColor::EditSpellCheckItemClick(TObject *Sender)
 WideString __fastcall TDTSColor::U16(const char* p)
 {
   AnsiString sCopy = AnsiString(p);
-  return utils->Utf8ToWide(sCopy);
+  return utils.Utf8ToWide(sCopy);
 }
 //---------------------------------------------------------------------------
 void __fastcall TDTSColor::YcDestroyForm(TForm* f)
@@ -12101,9 +12107,9 @@ void __fastcall TDTSColor::TabsStripRBClick(TObject *Sender)
 // to convert a block of UTF-8 text to ANSI codes for DefaultStrings.cpp!
 void __fastcall TDTSColor::DisplayAnsiToUtf8(void)
 {
-  utils->PushOnChange(tae);
-  tae->Text = utils->AnsiToUtf8(tae->Text);
-  utils->PopOnChange(tae);
+  utils.PushOnChange(tae);
+  tae->Text = utils.AnsiToUtf8(tae->Text);
+  utils.PopOnChange(tae);
 }
 #endif
 //---------------------------------------------------------------------------
@@ -12141,8 +12147,8 @@ void __fastcall TDTSColor::TaeEditChange(TObject *Sender)
 
   if (tae->View == V_OFF)
   {
-    utils->SetOldLineVars(tae, true); // init old length and line-count
-    utils->WaitForThread();
+    utils.SetOldLineVars(tae, true); // init old length and line-count
+    utils.WaitForThread();
     SL_ORG->Clear();
   }
 
@@ -12150,7 +12156,7 @@ void __fastcall TDTSColor::TaeEditChange(TObject *Sender)
   // (Get the deltas in length and line-count and point
   // to the right string-list!) (NOTE: the oc.p stringlist
   // pointer is set below!)
-  ONCHANGEW oc = utils->GetInfoOC(tae, NULL);
+  ONCHANGEW oc = utils.GetInfoOC(tae, NULL);
 
   // deltaLength can be 0 in OVR (overstrike) mode!
   if (oc.deltaLength == 0 && oc.insert)
@@ -12170,7 +12176,7 @@ void __fastcall TDTSColor::TaeEditChange(TObject *Sender)
   }
 
 #if DEBUG_ON
- DTSColor->CWrite("\r\noc.deltaLength:" + String(oc.deltaLength) +
+  CWrite("\r\noc.deltaLength:" + String(oc.deltaLength) +
  ", oc.deltaLineCount:" + String(oc.deltaLineCount) + ", selText:\"" + tae->SelText + "\"\r\n");
 #endif
   // User deleted chars? (1 or 2 for cr/lf)
@@ -12322,7 +12328,7 @@ void __fastcall TDTSColor::TaeEditChange(TObject *Sender)
             // color in-effect for new chars typed after a red
             // char. We return it to black.
 
-            wchar_t Cnew = utils->GetHighlightLetter(oc.c[0]); // substitute char
+            wchar_t Cnew = utils.GetHighlightLetter(oc.c[0]); // substitute char
 
             tae->SelStart = oc.selStart-oc.deltaLength;
 
@@ -12344,7 +12350,7 @@ void __fastcall TDTSColor::TaeEditChange(TObject *Sender)
           }
           catch(...)
           {
-            utils->ShowMessageU("2: Exception in Main OnChange handler!");
+            utils.ShowMessageU("2: Exception in Main OnChange handler!");
           }
 
           tae->SelStart = SaveSelStart;
@@ -12412,7 +12418,7 @@ void __fastcall TDTSColor::TaeEditInsertModeChange(TObject *Sender)
 void __fastcall TDTSColor::ThreadTerminated(TObject *Sender)
 {
   // thread is finished with its work ...
-  utils->ShowMessageU("OnChange Thread quit!");
+  utils.ShowMessageU("OnChange Thread quit!");
 }
 //---------------------------------------------------------------------------
 #if DEBUG_ON

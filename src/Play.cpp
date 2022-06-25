@@ -296,7 +296,7 @@ bool __fastcall TPlay::SendToClient(bool bFindLineLength)
     // totally different than the raw IRC-format we have at this point,
     // so just report the stripped width of each line in characters...)
     if (dts->IsCli(C_PALTALK) || dts->IsCli(C_YAHELITE))
-      lineWidthInChars = utils->GetRealLength(OutStrW);
+      lineWidthInChars = utils.GetRealLength(OutStrW);
     else
       lineWidthInChars = OutStrW.Length();
 
@@ -304,7 +304,7 @@ bool __fastcall TPlay::SendToClient(bool bFindLineLength)
 
     // Convert to UTF-8 if enabled...
     if (lineWidthInChars > 0 && dts->SendUtf8)
-      OutStr = utils->WideToUtf8(OutStrW); // Convert UTF-16 to UTF-8
+      OutStr = utils.WideToUtf8(OutStrW); // Convert UTF-16 to UTF-8
     else
       OutStr = String(OutStrW); // Convert UTF-16 to ANSI
 
@@ -334,7 +334,7 @@ bool __fastcall TPlay::SendToClient(bool bFindLineLength)
     if (dts->GMaxPlayXmitBytes >= 0 && lineWidthInBytes > dts->GMaxPlayXmitBytes)
     {
       DoStopPlay();
-      utils->ShowMessageU(DS[84]); // text too long
+      utils.ShowMessageU(DS[84]); // text too long
       return true;
     }
 
@@ -368,7 +368,7 @@ bool __fastcall TPlay::SendToClient(bool bFindLineLength)
       if (dts->bSendUtf8)
         sTempPlayChan = dts->PlayChan;
       else
-        sTempPlayChan = utils->Utf8ToAnsi(dts->PlayChan); // ANSI
+        sTempPlayChan = utils.Utf8ToAnsi(dts->PlayChan); // ANSI
 
       // Send the text to the chat-client
       if (dts->IsPlugin())
@@ -617,8 +617,8 @@ void __fastcall TPlay::SendPaltalk(AnsiString chan, AnsiString S)
   {
     // The compiler converts to WideString and back in the following...
     // (what goes in is <= 255 so it should work ok!)
-    S = utils->StripBgCodes(S);
-    S = utils->StripTrailingSpaces(S);
+    S = utils.StripBgCodes(S);
+    S = utils.StripTrailingSpaces(S);
 
     if (!S.IsEmpty())
     {
@@ -629,9 +629,9 @@ void __fastcall TPlay::SendPaltalk(AnsiString chan, AnsiString S)
       // NOTE - I'm setting this to always strip RTF font-indexes because
       // there is no info about any Paltalk server-side RTF font-table and even
       // if there is one it won't match our own font-type-table anyway!
-      S = utils->ConvertToRtfString(utils->Utf8ToWide(S), dts->PaltalkMaxColors,
+      S = utils.ConvertToRtfString(utils.Utf8ToWide(S), dts->PaltalkMaxColors,
                                                   NO_COLOR, NO_COLOR, true);
-//      S = utils->ConvertToRtf(utils->Utf8ToWide(S), dts->PaltalkMaxColors,
+//      S = utils.ConvertToRtf(utils.Utf8ToWide(S), dts->PaltalkMaxColors,
 //                                      NO_COLOR, NO_COLOR, dts->bStripFont);
 
       if (!GPaltalk->sendTextToRoomOrPm(chan, S, true))
@@ -711,7 +711,7 @@ void __fastcall TPlay::DoStopPlay(void)
       GPaltalk->clearText(); // also clears InhibitRemoteEnterKeypress!
 
     if (OpenClipboard(dts->Handle))
-      utils->ClearClipboard(); // Clean up the clipboard
+      utils.ClearClipboard(); // Clean up the clipboard
   }
 
   dts->StopButton->Enabled = false;
@@ -762,7 +762,7 @@ void __fastcall TPlay::DoPausePlay(void)
   // mIRC?
   else if (dts->IsCli(C_MIRC) && dts->bUseFile)
     // mIRC with UseDLL unchecked and UseFile checked
-    utils->ShowMessageU(String(DS[127]) + "mIRC");
+    utils.ShowMessageU(String(DS[127]) + "mIRC");
   // Vortec?
   else if (dts->IsCli(C_VORTEC) && dts->bUseFile)
   {
@@ -814,7 +814,7 @@ void __fastcall TPlay::DoResumePlay(void)
   // mIRC?
   else if (dts->IsCli(C_MIRC) && dts->bUseFile)
     // mIRC with UseDLL unchecked and UseFile checked (can't do resume)
-    utils->ShowMessageU(String(DS[129]) + "mIRC");
+    utils.ShowMessageU(String(DS[129]) + "mIRC");
   // Vortec?
   else if (dts->IsCli(C_VORTEC) && dts->bUseFile)
   {
@@ -839,7 +839,7 @@ void __fastcall TPlay::DoResumePlay(void)
 //---------------------------------------------------------------------------
 tColor __fastcall TPlay::LoadDLL(HINSTANCE &handle, AnsiString entry)
 {
-  handle = LoadLibrary(utils->Utf8ToWide(FN[7]).c_bstr()); // "Colorize.dll"
+  handle = LoadLibrary(utils.Utf8ToWide(FN[7]).c_bstr()); // "Colorize.dll"
 
   if (handle == NULL || !entry.Length())
     return NULL;
@@ -860,7 +860,7 @@ tColor __fastcall TPlay::LoadDLL(HINSTANCE &handle, AnsiString entry)
 
 tColorStart __fastcall TPlay::LoadDll(HINSTANCE &handle)
 {
-  handle = LoadLibrary(utils->Utf8ToWide(FN[7]).c_bstr()); // "Colorize.dll"
+  handle = LoadLibrary(utils.Utf8ToWide(FN[7]).c_bstr()); // "Colorize.dll"
 
   if (handle == NULL)
     return(NULL);

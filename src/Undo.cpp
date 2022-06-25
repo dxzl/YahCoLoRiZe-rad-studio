@@ -291,13 +291,13 @@ void __fastcall TTOCUndo::Undo(void)
   if (tae->LockCounter != 0)
     return;
 
-  utils->PushOnChange(tae);
-  utils->WaitForThread();
+  utils.PushOnChange(tae);
+  utils.WaitForThread();
 
   // Loop while one Undo object chains to the previous...
   while (DoUndo());
 
-  utils->PopOnChange(tae);
+  utils.PopOnChange(tae);
 }
 //---------------------------------------------------------------------------
 bool __fastcall TTOCUndo::DoUndo(void)
@@ -325,7 +325,7 @@ bool __fastcall TTOCUndo::DoUndo(void)
     if (pTList->Count == 1 && (type == UNDO_PROCESS ||
                                                 type == UNDO_SHOW))
     {
-      if (utils->ShowMessageU(DTSColor->Handle, DS[180],
+      if (utils.ShowMessageU(DTSColor->Handle, DS[180],
                       MB_ICONQUESTION|MB_YESNO|MB_DEFBUTTON2) == IDNO)
         return false; // Cancel
     }
@@ -353,10 +353,10 @@ bool __fastcall TTOCUndo::DoUndo(void)
             TStringsW* sl = (TStringsW*)oc.p;
 
             // Set to view prior to Process
-            sl->Text = utils->InsertW(sl->Text, ui->s, ui->Index+1);
+            sl->Text = utils.InsertW(sl->Text, ui->s, ui->Index+1);
 
             if (oc.view == V_RTF)
-              utils->ConvertToRtf(sl, DTSColor->MS_RTF);
+              utils.ConvertToRtf(sl, DTSColor->MS_RTF);
 
             DTSColor->LoadView(oc.view);
             tae->SelStart = oc.selStart;
@@ -374,7 +374,7 @@ bool __fastcall TTOCUndo::DoUndo(void)
           TStringsW* sl = (TStringsW*)oc.p;
 
           // Set to view prior to Process
-          sl->Text = utils->DeleteW(sl->Text, ui->Index+1, ui->Length);
+          sl->Text = utils.DeleteW(sl->Text, ui->Index+1, ui->Length);
         }
 
       break;
@@ -390,7 +390,7 @@ bool __fastcall TTOCUndo::DoUndo(void)
             sl->Text = ui->s;
 
             if (oc.view == V_RTF)
-              utils->ConvertToRtf(sl, DTSColor->MS_RTF);
+              utils.ConvertToRtf(sl, DTSColor->MS_RTF);
 
             DTSColor->LoadView(oc.view);
             tae->SelStart = oc.selStart;
@@ -406,7 +406,7 @@ bool __fastcall TTOCUndo::DoUndo(void)
         DTSColor->LoadView(oc.view);
         DTSColor->TextWasProcessed = false;
         tae->SelStart = oc.selStart;
-        utils->SetOldLineVars(tae, true);
+        utils.SetOldLineVars(tae, true);
 
       break;
 
@@ -428,7 +428,7 @@ bool __fastcall TTOCUndo::DoUndo(void)
               wC += WideString(C_LF); // MUST cast to WideString with "+=" (compiler issue!)
 
             // restore string and write to document
-            wTemp = utils->InsertW(wTemp, wC, us->pos.x+1);
+            wTemp = utils.InsertW(wTemp, wC, us->pos.x+1);
             sl->SetStringEx(wTemp, us->pos.y);
 
             if (sl->TotalLength == 0)
@@ -436,14 +436,14 @@ bool __fastcall TTOCUndo::DoUndo(void)
               sl->Clear();
               tae->Clear();
               DTSColor->LoadView(V_OFF);
-              utils->SetOldLineVars(tae, true);
+              utils.SetOldLineVars(tae, true);
             }
             else
             {
               if (us->view == V_RTF)
               {
                 TMemoryStream* pRef = DTSColor->MS_RTF;
-                utils->ConvertToRtf(sl, pRef);
+                utils.ConvertToRtf(sl, pRef);
                 DTSColor->MS_RTF = pRef;
               }
 
@@ -475,7 +475,7 @@ bool __fastcall TTOCUndo::DoUndo(void)
           try
           {
             WideString wTemp = sl->GetString(oc.line);
-            wTemp = utils->InsertW(wTemp, ui->s, ui->Index+1);
+            wTemp = utils.InsertW(wTemp, ui->s, ui->Index+1);
             sl->SetStringEx(wTemp, oc.line);
 
             if (sl->TotalLength == 0)
@@ -483,12 +483,12 @@ bool __fastcall TTOCUndo::DoUndo(void)
               sl->Clear();
               tae->Clear();
               DTSColor->LoadView(V_OFF);
-              utils->SetOldLineVars(tae, true);
+              utils.SetOldLineVars(tae, true);
             }
             else
             {
               if (oc.view == V_RTF)
-                utils->ConvertToRtf(sl, DTSColor->MS_RTF);
+                utils.ConvertToRtf(sl, DTSColor->MS_RTF);
 
               DTSColor->LoadView(oc.view);
               tae->SelStart = oc.selStart;
@@ -538,21 +538,21 @@ bool __fastcall TTOCUndo::DoUndo(void)
           try
           {
             if (type == UNDO_REPLACE)
-              sl->Text = utils->DeleteW(sl->Text, ui->Index+1, ui->Length);
+              sl->Text = utils.DeleteW(sl->Text, ui->Index+1, ui->Length);
 
-            sl->Text = utils->InsertW(sl->Text, ui->s, ui->Index+1);
+            sl->Text = utils.InsertW(sl->Text, ui->s, ui->Index+1);
 
             if (sl->TotalLength == 0)
             {
               sl->Clear();
               tae->Clear();
               DTSColor->LoadView(V_OFF);
-              utils->SetOldLineVars(tae, true);
+              utils.SetOldLineVars(tae, true);
             }
             else
             {
               if (oc.view == V_RTF)
-                utils->ConvertToRtf(sl, DTSColor->MS_RTF);
+                utils.ConvertToRtf(sl, DTSColor->MS_RTF);
 
               DTSColor->LoadView(oc.view);
               tae->SelStart = oc.selStart;
@@ -625,12 +625,12 @@ bool __fastcall TTOCUndo::DoUndo(void)
               sl->Clear();
               tae->Clear();
               DTSColor->LoadView(V_OFF);
-              utils->SetOldLineVars(tae, true);
+              utils.SetOldLineVars(tae, true);
             }
             else
             {
               if (us->view == V_RTF)
-                utils->ConvertToRtf(sl, DTSColor->MS_RTF);
+                utils.ConvertToRtf(sl, DTSColor->MS_RTF);
 
               DTSColor->LoadView(us->view);
 
@@ -660,16 +660,38 @@ bool __fastcall TTOCUndo::DoUndo(void)
           {
             // ui->Length has length of text inserted or overstruck
             // ui->s is empty
-            // oc.prevPos.y has the string index at the insert point
-            // ui->Index has the offset into string at oc.prevPos.y
+            // oc.pos.y has the string index at the insert point
+            // ui->Index has the offset into string at oc.pos.y
             // oc.c is a buffer, null-terminated if < OC_BUFSIZE of overstrike chars
             if (oc.insert)
             {
+// OnChange structure
+//typedef struct
+//{
+//  long line; // YcEdit->Line
+//  long selStart; // YcEdit->SelStart
+//  long length; // utils->GetTextLength(re) (counts line-breaks as 2 chars!)
+//  long lineCount; // utils->GetLineCount(re)
+//  long deltaLength; // change in length computed from re->OldLineCount
+//  long deltaLineCount; // change in # lines
+//  int view; // V_OFF, V_RTF etc.
+//  bool insert; // Insert mode flag
+//  void* p; // Memory stream (or other data-object)
+//  TPoint pos; // caret position before chars were added or after chars were deleted
+//  wchar_t c[OC_BUFSIZE]; // Input character(s) (NULL TERMINATED!)
+//} ONCHANGEW;
+//ShowMessage("sl Count: " + String(sl->Count));
+//ShowMessage("sl->Text: \"" + sl->Text + "\"");
+//ShowMessage("oc.pos.y: " + String(oc.pos.y));
+//ShowMessage("ui->Length: " + String(ui->Length));
+//ShowMessage("ui->Index: " + String(ui->Index));
               TPoint loc;
               loc.x = ui->Index;
               loc.y = oc.pos.y;
-              
+
               sl->DeleteText(loc, ui->Length);
+//              sl->DeleteText(loc, ui->Length-1); // works!
+// why is Length 3 and not two????
             }
             else // text was typed overstrike...
             {
@@ -684,12 +706,12 @@ bool __fastcall TTOCUndo::DoUndo(void)
               sl->Clear();
               tae->Clear();
               DTSColor->LoadView(V_OFF);
-              utils->SetOldLineVars(tae, true);
+              utils.SetOldLineVars(tae, true);
             }
             else
             {
               if (oc.view == V_RTF)
-                utils->ConvertToRtf(sl, DTSColor->MS_RTF);
+                utils.ConvertToRtf(sl, DTSColor->MS_RTF);
 
               DTSColor->LoadView(oc.view);
 
@@ -744,24 +766,24 @@ bool __fastcall TTOCUndo::DoUndo(void)
               // this is a dumb thing, WideString() with a length specifier - the
               // length if forced to BE len - when what we want is for len to be a
               // maximum of le - so have to do it "by hand"!
-              utils->ReplaceW(sl,
-                  WideString(oc.c, utils->min(OC_BUFSIZE, wcslen(oc.c))),
+              utils.ReplaceW(sl,
+                  WideString(oc.c, utils.min(OC_BUFSIZE, wcslen(oc.c))),
                                                                 ui->Index+1);
             }
             else // insert or paste mode
-              utils->DeleteW(sl, ui->Index+1, ui->Length);
+              utils.DeleteW(sl, ui->Index+1, ui->Length);
 
             if (sl->TotalLength == 0)
             {
               sl->Clear();
               tae->Clear();
               DTSColor->LoadView(V_OFF);
-              utils->SetOldLineVars(tae, true);
+              utils.SetOldLineVars(tae, true);
             }
             else
             {
               if (oc.view == V_RTF)
-                utils->ConvertToRtf(sl, DTSColor->MS_RTF);
+                utils.ConvertToRtf(sl, DTSColor->MS_RTF);
 
               DTSColor->LoadView(oc.view);
 

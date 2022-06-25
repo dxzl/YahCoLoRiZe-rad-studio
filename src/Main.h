@@ -6,12 +6,25 @@
 //
 // Released to GitHub under GPL v3 October, 2016
 //
+// NOTE: Back before C++ Builder had UTF-8 strings and "String" was ANSI,
+// I undertook to bring in full Unicode capability via WideString. So -
+// ironically, all the work I put in needs to be reversed... I've set out
+// to do it twice and - decided it works ok for me as-is! But someone else
+// please feel free to give it a go (Scott Swift 2022)... :-)
 //---------------------------------------------------------------------------
 #ifndef MainH
 #define MainH
 //---------------------------------------------------------------------------
-#define REVISION "7.51" // Unicode Version
+#define REVISION "7.53" // Unicode Version
 
+// June 24, 2022, 7.53
+// In Undo.cpp comment out addition of LF char when CR is detected
+// It was causing Undo of new lines in RTF mode to fail, deleting
+// an extra char, usually a Ctrl-C for colors.
+//
+// June 21, 2022, 7.52,
+// Build with YcEditRAD14LT edit-control.
+//
 // June 20, 2022, 7.51,
 // Save file dialog, FormSFDlg had the OFN_NODEREFERENCELINKS option set which
 // caused shortcut-links to actually be changed so that they no longer worked!
