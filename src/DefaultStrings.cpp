@@ -1316,7 +1316,10 @@ const char* DS[TOTALSTRINGS] =
 "After Optimizing you may not be able to Undo previous\n"
 "changes. Optimize?", // 50
 
-"", // 51
+"Did you intend to export only the selected text as a web-page?\n"
+"If not, click \"no\" and then click anywhere in your document to "
+"deselect text...", // 51
+
 "Unable to process:", // 52
 "", // 53
 "Text processing aborted by user", // 54
@@ -1510,7 +1513,7 @@ const char* DS[TOTALSTRINGS] =
 "Thank you for trying YahCoLoRiZe!\n\n"
 "To delete the YahCoLoRiZe icons,\n"
 "right-click them and choose Delete!\n\n"
-"Visit: https://github.com/dxzl/YahCoLoRiZe/releases", // 135
+"Visit: https://github.com/dxzl/YahCoLoRiZe-rad-studio/releases", // 135
 
 "Uninstall YahCoLoRiZe?", // 136
 "User-cancelled operation!", // 137

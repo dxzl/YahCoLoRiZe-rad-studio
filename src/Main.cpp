@@ -23,7 +23,7 @@
 #include "ConvertToYahoo.h"
 #include "ConvertToHTML.h"
 #include "ConvertFromHTML.h"
-#include "..\YcEdit\YcPrintDialog.h"
+#include "..\YcEdit\YcPrintDialog.h" // NOTE: this file can be found in my YcEdit repo on github!
 //#include "..\TaeRichEdit\YcPageSetupDlg.h"
 //#include "..\TaeRichEdit\TaeRichEditAdvPrint.h"
 //#include "YcPreviewFrm.h"
@@ -2672,7 +2672,7 @@ void __fastcall TDTSColor::FileSaveAsItemClick(TObject *Sender)
 #if LICENSE_ON
   if (PK->ComputeDaysRemaining() <= 0)
   {
-    //"Visit https://github.com/dxzl/YahCoLoRiZe/releases to download..."
+    //"Visit https://github.com/dxzl/YahCoLoRiZe-rad-studio/releases to download..."
     utils.ShowMessageU(KEYSTRINGS[4] + Iftf->Strings[INFO_WEB_SITE] +
                                                               KEYSTRINGS[5]);
     return;
@@ -5063,6 +5063,20 @@ void __fastcall TDTSColor::RestoreFactorySettings1Click(TObject *Sender)
   {
     ClearAndFocus(true);
     utils.PushOnChange(tae);
+
+    // 8/12/2022 NOTE: Problem I've noticed is that restore-defaults was
+    // not restoring the colorize.ini file to
+    // "Users\(name)\Discrete-Time Systems\YahCoLoRiZe" (CSIDL_APPDATA)
+    // so - to fix that, we simply delete that file, then the original
+    // will be copied over from Program Files (x86)... But, now that I
+    // think of it - that is handled by my original NSIS installer...
+    // but - ah! Now I remember! The .msi installer handles it via
+    // invocation of a .vbs visual basic script to ask the user if they
+    // want to preserve their old .ini settings. So - entire "bug" I'm
+    // seeing in debugging 7.54 - goes away once I've packaged YahCoLoRiZe's
+    // .msi (a visual studio project that uses a vsix extension called
+    // "Microsoft Visual Studio Installer Projects") - so - Cheers!
+
     InitAllSettings(true); // Init OnChange
 
     if (ThreadOnChange)
@@ -5282,7 +5296,7 @@ void __fastcall TDTSColor::FilePrintClick(TObject *Sender)
 #if LICENSE_ON
   if (PK->ComputeDaysRemaining() <= 0)
   {
-    //"Visit https://github.com/dxzl/YahCoLoRiZe/releases to to download..."
+    //"Visit https://github.com/dxzl/YahCoLoRiZe-rad-studio/releases to to download..."
     utils.ShowMessageU(KEYSTRINGS[4] +
             Iftf->Strings[INFO_WEB_SITE] + KEYSTRINGS[5]);
     return;
@@ -9752,7 +9766,7 @@ void __fastcall TDTSColor::ExportAsWebPage1Click(TObject *Sender)
 #if LICENSE_ON
   if (PK->ComputeDaysRemaining() <= 0)
   {
-    //"Visit https://github.com/dxzl/YahCoLoRiZe/releases to download..."
+    //"Visit https://github.com/dxzl/YahCoLoRiZe-rad-studio/releases to download..."
     utils.ShowMessageU(KEYSTRINGS[4] +
                   Iftf->Strings[INFO_WEB_SITE] + KEYSTRINGS[5]);
     return;
@@ -9778,11 +9792,21 @@ void __fastcall TDTSColor::ViewInBrowser1Click(TObject *Sender)
 WideString __fastcall TDTSColor::GenerateHTML(bool bCreateDialog,
                                                     WideString FileName)
 // Leave filename empty and ConvertToHTML will invoke its own filesave dialog.
-// Set bCreateDialog and ConvertToHTML will ask user for web-page
-// background-color, Etc. Returns the FileName used to write the HTML...
+// Set bCreateDialog will ask user for web-page background-color, Etc.
+// Returns the FileName used to write the HTML...
 // (Used by File->ExportAsWebPage())
 {
   WideString sRet;
+
+  // Message: Did you intend to export only the selected text as a web-page?
+  // If not, click "no" and then click anywhere in your document to
+  // deselect text...
+  if (tae->SelLength > 0)
+    if (utils.ShowMessageU(Handle, DS[51],
+                  MB_ICONQUESTION|MB_YESNO|MB_DEFBUTTON1) == IDNO)
+      return "";
+
+
   TConvertToHTML* c = NULL;
 
   CpInit(2); // Init progress-bar system

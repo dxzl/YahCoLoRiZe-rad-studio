@@ -15,10 +15,15 @@
 #ifndef MainH
 #define MainH
 //---------------------------------------------------------------------------
-#define REVISION "7.53" // Unicode Version
+#define REVISION "7.54" // version that appears when you click "about"
 
+// August 12, 2022, 7.54
+// Help link was to wrong github release page...
+// Added warning when doing export of web-page and text has been selected (highlighted).
+// If any text is selected, only the selected text is exported or processed.
+//
 // June 24, 2022, 7.53
-// In Undo.cpp comment out addition of LF char when CR is detected
+// In ThreadOnChange.cpp comment out addition of LF char when CR is detected
 // It was causing Undo of new lines in RTF mode to fail, deleting
 // an extra char, usually a Ctrl-C for colors.
 //
@@ -253,7 +258,7 @@ enum TMyDuplicates {
 #define WEBEXPORT_B_HOME false
 
 // Colorize.ini file
-#define DEF_WEBSITE ("https://github.com/dxzl/YahCoLoRiZe")
+#define DEF_WEBSITE ("https://github.com/dxzl/YahCoLoRiZe-rad-studio/releases")
 #define DEF_EMAIL ("dxzl@live.com")
 #define DEF_SONGFORMAT ("Playing: artist, album, C03,07song")
 
