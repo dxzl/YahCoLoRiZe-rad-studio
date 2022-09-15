@@ -126,14 +126,14 @@ void __fastcall TWingEditForm::FormCreate(TObject *Sender)
   // "Press ENTER to exit and save.\n"
   // "Press ESC to exit without saving.\n"
   // "Right-click for the pop-up menu.";
-  Edit1->Hint = String(EDITMSG[12]);
+  Edit1->Hint = EDITMSG[12];
 
   // EDITMSG[13] =
   //  "Left-click an item to edit it.\n"
   //  "Right-click for the popup menu.\n"
   //  "Check the box to enable the wing-pair.\n"
   //  "Press the ESC key to abort.";
-  String S = String(EDITMSG[13]);
+  String S = EDITMSG[13];
 
   Lwlb->Hint = S;
   Lwlb->ShowHint = true;
@@ -141,7 +141,7 @@ void __fastcall TWingEditForm::FormCreate(TObject *Sender)
   Rwlb->ShowHint = true;
 
   // EDITMSG[14] = "Click to Edit";
-  S = String(EDITMSG[14]);
+  S = EDITMSG[14];
 
   TopBottomEdit->Hint = S;
   TopBottomEdit->ShowHint = true;
@@ -151,18 +151,18 @@ void __fastcall TWingEditForm::FormCreate(TObject *Sender)
   RightSideEdit->ShowHint = true;
 
   // Set Labels/Captions
-  Caption = String(EDITMSG[0]);
-  Label5->Caption = String(EDITMSG[1]);
-  Label6->Caption = String(EDITMSG[2]);
-  Label7->Caption = String(EDITMSG[3]);
-  Label8->Caption = String(EDITMSG[4]);
-  Label9->Caption = String(EDITMSG[5]);
-  Label10->Caption = String(EDITMSG[6]);
-  TopBottomBorders->Caption = String(EDITMSG[7]);
-  SideBorders->Caption = String(EDITMSG[8]);
-  ExitButton->Caption = String(EDITMSG[9]);
-  Button2->Caption = String(EDITMSG[10]);
-  Button3->Caption = String(EDITMSG[11]);
+  Caption = EDITMSG[0];
+  Label5->Caption = EDITMSG[1];
+  Label6->Caption = EDITMSG[2];
+  Label7->Caption = EDITMSG[3];
+  Label8->Caption = EDITMSG[4];
+  Label9->Caption = EDITMSG[5];
+  Label10->Caption = EDITMSG[6];
+  TopBottomBorders->Caption = EDITMSG[7];
+  SideBorders->Caption = EDITMSG[8];
+  ExitButton->Caption = EDITMSG[9];
+  Button2->Caption = EDITMSG[10];
+  Button3->Caption = EDITMSG[11];
 
   try
   {
@@ -1445,7 +1445,7 @@ void __fastcall TWingEditForm::HideEdit(void)
     //  "Right-click for the popup menu.\n"
     //  "Check the box to enable the wing-pair.\n"
     //  "Press the ESC key to abort.";
-    String S = String(EDITMSG[13]);
+    String S = EDITMSG[13];
     Lwlb->Hint = S;
     Rwlb->Hint = S;
   }
@@ -1470,7 +1470,7 @@ void __fastcall TWingEditForm::ShowEdit(WideString Text, int Type)
   // Set hint message to require only a single-click...
 
   // EDITMSG[15] = "Left-Click to Edit. Right-click for the popup menu.";
-  String S = String(EDITMSG[15]);
+  String S = EDITMSG[15];
   Lwlb->Hint = S;
   Rwlb->Hint = S;
 
@@ -2478,7 +2478,7 @@ void __fastcall TWingEditForm::ImportFromTextFile1Click(TObject *Sender)
     }
   catch(...)
   {
-    utils.ShowMessageU(String(EDITMSG[21]));
+    utils.ShowMessageU(EDITMSG[21]);
   }
 }
 //---------------------------------------------------------------------------
@@ -2499,7 +2499,7 @@ void __fastcall TWingEditForm::ExportToTextFile1Click(TObject *Sender)
     bSaveFileDialogOpen = true;
 
     WideString wFile = utils.GetSaveFileName(wFilter, L"Wings.txt",
-                                   dts->DeskDir, String(EDITMSG[22]));
+                                   dts->DeskDir, EDITMSG[22]);
 
     bSaveFileDialogOpen = false;
 
@@ -2554,7 +2554,7 @@ void __fastcall TWingEditForm::ExportToTextFile1Click(TObject *Sender)
 
     delete ExportList;
   }
-  catch(...) { utils.ShowMessageU(String(EDITMSG[23])); }
+  catch(...) { utils.ShowMessageU(EDITMSG[23]); }
 }
 //---------------------------------------------------------------------------
 void __fastcall TWingEditForm::ListBoxExit(TObject *Sender)

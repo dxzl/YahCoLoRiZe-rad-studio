@@ -15,8 +15,12 @@
 #ifndef MainH
 #define MainH
 //---------------------------------------------------------------------------
-#define REVISION "7.54" // version that appears when you click "about"
+#define REVISION "7.55" // version that appears when you click "about"
 
+// September 14, 2022, 7.55
+// Fine/Replace dialog controls were reversed. Fix some Utf-8 string
+// issues for the french version.
+//
 // August 12, 2022, 7.54
 // Help link was to wrong github release page...
 // Added warning when doing export of web-page and text has been selected (highlighted).

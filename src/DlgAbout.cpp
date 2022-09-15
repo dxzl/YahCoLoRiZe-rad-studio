@@ -28,7 +28,7 @@ __fastcall TAboutForm::TAboutForm(TComponent* Owner)
   RevLabel->Caption = String(REVISION) + "." + String(DEF_PRODUCT_ID) +
                             "." + String(DEF_SUPER_REV);
 //  String Year = String(__DATE__);
-  Label1->Caption = "Authored by:\nMister Swift\n" + String(OUR_COMPANY) +
+  Label1->Caption = "Authored by:\nScott Swift\n" + String(OUR_COMPANY) +
                       "\n" + String(__DATE__);
 #if LICENSE_ON
   EnterKeyButton->Enabled = true;
@@ -91,16 +91,16 @@ void __fastcall TAboutForm::DisplayDaysRemaining( void )
   if ( DaysRem >= 0 || DaysRem > LK_DISPLAY_UNLIMITTED_DAYS )
     {
     if ( DaysRem >= LK_DISPLAY_UNLIMITTED_DAYS )
-      S += String(KEYSTRINGS[19]); // (Unlimited License)
+      S += KEYSTRINGS[19]; // (Unlimited License)
     else if ( DaysRem == 0 )
-      S += String(KEYSTRINGS[1]); // (Invalid License)
+      S += KEYSTRINGS[1]; // (Invalid License)
     else
-      S += String(KEYSTRINGS[0]) + String(DaysRem); // License Days:
+      S += KEYSTRINGS[0] + String(DaysRem); // License Days:
     }
   else
-    S = String(KEYSTRINGS[1]); // (Invalid License)
+    S = KEYSTRINGS[1]; // (Invalid License)
 #else
-  S += String(KEYSTRINGS[19]); // (Unlimited License)
+  S += KEYSTRINGS[19]; // (Unlimited License)
 #endif
 
   Caption = S;
